@@ -1,0 +1,6 @@
+requests
+dnspython
+python-nmap
+sslyze
+pyyaml
+

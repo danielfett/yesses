@@ -1,0 +1,70 @@
+statefile: 'sectool.state'
+
+data:
+  Good-IPs:
+    - 5.9.29.41
+    - 2a01:4f8:161:112e::2
+    - 92.222.78.150
+    - 2001:16b8:1d01:6ad7:3681:c4ff:fe3b:86c7
+  Homoglyph-Domains:
+    - def.me
+    - d3ff.me
+    - d33f.me
+  DNS-Resolvers:
+    - 1.1.1.1
+    - 8.8.8.8
+    - 9.9.9.9
+
+run:
+  - discover Domains and IPs:
+      seeds:
+        - d3f.me
+      resolvers: use DNS-Resolvers
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+  - expect:
+      - no added IPs, otherwise alert high
+      - no added Domains, otherwise alert high
+      - no added DNS-Entries, otherwise alert high
+      - all IPs in Good-IPs, otherwise alert high
+  - discover Domains and IPs:
+      seeds: use Homoglyph-Domains
+      resolvers: use DNS-Resolvers
+    find:
+      - Domains as Homoglyph-Matches
+  - expect:
+      - no Homoglyph-Matches, otherwise alert high
+
+      
+  - scan Ports:
+      protocols:
+        - tcp
+      ports: 80,443
+      ips: use IPs
+    find:
+      - Host-Ports
+      - HTTP-IPs
+      - HTTPS-IPs
+  - expect:
+      - no added Host-Ports, otherwise alert very high
+  - scan Webservers:
+      ips: use HTTP-IPs and HTTPS-IPs
+      domains: use Domains
+    find:
+      - Web-Origins
+  - expect:
+      - no added Web-Origins, otherwise alert high
+  - scan Web Security Settings:
+      hosts: use Web-Origins
+  - scan Page Availability:
+      timeout: 10
+      urls:
+        - https://mail.server.d3f.me
+      find:
+        - Page-Timeouts
+  - expect:
+      - no Page-Timeouts, otherwise alert high
+      
+  
