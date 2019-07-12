@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # Discover domains
 # -> If new/changed, notify!
 # Discover IPs behind domains
@@ -9,7 +9,7 @@
 # -> If new/changed, notify!
 #
 
-from bogosec import Config, State
+from bogosec import Config, State, verbs, FindingsList
 from importlib import import_module
 import re
 
@@ -19,11 +19,16 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('run')
 
 class BogoSec:
+
+    
     def __init__(self, configfile):
         self.config = Config(configfile)
-        self.state = State(self.config.data['statefile'])
-        self.previous_results = self.state.data
-        self.results = self.config.data.get('data', {})
+        self.findings = FindingsList(
+            self.config.data['statefile'],
+            self.config.data.get('data', {})
+        )
+        self.verbs = { name: getattr(verbs, name) for name in
+                       dir(verbs) if not name.startswith('__') }
         
     def run(self):
         for step in self.config.data['run']:
@@ -33,50 +38,29 @@ class BogoSec:
 
             kwargs_modified = {}
             for name, value in kwargs.items():
-                if type(value) is str and value.startswith('use '):
-                    keys = value.split(' ', 1)[1].split(' and ')
-                    all_entries = []
-                    for key in keys:
-                        all_entries += self.results[key]
-                    kwargs_modified[name] = list(set(all_entries))
-                else:
+                try:
+                    kwargs_modified[name] = self.findings.get_from_use_expression(value)
+                except FindingsList.NotAUseExpression:
                     kwargs_modified[name] = value
             
-            results = self.call_class_from_action(
+            temp_findings = self.call_class_from_action(
                 action,
                 *args,
                 **kwargs_modified
             )
-            for result_key in step.get('find', []):
-                if ' as ' in result_key:
-                    result_key, alias_key = result_key.split(' as ')
-                else:
-                    alias_key = result_key
-                if not result_key in results:
-                    raise Exception(f"Did not find key {result_key} in output of {action}.")
-                if alias_key in self.results:
-                    raise Exception(f"Taking results in key {alias_key} (orig. {result_key}) from output of {action} would overwrite existing results.")
-                self.results[alias_key] = results[result_key]
+            verbs.execute(step, temp_findings, self.findings)
 
     def save(self):
-        self.state.data = self.results
+        self.state.data = self.findings
         self.state.save()
             
     def call_class_from_action(self, action, *args, **kwargs):
-        if not ' ' in action:  # single verbs, such as 'expect'
-            return getattr(import_module(f'bogosec'), action)(
-                self.results,
-                self.previous_results,
-                *args,
-                **kwargs
-            )
-        else:
-            mod, cls = self.split_action(action)
-            res = getattr(import_module(f'bogosec.{mod}'), cls)(
-                *args,
-                **kwargs
-            ).run()
-            return res
+        mod, cls = self.split_action(action)
+        res = getattr(import_module(f'bogosec.{mod}'), cls)(
+            *args,
+            **kwargs
+        ).run()
+        return res
 
     @staticmethod
     def split_action(action):
@@ -89,7 +73,7 @@ class BogoSec:
         
     #def notify(self):
     #    n = NotifyChangedCollection()
-    #    messages = [n.compare_lists(self.results['discover']['domains_and_ips']['ips']
+    #    messages = [n.compare_lists(self.findings['discover']['domains_and_ips']['ips']
 
 
 if __name__ == "__main__":

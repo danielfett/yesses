@@ -24,17 +24,18 @@ run:
       - IPs
       - Domains
       - DNS-Entries
-  - expect:
+    expect:
       - no added IPs, otherwise alert high
       - no added Domains, otherwise alert high
       - no added DNS-Entries, otherwise alert high
       - all IPs in Good-IPs, otherwise alert high
+      
   - discover Domains and IPs:
       seeds: use Homoglyph-Domains
       resolvers: use DNS-Resolvers
     find:
       - Domains as Homoglyph-Matches
-  - expect:
+    expect:
       - no Homoglyph-Matches, otherwise alert high
 
       
@@ -47,24 +48,53 @@ run:
       - Host-Ports
       - HTTP-IPs
       - HTTPS-IPs
-  - expect:
+    expect:
       - no added Host-Ports, otherwise alert very high
+      
   - scan Webservers:
       ips: use HTTP-IPs and HTTPS-IPs
       domains: use Domains
     find:
       - Web-Origins
-  - expect:
+    expect:
       - no added Web-Origins, otherwise alert high
+
+  - discover Web URIs:
+      origins: use Web-Origins
+      recursive: yes
+      randomized: yes
+      limit: 200
+    find:
+      - Web-URIs
+    expect:
+      - no Error-URIs, otherwise alert high
+
+  - scan TLS Settings:
+      origins: use Web-Origins
+    find:
+      - Not-Modern-Endpoints
+      - Not-Intermediate-Endpoints
+    expect:
+      - no Not-Intermediate-Endpoints, otherwise alert high
+    
+      
+  - scan Web URIs:
+      uris: use Web-URIs
+    find:
+      - Error-URIs
+      - Success-URIs
+      - Missing-STS-URIs
+      - HTTP-URIs
+      
   - scan Web Security Settings:
       hosts: use Web-Origins
   - scan Page Availability:
       timeout: 10
       urls:
         - https://mail.server.d3f.me
-      find:
+    find:
         - Page-Timeouts
-  - expect:
+    expect:
       - no Page-Timeouts, otherwise alert high
       
   
