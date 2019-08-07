@@ -11,11 +11,14 @@
 
 from bogosec import Config, State, verbs, FindingsList
 from importlib import import_module
+from io import StringIO as StringBuffer
+
 import re
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+logging.basicConfig(level=logging.INFO, format=format)
+        
 log = logging.getLogger('run')
 
 class BogoSec:
@@ -23,15 +26,18 @@ class BogoSec:
     
     def __init__(self, configfile):
         self.config = Config(configfile)
+
         self.findings = FindingsList(
-            self.config.data['statefile'],
-            self.config.data.get('data', {})
+            self.config.statefilepath,
+            self.config.initial_data
         )
-        self.verbs = { name: getattr(verbs, name) for name in
-                       dir(verbs) if not name.startswith('__') }
+        self.log_buffer = StringBuffer()
+        log_handler = logging.StreamHandler(self.log_buffer)
+        logging.getLogger().addHandler(log_handler)
+        
         
     def run(self):
-        for step in self.config.data['run']:
+        for step in self.config.steps:
             action = list(step.keys())[0]
             args = step[action] if type(step[action]) == list else []
             kwargs = step[action] if type(step[action]) == dict else {}
@@ -42,7 +48,8 @@ class BogoSec:
                     kwargs_modified[name] = self.findings.get_from_use_expression(value)
                 except FindingsList.NotAUseExpression:
                     kwargs_modified[name] = value
-            
+
+            log.info(f"Step: {action}")
             temp_findings = self.call_class_from_action(
                 action,
                 *args,
@@ -51,8 +58,7 @@ class BogoSec:
             verbs.execute(step, temp_findings, self.findings)
 
     def save(self):
-        self.state.data = self.findings
-        self.state.save()
+        self.findings.save()
             
     def call_class_from_action(self, action, *args, **kwargs):
         mod, cls = self.split_action(action)
@@ -80,8 +86,10 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Tool to scan for network and web security features')
     parser.add_argument('configfile', help='Config file in yaml format')
+    parser.add_argument('--verbose', '-v', action='count', help='Increase debug level')
     args = parser.parse_args()
-    
+    if args.verbose:
+        logging.setLevel(logging.DEBUG)
     s = BogoSec(args.configfile)
     s.run()
     s.save()

@@ -11,4 +11,14 @@ class Config:
         else:
             raise Exception("Config file does not exist.")
 
+        self.initial_data = self.data.get('data', {})
+        if 'statefile' in self.data:
+            self.statefilepath = self.data['statefile']
+        else:
+            self.statefilepath = self.configfilepath.with_suffix(".state")
+        self.steps = self.data['run']
+        
+        
+        
+
         

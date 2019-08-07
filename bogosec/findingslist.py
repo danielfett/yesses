@@ -25,7 +25,8 @@ class FindingsList:
         return self.previous_findings.get(key, default)
         
     def save(self):
-        pass
+        self.persist.data = self.current_findings
+        self.persist.save()
 
     def get_from_use_expression(self, use_expr):
         if type(use_expr) is not str or not use_expr.startswith('use '):

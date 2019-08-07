@@ -14,6 +14,8 @@ class Webservers:
 
     def run(self):
         output = []
+        output_secure = []
+        tls_domains = []
         for ip in self.ips:
             for domain in self.domains:
                 for protocol in ('http', 'https'):
@@ -24,6 +26,14 @@ class Webservers:
                         except requests.exceptions.RequestException as e:
                             log.debug(f"Exception {e} on {url}, ip={ip}")
                         else:
-                            output.append((url, ip))
+                            output.append((url, domain, ip))
+                            if protocol == 'https':
+                                output_secure.append((url, domain, ip))
+                                tls_domains.append(domain)
                             log.info(f"Found webserver {url} on {ip}")
-        return {'Web-Origins': output}
+        return {
+            'Web-Origins': output,
+            'TLS-Web-Origins': output_secure,
+            'TLS-Domains': tls_domains,
+            
+        }

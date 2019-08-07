@@ -1,6 +1,5 @@
 requests
 dnspython
 python-nmap
-sslyze
 pyyaml
-
+git+https://github.com/takeshixx/python-ssllabs.git

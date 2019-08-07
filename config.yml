@@ -1,6 +1,8 @@
 statefile: 'sectool.state'
 
 data:
+  Domain-Seeds:
+    - d3f.me
   Good-IPs:
     - 5.9.29.41
     - 2a01:4f8:161:112e::2
@@ -17,8 +19,7 @@ data:
 
 run:
   - discover Domains and IPs:
-      seeds:
-        - d3f.me
+      seeds: use Domain-Seeds
       resolvers: use DNS-Resolvers
     find:
       - IPs
@@ -56,26 +57,24 @@ run:
       domains: use Domains
     find:
       - Web-Origins
+      - TLS-Web-Origins
+      - TLS-Domains
     expect:
       - no added Web-Origins, otherwise alert high
 
-  - discover Web URIs:
-      origins: use Web-Origins
-      recursive: yes
-      randomized: yes
-      limit: 200
-    find:
-      - Web-URIs
-    expect:
-      - no Error-URIs, otherwise alert high
-
   - scan TLS Settings:
-      origins: use Web-Origins
+      domains: use TLS-Domains
+      allowed_grades:
+        - 'A'
+        - 'A+'
     find:
-      - Not-Modern-Endpoints
-      - Not-Intermediate-Endpoints
+      - TLS-Grade-Error
+      - TLS-Grade-Fail
+      - TLS-Grade-Success-IPs
     expect:
-      - no Not-Intermediate-Endpoints, otherwise alert high
+      - no TLS-Grade-Fail, otherwise alert high
+      - no TLS-Grade-Error, otherwise alert high
+      - all TLS-Grade-Success-IPs in Good-IPs, otherwise alert high
     
       
   - scan Web URIs:
