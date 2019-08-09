@@ -1,5 +1,6 @@
 from bogosec import State
 from bogosec.utils import clean_expression
+from functools import reduce
     
 class FindingsList:
 
@@ -36,4 +37,5 @@ class FindingsList:
         all_entries = []
         for key in keys:
             all_entries += self.current_findings.get(key)
-        return list(set(all_entries))
+        unique = reduce(lambda l, x: l if x in l else l+[x], all_entries, [])
+        return unique

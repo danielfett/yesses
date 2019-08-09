@@ -35,5 +35,4 @@ class Webservers:
             'Web-Origins': output,
             'TLS-Web-Origins': output_secure,
             'TLS-Domains': tls_domains,
-            
         }

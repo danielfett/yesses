@@ -9,7 +9,7 @@
 # -> If new/changed, notify!
 #
 
-from bogosec import Config, State, verbs, FindingsList
+from bogosec import Config, State, verbs, FindingsList, alerts
 from importlib import import_module
 from io import StringIO as StringBuffer
 

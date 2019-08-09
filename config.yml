@@ -75,16 +75,7 @@ run:
       - no TLS-Grade-Fail, otherwise alert high
       - no TLS-Grade-Error, otherwise alert high
       - all TLS-Grade-Success-IPs in Good-IPs, otherwise alert high
-    
-      
-  - scan Web URIs:
-      uris: use Web-URIs
-    find:
-      - Error-URIs
-      - Success-URIs
-      - Missing-STS-URIs
-      - HTTP-URIs
-      
+          
   - scan Web Security Settings:
       hosts: use Web-Origins
   - scan Page Availability:
@@ -97,3 +88,33 @@ run:
       - no Page-Timeouts, otherwise alert high
       
   
+      
+output:
+  version: 1
+  formatters:
+    default:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    alert:
+      format: "[%(asctime)s]\n%(levelname)s: %(message)s"
+  root:
+    level: DEBUG
+    handlers:
+      - console
+      - file_debug
+      - file_alerts
+  handlers:
+    console:
+      class : logging.StreamHandler
+      formatter: default
+      level   : WARNING
+      stream  : ext://sys.stdout
+    file_debug:
+      class : logging.FileHandler
+      formatter: default
+      filename: bogosec.debug.log
+      level   : DEBUG
+    file_alerts:
+      class : logging.FileHandler
+      formatter: alert
+      filename: bogosec.alerts.log
+      level   : ALERT_LOW

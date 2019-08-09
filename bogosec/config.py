@@ -1,5 +1,6 @@
 import yaml
 from pathlib import Path
+from logging.config import dictConfig
 
 class Config:
     def __init__(self, filename):
@@ -12,13 +13,14 @@ class Config:
             raise Exception("Config file does not exist.")
 
         self.initial_data = self.data.get('data', {})
+        
         if 'statefile' in self.data:
             self.statefilepath = self.data['statefile']
         else:
             self.statefilepath = self.configfilepath.with_suffix(".state")
-        self.steps = self.data['run']
-        
-        
-        
 
+        self.steps = self.data['run']
+
+        if 'output' in self.data:
+            dictConfig(self.data['output'])
         
