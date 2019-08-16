@@ -1,6 +1,7 @@
 import re
 import logging
 from bogosec import alerts
+from bogosec import FindingsList
 
 from bogosec.utils import clean_expression
 
@@ -68,4 +69,4 @@ def check_any(new_list, old_list):
 
 def action_alert(rule, findings, action_args):
     level = alerts.mapping[action_args]
-    logging.log(level, f"VIOLATION OF '{rule}'.\nSupporting evidence: '{findings!r}'\n")
+    logging.log(level, f"VIOLATION OF '{rule}'.\n{FindingsList.dump_findings(findings)}\n")

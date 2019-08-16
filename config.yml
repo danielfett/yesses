@@ -78,14 +78,22 @@ run:
           
   - scan Web Security Settings:
       hosts: use Web-Origins
-  - scan Page Availability:
-      timeout: 10
-      urls:
-        - https://mail.server.d3f.me
     find:
-        - Page-Timeouts
+      - Non-TLS-URLs
+      - Missing-HTTPS-Redirect-URLs
+      - Redirect-to-non-HTTPS-URLs
+      - Disallowed-Header-URLs
+      - Missing-Header-URLs
+      - Disallowed-Method-URLs
+      - Insecure-Cookie-URLs
     expect:
-      - no Page-Timeouts, otherwise alert high
+      - no Non-TLS-URLs, otherwise alert high
+      - no Missing-HTTPS-Redirect-URLs, otherwise alert high
+      - no Redirect-to-non-HTTPS-URLs, otherwise alert high
+      - no Disallowed-Header-URLs, otherwise alert medium
+      - no Missing-Header-URLs, otherwise alert medium
+      - no Disallowed-Method-URLs, otherwise alert medium
+      - no Insecure-Cookie-URLs, otherwise alert medium
       
   
       

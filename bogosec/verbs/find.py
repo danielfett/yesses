@@ -10,6 +10,6 @@ def find(step_contents, temp_findings, final_findings):
             finding_key = finding_key_or_key_with_alias
             
         if not finding_key in temp_findings:
-            raise Exception(f"Did not find key {finding_key} in output of {action}.")
+            raise Exception(f"Did not find key {finding_key} in output {step_contents}.")
 
         final_findings.set(alias_key, temp_findings[finding_key])
