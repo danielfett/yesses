@@ -1,5 +1,3 @@
-statefile: 'sectool.state'
-
 data:
   Domain-Seeds:
     - d3f.me

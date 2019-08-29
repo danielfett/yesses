@@ -15,7 +15,7 @@ class Ports:
         'HTTPS': 443
     }
     
-    def __init__(self, protocols, ips, ports=None):
+    def __init__(self, ips, protocols=['tcp'], ports=None):
         self.ips = ips
         self.protocols = protocols
         self.ports = ports
@@ -30,7 +30,7 @@ class Ports:
             #results[f'{protocol}-Ports'] = [x for x in results['Host-Ports'] if x[2] == port]
             results[f'{protocol}-IPs'] = list(set(x[0] for x in results['Host-Ports'] if x[2] == port))
 
-        results[f'Other-Ports'] = list(set(x[0] for x in results['Host-Ports'] if x[2] not in self.named_ports.values()))
+        results[f'Other-Port-IPs'] = list(set(x[0] for x in results['Host-Ports'] if x[2] not in self.named_ports.values()))
             
         return results
 

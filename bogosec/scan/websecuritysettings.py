@@ -44,6 +44,10 @@ class WebSecuritySettings:
             'origin': 'https:',
         },
         {
+            'header': 'Content-Security-Policy',
+            'origin': 'https:',
+        },
+        {
             'header': 'Expect-CT',
             'value_expr': 'value.startswith("enforce,") and max_age > 86400',
             'origin': 'https:',
