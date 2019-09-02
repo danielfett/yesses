@@ -9,11 +9,8 @@
 # -> If new/changed, notify!
 #
 
-from bogosec import Config, State, verbs,  alerts, FindingsList
-from importlib import import_module
+from bogosec import Step, Config, FindingsList, AlertsList
 from io import StringIO as StringBuffer
-
-import re
 
 import logging
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -35,6 +32,7 @@ class BogoSec:
         
         
     def run(self, do_resume, repeat):
+        alerts = AlertsList()
         log.warning(f"Starting run. do_resume={do_resume}, repeat={repeat}")
         if do_resume:
             skip_to = self.findings.load_resume()
@@ -50,56 +48,18 @@ class BogoSec:
 
         if do_resume or repeat:
             log.info(f"Resuming from step {skip_to}.")
-        for step, step_number in zip(self.config.steps, range(len(self.config.steps))):
+        for step_raw, step_number in zip(self.config.steps, range(len(self.config.steps))):
             if not (do_resume or repeat) or step_number > skip_to:
-                self.execute_step(step)
+                step = Step(step_raw)
+                log.info(f"Step: {step.action}")
+                alerts.collect(step.execute(self.findings))
             self.findings.save_resume(step_number)
 
-    def execute_step(self, step):        
-        action = list(step.keys())[0]
-        log.info(f"Step: {action}")
-        args = step[action] if type(step[action]) == list else []
-        kwargs = step[action] if type(step[action]) == dict else {}
-
-        kwargs_modified = {}
-        for name, value in kwargs.items():
-            try:
-                kwargs_modified[name] = self.findings.get_from_use_expression(value)
-            except FindingsList.NotAUseExpression:
-                kwargs_modified[name] = value
-
-        temp_findings = self.call_class_from_action(
-            action,
-            *args,
-            **kwargs_modified
-        )
-        verbs.execute(step, temp_findings, self.findings)
-
+        return alerts
 
     def save(self):
         self.findings.save()
             
-    def call_class_from_action(self, action, *args, **kwargs):
-        mod, cls = self.split_action(action)
-        res = getattr(import_module(f'bogosec.{mod}'), cls)(
-            *args,
-            **kwargs
-        ).run()
-        return res
-
-    @staticmethod
-    def split_action(action):
-        verb, subj = action.split(' ', 1)
-        def uc(match):
-            return match.group(1).upper()
-        cls = re.sub('( [a-z])', uc, subj)
-        cls = cls.replace(' ', '')
-        return verb, cls
-        
-    #def notify(self):
-    #    n = NotifyChangedCollection()
-    #    messages = [n.compare_lists(self.findings['discover']['domains_and_ips']['ips']
-
 
 if __name__ == "__main__":
     import argparse

@@ -55,16 +55,3 @@ class FindingsList:
             all_entries += self.get(key)
         unique = reduce(lambda l, x: l if x in l else l+[x], all_entries, [])
         return unique
-
-    @staticmethod
-    def dump_findings(findings):
-        def tuple_to_list(inp):
-            if isinstance(inp, tuple) or isinstance(inp, set):
-                inp = list(inp)
-            if isinstance(inp, list):
-                inp = list(map(tuple_to_list, inp))
-            if isinstance(inp, dict):
-                inp = {k:tuple_to_list(v) for k, v in inp.items()}
-            return inp
-        
-        return dump(tuple_to_list(findings), default_flow_style=False)

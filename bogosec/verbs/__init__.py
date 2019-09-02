@@ -9,7 +9,7 @@ def execute(step, temp_findings, final_findings):
     ] # order is important: 'find' must be run before 'expect'
 
     for verb_name, verb_function in verbs_order:
-        if not verb_name in step:
+        if not step.has_verb(verb_name):
             continue
-        verb_function(step[verb_name], temp_findings, final_findings)
+        yield from verb_function(step, step.get_verb_args(verb_name), temp_findings, final_findings)
 
