@@ -1,4 +1,4 @@
-# BogoSec #
+# yesses #
 
 Simple tool to enumerate domains and IPs and test those domains and
 IPs for basic network and web security properties.
@@ -329,7 +329,7 @@ Cookies are only considered "secure" if they have the following properties:
 
 ## Output Control ##
 
-Using the `output` section in the configuration file, the output of Bogosec can be control. Please refer to the [Python Configuration Dictionary Schema][1] for details. Bogosec's alert levels are defined as `ALERT_LOW`, `ALERT_MEDIUM`, `ALERT_HIGH`, and `ALERT_VERY_HIGH`.
+Using the `output` section in the configuration file, the output of yesses can be controlled. Please refer to the [Python Configuration Dictionary Schema][1] for details. yesses's alert levels are defined as `ALERT_LOW`, `ALERT_MEDIUM`, `ALERT_HIGH`, and `ALERT_VERY_HIGH`.
 
 ### Example ###
 

@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format=format)
         
 log = logging.getLogger('run')
 
-class BogoSec:
+class YessesRunner:
 
     
     def __init__(self, configfile):
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    s = BogoSec(args.configfile)
+    s = YessesRunner(args.configfile)
     s.run(args.resume, args.repeat)
     s.save()
 
