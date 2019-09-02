@@ -15,10 +15,10 @@ class Alert:
         def parse(cls, text):
             return cls[text.strip().upper().replace(' ', '_')]
 
-    severity = Severity.MEDIUM
     violated_rule: str
     findings: list
     step: object
+    severity: str = Severity.MEDIUM
 
     def __str__(self):
         return f"Violation of rule: {self.violated_rule}\n{self.dump_findings(self.findings)}"

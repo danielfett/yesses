@@ -21,6 +21,7 @@ class DomainsAndIPs:
 
     def run(self):
         self.domains = set(self.seeds)
+        self.ignored_domains = set()
         for d in self.seeds:
             self.domains |= self.domains_from_ctlog(d)
         log.info(f'Domains before expanding: {self.domains}')
@@ -35,6 +36,7 @@ class DomainsAndIPs:
             'Domains': self.domains,
             'IPs': self.ips,
             'DNS-Entries': self.domains_to_ips,
+            'Ignored-Domains': self.ignored_domains,
         }
 
     def domains_from_ctlog(self, query_domain):
@@ -65,7 +67,7 @@ class DomainsAndIPs:
                         newdomains.add(candidate)
                         break
                 else:
-                    log.warn(f"CNAME outside search tree: {candidate} - will be omitted!")    
+                    self.ignored_domains |= set(candidate)
                         
         self.domains |= newdomains        
 

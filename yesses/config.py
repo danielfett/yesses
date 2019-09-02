@@ -4,14 +4,10 @@ from logging.config import dictConfig
 from .findingslist import FindingsList
 
 class Config:
-    def __init__(self, filename):
-        self.configfilepath = Path(filename)
-        if self.configfilepath.exists():
-            with self.configfilepath.open() as f:
-                text = f.read()
-            self.data = yaml.load(text)
-        else:
-            raise Exception("Config file does not exist.")
+    def __init__(self, configfile):
+        self.data = yaml.full_load(configfile.read())
+        
+        self.configfilepath = Path(configfile.name)
 
         self.initial_data = self.data.get('data', {})
         

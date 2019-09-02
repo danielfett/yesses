@@ -1,8 +1,7 @@
 import re
 import logging
-from yesses import alerts
+from yesses.alerts import Alert
 from yesses import FindingsList
-
 from yesses.utils import clean_expression
 
 log = logging.getLogger('verbs/expect')

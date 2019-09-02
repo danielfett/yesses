@@ -1,0 +1,25 @@
+<html>
+    <head>
+        <style>
+         .step-raw {
+             white-space: pre; 
+         }
+        </style>
+    </head>
+    <body>
+        <h1>yesses report</h1>
+        {% for alert in alerts %}
+            <h2><span class="violation-of">Violation of</span> {{ alert.violated_rule }}</h2>
+            <p class="step-explain">In step {{ alert.step.action }}</p>
+            <p class="step-raw">{{- alert.step.raw -}}</p>
+            <ul>
+                {%- for item in alert.dump_findings recursive %}
+                    <li>{{ item }}
+                        {%- if item.children -%}
+                            <ul>{{ loop(item.children) }}</ul>
+                        {%- endif %}</li>
+                {%- endfor %}
+            </ul>
+        {% endfor %}
+    </body>
+</html>

@@ -9,7 +9,7 @@ class State:
         else:
             with self.statefilepath.open() as f:
                 text = f.read()
-            self.data = yaml.load(text)
+            self.data = yaml.full_load(text)
 
     def save(self):
         with self.statefilepath.open('w') as f:

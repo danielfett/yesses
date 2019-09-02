@@ -72,11 +72,13 @@ addresses from A and AAAA records.
 
 
 #### Returns ####
-| Field         | Contents                           |
-|---------------|------------------------------------|
-| `Domains`     | List of domains found              |
-| `IPs`         | List of IPs found                  |
-| `DNS-Entries` | Pairs of (domain, IP) associations |
+| Field             | Contents                                                                                                                                         |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Domains`         | List of domains found                                                                                                                            |
+| `IPs`             | List of IPs found                                                                                                                                |
+| `DNS-Entries`     | Pairs of (domain, IP) associations                                                                                                               |
+| `Ignored-Domains` | CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results. |
+
 
 #### Example ####
 This examples expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.

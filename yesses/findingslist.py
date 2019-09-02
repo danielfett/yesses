@@ -2,7 +2,6 @@ import logging
 from .state import State
 from yesses.utils import clean_expression
 from functools import reduce
-from yaml import dump
     
 log = logging.getLogger('findingslist')
 
@@ -16,6 +15,7 @@ class FindingsList:
         self.persist = State(persist_path)
         self.resume = State(resume_path)
         self.previous_findings = self.persist.data
+        self.ignore_existing = False
 
     def get(self, key):
         if not key in self.current_findings:
@@ -23,7 +23,7 @@ class FindingsList:
         return self.current_findings[key]
 
     def set(self, key, value):
-        if key in self.current_findings:
+        if not self.ignore_existing and key in self.current_findings:
             raise Exception(f"Storing findings in key {key} would overwrite existing findings.")
         self.current_findings[key] = value
 
@@ -41,6 +41,7 @@ class FindingsList:
 
     def load_resume(self):
         log.debug("Loading findings list resume data")
+        self.ignore_existing = True
         self.current_findings = self.resume.data
         return self.resume.data['_step']
 

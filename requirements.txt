@@ -3,3 +3,4 @@ dnspython
 python-nmap
 pyyaml
 git+https://github.com/takeshixx/python-ssllabs.git
+jinja2

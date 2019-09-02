@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
-# Discover domains
-# -> If new/changed, notify!
-# Discover IPs behind domains
-# -> If new/changed, notify!
-# Discover ports open on IPs
-# -> If new/changed, notify!
-# Discover cipher suites available on these IPs, with domains.
-# -> If new/changed, notify!
-#
-
-from yesses import Step, Config, FindingsList, AlertsList
-from io import StringIO as StringBuffer
 
 import logging
+import sys
+
+from yesses import Step, Config, AlertsList
+from io import StringIO as StringBuffer
+
 format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=format)
         
@@ -64,15 +57,18 @@ class YessesRunner:
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Tool to scan for network and web security features')
-    parser.add_argument('configfile', help='Config file in yaml format')
+    parser.add_argument('configfile', help='Config file in yaml format', type=argparse.FileType('r'))
     parser.add_argument('--verbose', '-v', action='count', help='Increase debug level')
     parser.add_argument('--resume', '-r', action='store_true', help='Resume scanning from existing resumefile', default=None)
     parser.add_argument('--repeat', type=int, metavar='N', help='Repeat last N steps of run (for debugging). Will inhibit warnings of duplicate output variables.', default=None)
+    parser.add_argument('--template-dir', '-t', nargs='?', default='templates', help="Template directory.")
+    parser.add_argument('--format', '-f', nargs='?', default='html', help="What format to use for the output. This defines the subdirectory in the template directory where the main.j2 template file is expected.")
+    parser.add_argument('outfile', nargs='?', type=argparse.FileType('w'), default=sys.stdout)
     args = parser.parse_args()
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     s = YessesRunner(args.configfile)
-    s.run(args.resume, args.repeat)
+    alerts = s.run(args.resume, args.repeat)
     s.save()
-
+    alerts.render(args.outfile, args.format, args.template_dir)
         
