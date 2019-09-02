@@ -1,4 +1,4 @@
-from bogosec.utils import clean_expression
+from yesses.utils import clean_expression
 
 def find(step, verb_contents, temp_findings, final_findings):
     for finding_key_or_key_with_alias in verb_contents:

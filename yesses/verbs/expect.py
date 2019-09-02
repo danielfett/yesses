@@ -1,9 +1,9 @@
 import re
 import logging
-from bogosec import alerts
-from bogosec import FindingsList
+from yesses import alerts
+from yesses import FindingsList
 
-from bogosec.utils import clean_expression
+from yesses.utils import clean_expression
 
 log = logging.getLogger('verbs/expect')
 

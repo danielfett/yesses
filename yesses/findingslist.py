@@ -1,6 +1,6 @@
 import logging
 from .state import State
-from bogosec.utils import clean_expression
+from yesses.utils import clean_expression
 from functools import reduce
 from yaml import dump
     

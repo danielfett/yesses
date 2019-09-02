@@ -1,6 +1,6 @@
 import requests
 import logging
-from bogosec.utils import force_ip_connection
+from yesses.utils import force_ip_connection
 import re
 
 log = logging.getLogger('scan/websecuritysettings')

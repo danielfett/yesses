@@ -1,6 +1,6 @@
 import nmap
 import logging
-from bogosec.utils import force_ip_connection
+from yesses.utils import force_ip_connection
 import requests
 
 log = logging.getLogger('scan/webservers')

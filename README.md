@@ -351,12 +351,12 @@ output:
     file_debug:
       class : logging.FileHandler
       formatter: default
-      filename: bogosec.debug.log
+      filename: yesses.debug.log
       level   : DEBUG
     file_alerts:
       class : logging.FileHandler
       formatter: alert
-      filename: bogosec.alerts.log
+      filename: yesses.alerts.log
       level   : ALERT_LOW
 ```
 

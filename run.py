@@ -9,7 +9,7 @@
 # -> If new/changed, notify!
 #
 
-from bogosec import Step, Config, FindingsList, AlertsList
+from yesses import Step, Config, FindingsList, AlertsList
 from io import StringIO as StringBuffer
 
 import logging
