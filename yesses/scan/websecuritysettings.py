@@ -7,7 +7,7 @@ log = logging.getLogger('scan/websecuritysettings')
 
 class WebSecuritySettings:
     DISALLOWED_METHODS = [
-        'TRACE', 'TRACK', 'DELETE', 'PUT', 'CONNECT'
+        'TRACE', 'TRACK', 'CONNECT'
     ]
     
     DISALLOWED_HEADERS = [
@@ -24,7 +24,7 @@ class WebSecuritySettings:
 
     REQUIRED_HEADERS = [
         {
-            'header': 'Strict-Transport-Security:',
+            'header': 'Strict-Transport-Security',
             'value_expr': 'max_age >= 31536000',
             'reason': 'STS header must be set and be valid for at least one year',
             'origin': 'https:',
@@ -78,9 +78,10 @@ class WebSecuritySettings:
     def run(self):
         for origin in set(self.origins):
             url, domain, ip = origin
-            log.info(f"GET {domain} on IP {ip}")
+            log.info(f"{domain} on IP {ip}")
             with force_ip_connection(ip):
                 try:
+                    log.debug(f'GET {url}')
                     response = requests.get(url, timeout=10)
                 except requests.exceptions.RequestException as e:
                     log.debug(f"Exception {e} on {url}, ip={ip}")
@@ -92,6 +93,7 @@ class WebSecuritySettings:
                 found_disallowed_methods = []
                 for method in self.disallowed_methods:
                     try:
+                        log.debug(f'{method} {url}')
                         response = requests.request(method, url, timeout=10)
                     except requests.exceptions.RequestException as e:
                         log.debug(f"Exception {e} on {url}, ip={ip}")
@@ -100,22 +102,38 @@ class WebSecuritySettings:
                             found_disallowed_methods.append(method)
                 if found_disallowed_methods:
                     self.results['Disallowed-Method-URLs'].append((url, ip, found_disallowed_methods))
-                    
+
+        self.compress_results()
         return self.results
+
+    def compress_results(self):
+        for key in self.results.keys():
+            compressed_results = []
+            for result in self.results[key]:
+                (url, ip, findings) = result
+                canonic_url = re.sub(r"""https://([^:/]+):443/""", r"""https://\1/""", url)
+                canonic_url = re.sub(r"""http://([^:/]+):80/""", r"""http://\1/""", canonic_url)
+
+                for cres in compressed_results:
+                    if cres[0] == canonic_url and cres[2] == findings: # compare URL and results
+                        if not ip in cres[1]:
+                            cres[1].append(ip)
+                        break
+                else:
+                    compressed_results.append(
+                        (canonic_url, [ip], findings)
+                    )
+            self.results[key] = compressed_results
 
     def check_http_settings(self, url, ip, response):
         if len(response.history) == 0:
-            self.results['Missing-HTTPS-Redirect-URLs'].append((url, ip))
+            self.results['Missing-HTTPS-Redirect-URLs'].append((url, ip, ''))
 
     def check_https_settings(self, url, ip, response):
-        for step_response in response.history:
+        for step_response in response.history[1:] + [response]:
             if not step_response.url.startswith('https://'):
-                self.results['Redirect-to-non-HTTPS-URLs'].append((url, ip))
-                self.results['Non-TLS-URLs'].append((step_response.url, ip))
-
-        if not response.url.startswith('https://'):
-            self.results['Redirect-to-non-HTTPS-URLs'].append((url, ip))            
-            self.results['Non-TLS-URLs'].append((response.url, ip))
+                self.results['Redirect-to-non-HTTPS-URLs'].append((url, ip, step_response.url))
+                self.results['Non-TLS-URLs'].append((step_response.url, ip, ''))
 
         self.check_headers(response, ip)
 
@@ -130,7 +148,7 @@ class WebSecuritySettings:
                     return False
             elif 'value_expr' in rule:
                 # check if max_age attribute is set
-                match = re.search('max_age=([0-9]+)', value, re.IGNORECASE)
+                match = re.search('max-age=([0-9]+)', value, re.IGNORECASE)
                 if match:
                     max_age = int(match.group(1))
                 else:

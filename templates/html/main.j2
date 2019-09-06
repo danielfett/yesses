@@ -2,24 +2,150 @@
     <head>
         <style>
          .step-raw {
-             white-space: pre; 
+             white-space: pre;
+             font-family: monospace;
+             padding: 1rem 1rem .75rem;
+             background-color: #fafafa;
+             width: 100%;
+         }
+         .findings > ol {
+             display: table;
+             width: 100%;
+             padding: 0 !important;
+             border: 1px solid #999;
+             counter-reset: section;
+         }
+         .findings > ol > li:before {
+             counter-increment: section;
+             content: "Finding " counter(section);
+             padding: 0.5rem;
+         }
+         .findings > ol > li {
+             display: table-row;
+             padding: 1rem;
+         }
+         .findings > ol > li:nth-child(even) {
+             background: #eee
+         }
+         
+         .findings > ol > li:nth-child(odd) {
+             background: #fff
+         }
+
+         .findings table th {
+             font-weight: bold;
+             text-align: right;
+             vertical-align: top;
+             padding-right: 2ex;
+             width: 20%;
+         }
+
+         .findings table {
+             border: 1px solid #999;
+             margin: 0 0 0.5rem 0;
+             width: 90%;
+         }
+
+         .summarytable th {
+             font-weight: bold;
+             text-align: left;
+         }
+
+         .summarytable {
+             border: 1px solid #999;
+             margin: 0 0 0.5rem 0;
+             width: 30%;
+         }
+
+         .summarytable .number {
+             text-align: right !important;
+         }
+         
+         .rule {
+             font-style: italic;
+         }
+
+         .doc h3 {
+             margin-top: 2rem !important;
+         }
+
+         .finding {
+             font-family: monospace;
          }
         </style>
+        
+        <link rel="stylesheet" href="https://yes.com/docs/_/css/site.css" type="text/css">
     </head>
     <body>
-        <h1>yesses report</h1>
-        {% for alert in alerts %}
-            <h2><span class="violation-of">Violation of</span> {{ alert.violated_rule }}</h2>
-            <p class="step-explain">In step {{ alert.step.action }}</p>
-            <p class="step-raw">{{- alert.step.raw -}}</p>
-            <ul>
-                {%- for item in alert.dump_findings recursive %}
-                    <li>{{ item }}
-                        {%- if item.children -%}
-                            <ul>{{ loop(item.children) }}</ul>
-                        {%- endif %}</li>
-                {%- endfor %}
-            </ul>
-        {% endfor %}
+        <article class="doc">
+            <h1>yesses report</h1>
+            <p>Run started {{ started }}</p>
+            <p>Report generated {{ created }}</p>
+            <p>Summary:
+                <table class="summarytable">
+                    <tr>
+                        <th>
+                            Severity
+                        </th>
+                        <th class="number">
+                            # Alerts
+                        </th>
+                        <th class="number">
+                            # Findings
+                        </th>
+                    </tr>
+                    {% for line in summary %}
+                        <tr>
+                            <td>
+                                {{ line.severity.name }}
+                            </td>
+                            <td class="number">
+                                {{ line.alerts }}
+                            </td>
+                            <td class="number">
+                                {{ line.findings }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </p>
+            {% for alert in alerts %}
+                {% if loop.changed(alert.severity) %}
+                    <h2 class="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h2>
+                {% endif %}
+                <h3><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h3>
+                <details>
+                    <summary class="step-explain">In step #{{ alert.step.number }}, <b>{{ alert.step.action }}</b></summary>
+                    <p class="step-raw">{{- alert.step -}}</p>
+                </details>
+
+                <details class="findings">
+                    <summary>{{ alert.findings|length }} Findings</summary>
+                    
+                    <ol>
+                        {%- for item in alert.findings recursive %}
+                            <li>
+                                {% if item is mapping %}
+                                    <table class="findingstable">
+                                        {% for key, value in item.items() %}
+                                            <tr>
+                                                <th>{{ key }}</th>
+                                                <td>{{ value }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                {% elif item is iterable and item is not string %}
+                                    <ul>
+                                        {{ loop(item) }}
+                                    </ul>
+                                {% else %}
+                                    <span class="finding">{{ item }}</span>
+                                {% endif %}
+                            </li>
+                        {%- endfor %}
+                    </ol>
+                </details>
+            {% endfor %}
+        </article>
     </body>
 </html>

@@ -1,7 +1,6 @@
 import re
 import logging
 from yesses.alerts import Alert
-from yesses import FindingsList
 from yesses.utils import clean_expression
 
 log = logging.getLogger('verbs/expect')
@@ -35,7 +34,7 @@ def expect_rule_unary(step, rule, matches, findings):
     )
     log.debug(f"Rule: {rule}; finding: {res}")
     if (not inverse and not res) or (inverse and res):
-        yield from action_fn(step, rule, res, action_args)
+        yield action_fn(step, rule, res, action_args)
 
         
 def expect_rule_list_compare(step, rule, matches, findings):
@@ -67,7 +66,7 @@ def check_any(new_list, old_list):
     return new_list
 
 def action_alert(step, rule, findings, action_args):
-    yield Alert(
+    return Alert(
         severity=Alert.Severity.parse(action_args),
         violated_rule=rule,
         findings=findings,

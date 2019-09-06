@@ -1,6 +1,8 @@
 requests
 dnspython
 python-nmap
-pyyaml
+pyyaml>=5
 git+https://github.com/takeshixx/python-ssllabs.git
 jinja2
+prettytable
+slackclient

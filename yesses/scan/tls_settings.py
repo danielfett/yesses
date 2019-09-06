@@ -1,12 +1,14 @@
 from ssllabs import SSLLabsAssessment
 import logging
+import re
 
 log = logging.getLogger('scan/tls_settings')
 
 class TLSSettings:
-    def __init__(self, domains=None, allowed_grades=['A', 'A+']):
+    def __init__(self, domains=None, allowed_grades=['A', 'A+'], skip=None):
         self.hosts = domains
         self.allowed_grades = allowed_grades
+        self.skip = skip
 
     def run(self):
         results = {
@@ -18,6 +20,8 @@ class TLSSettings:
             'TLS-Grade-Error':[],
         }
         for host in self.hosts:
+            if self.skip is not None and re.match(self.skip, host):
+                continue
             log.info(f'Starting Qualys TLS scan for {host}')
             
             assessment = SSLLabsAssessment(host=host)
@@ -31,7 +35,7 @@ class TLSSettings:
             )
             for endpoint in info['endpoints']:
                 ip = endpoint['ipAddress']
-                ip_and_host = {'IP': ip, 'Host': host}
+                ip_and_host = {'IP': ip, 'Host': host, 'Grade': endpoint['grade']}
                 if endpoint['statusMessage'] != 'Ready':
                     results['TLS-Grade-Error'].append(ip_and_host)
                     results['TLS-Grade-Error-IPs'].append(ip)

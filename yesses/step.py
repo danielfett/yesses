@@ -1,12 +1,14 @@
 from importlib import import_module
-from yesses import verbs, FindingsList
+from yesses import verbs
+from .findingslist import FindingsList
 import re
 import yaml
 
 
 class Step:
-    def __init__(self, raw):
+    def __init__(self, raw, number):
         self.raw = raw
+        self.number = number
         self.action = list(raw.keys())[0]
         self.action_module, self.action_class = self.split_action(self.action)
 

@@ -2,6 +2,9 @@ import yaml
 from pathlib import Path
 from logging.config import dictConfig
 from .findingslist import FindingsList
+from .alertslist import AlertsList
+from .step import Step
+from .output import Output
 
 class Config:
     def __init__(self, configfile):
@@ -11,24 +14,29 @@ class Config:
 
         self.initial_data = self.data.get('data', {})
         
-        if 'statefile' in self.data:
-            self.statefilepath = self.data['statefile']
-        else:
-            self.statefilepath = self.configfilepath.with_suffix(".state")
+        self.statefilepath = self.configfilepath.with_suffix(".state")
+        self.resumefilepath = self.configfilepath.with_suffix(".resume")
+        self.alertsresumefilepath = self.configfilepath.with_suffix(".alerts")
 
-        if 'resumefile' in self.data:
-            self.resumefilepath = self.data['resumefile']
-        else:
-            self.resumefilepath = self.configfilepath.with_suffix(".resume")
+        self.steps = list(
+            Step(raw, number) for raw, number in zip(self.data['run'], range(len(self.data['run'])))
+        )
 
-        self.steps = self.data['run']
+        self.outputs = list(
+            Output(raw) for raw in self.data['output']
+        )
 
-        if 'output' in self.data:
-            dictConfig(self.data['output'])
+        if 'logging' in self.data:
+            dictConfig(self.data['logging'])
         
     def get_findingslist(self):
         return FindingsList(
             self.statefilepath,
             self.resumefilepath,
             self.initial_data
+        )
+
+    def get_alertslist(self):
+        return AlertsList(
+            self.alertsresumefilepath
         )

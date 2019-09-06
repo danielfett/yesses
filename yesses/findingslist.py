@@ -1,6 +1,6 @@
 import logging
 from .state import State
-from yesses.utils import clean_expression
+from .utils import clean_expression
 from functools import reduce
     
 log = logging.getLogger('findingslist')
@@ -14,6 +14,7 @@ class FindingsList:
         self.current_findings = initial
         self.persist = State(persist_path)
         self.resume = State(resume_path)
+        self.persist.load()
         self.previous_findings = self.persist.data
         self.ignore_existing = False
 
@@ -30,20 +31,22 @@ class FindingsList:
     def get_previous(self, key, default):
         return self.previous_findings.get(key, default)
         
-    def save(self):
+    def save_persist(self):
         self.persist.data = self.current_findings
         self.persist.save()
 
     def save_resume(self, step):
-        self.resume.data = self.current_findings
-        self.resume.data.update({'_step': step})
+        self.resume.data[step] = self.current_findings
+        self.resume.data['_step'] = step
         self.resume.save()
 
-    def load_resume(self):
+    def load_resume(self, step=None):
         log.debug("Loading findings list resume data")
-        self.ignore_existing = True
-        self.current_findings = self.resume.data
-        return self.resume.data['_step']
+        self.resume.load()
+        if step is None:
+            step = self.resume.data['_step']
+        self.current_findings = self.resume.data[step]
+        return step
 
     def get_from_use_expression(self, use_expr):
         if type(use_expr) is not str or not use_expr.startswith('use '):

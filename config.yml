@@ -4,8 +4,8 @@ data:
   Good-IPs:
     - 5.9.29.41
     - 2a01:4f8:161:112e::2
-    - 92.222.78.150
-    - 2001:16b8:1d01:6ad7:3681:c4ff:fe3b:86c7
+    - 87.122.183.9
+    - 2001:16b8:1d02:3875:3681:c4ff:fe3b:86c7
   Homoglyph-Domains:
     - def.me
     - d3ff.me
@@ -60,22 +60,22 @@ run:
     expect:
       - no added Web-Origins, otherwise alert high
 
-  - scan TLS Settings:
-      domains: use TLS-Domains
-      allowed_grades:
-        - 'A'
-        - 'A+'
-    find:
-      - TLS-Grade-Error
-      - TLS-Grade-Fail
-      - TLS-Grade-Success-IPs
-    expect:
-      - no TLS-Grade-Fail, otherwise alert high
-      - no TLS-Grade-Error, otherwise alert high
-      - all TLS-Grade-Success-IPs in Good-IPs, otherwise alert high
-          
+#  - scan TLS Settings:
+#      domains: use TLS-Domains
+#      allowed_grades:
+#        - 'A'
+#        - 'A+'
+#    find:
+#      - TLS-Grade-Error
+#      - TLS-Grade-Fail
+#      - TLS-Grade-Success-IPs
+#    expect:
+#      - no TLS-Grade-Fail, otherwise alert high
+#      - no TLS-Grade-Error, otherwise alert high
+#      - all TLS-Grade-Success-IPs in Good-IPs, otherwise alert high
+#          
   - scan Web Security Settings:
-      hosts: use Web-Origins
+      origins: use Web-Origins
     find:
       - Non-TLS-URLs
       - Missing-HTTPS-Redirect-URLs
@@ -93,9 +93,16 @@ run:
       - no Disallowed-Method-URLs, otherwise alert medium
       - no Insecure-Cookie-URLs, otherwise alert medium
       
-  
-      
 output:
+  - Template:
+      filename: report-d3f.html
+      template: templates/html/main.j2
+  - Slack:
+      channels:
+        - 'UC9TW2WNT' # daniel fett
+      # "token" is given in env variable YESSES_SLACK_TOKEN
+      
+logging:
   version: 1
   formatters:
     default:
@@ -112,7 +119,7 @@ output:
     console:
       class : logging.StreamHandler
       formatter: default
-      level   : WARNING
+      level   : INFO
       stream  : ext://sys.stdout
     file_debug:
       class : logging.FileHandler

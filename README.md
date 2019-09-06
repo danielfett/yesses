@@ -321,7 +321,7 @@ Cookies are only considered "secure" if they have the following properties:
 #### Returns ####
 | Field                         | Contents                                                                              |
 |-------------------------------|---------------------------------------------------------------------------------------|
-| `Non-TLS-URLs`                | List of URLs that are encountered (e.g., during redirections) which do not use HTTPS. |
+| `Non-TLS-URLs`                | List of URLs that are encountered (e.g., during redirections) which do not use HTTPS. These URLs do not necessarily constitute a security risk (except if no redirection to HTTPS is in place). |
 | `Missing-HTTPS-Redirect-URLs` | HTTP URLs which do not redirect to HTTPS.                                             |
 | `Redirect-to-non-HTTPS-URLs`  | URLs which redirect to HTTP URLs.                                                     |
 | `Disallowed-Header-URLs`      | URLs that set disallowed headers.                                                     |

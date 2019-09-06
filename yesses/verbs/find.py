@@ -13,5 +13,5 @@ def find(step, verb_contents, temp_findings, final_findings):
             raise Exception(f"Did not find key {finding_key} in output {verb_contents}.")
 
         final_findings.set(alias_key, temp_findings[finding_key])
-    else:
-        yield None # unreachable statement to make this function a generator
+    
+    yield from () # unreachable statement to make this function a generator

@@ -4,6 +4,9 @@ from pathlib import Path
 class State:
     def __init__(self, filename):
         self.statefilepath = Path(filename)
+        self.data = {}
+
+    def load(self):
         if not self.statefilepath.exists():
             self.data = {}
         else:

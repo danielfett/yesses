@@ -18,7 +18,7 @@ class Alert:
     violated_rule: str
     findings: list
     step: object
-    severity: str = Severity.MEDIUM
+    severity: Severity = Severity.MEDIUM
 
     def __str__(self):
         return f"Violation of rule: {self.violated_rule}\n{self.dump_findings(self.findings)}"
@@ -26,19 +26,9 @@ class Alert:
     def log(self):
         logging.log(self.severity, str(self))
 
-    @staticmethod
-    def dump_findings(findings):
-        def tuple_to_list(inp):
-            if isinstance(inp, tuple) or isinstance(inp, set):
-                inp = list(inp)
-            if isinstance(inp, list):
-                inp = list(map(tuple_to_list, inp))
-            if isinstance(inp, dict):
-                inp = {k:tuple_to_list(v) for k, v in inp.items()}
-            return inp
-        
-        return dump(tuple_to_list(findings), default_flow_style=False)
-
 
 for level in Alert.Severity:
     logging.addLevelName(level.value, f'ALERT_{level.name}')
+
+# needed for yaml import?
+Severity = Alert.Severity
