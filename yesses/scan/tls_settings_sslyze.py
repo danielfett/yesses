@@ -7,17 +7,46 @@ from sslyze.plugins.heartbleed_plugin import HeartbleedScanCommand
 from sslyze.plugins.openssl_ccs_injection_plugin import OpenSslCcsInjectionScanCommand
 
 import requests
-import json
 import logging
 
 log = logging.getLogger('scan/tlssettingslocal')
 
 
 class TLSSettingsLocal:
-    def __init__(self, domains=None, allowed_profiles=['intermediate', 'modern']):
+    def __init__(self, domains=None, tls_profile='intermediate'):
+        self.domains = domains
+        self.tls_profile = tls_profile
 
+    def run(self):
+        self.results = {
+            'TLS-Profile-Mismatch-Error-Domains': [],
+            'TLS-Profile-Match-Domains': [],
+            'TLS-Error-Domains': [],
+        }
 
-        → Hier weiter, TLSSettingsScanner benutzen.
+        for domain in self.domains:
+            self.scan_domain(domain)
+
+        return self.results
+
+    def scan_domain(self, domain):
+        scanner = TLSSettingsScanner(domain, self.tls_profile)
+        if scanner.server_error is not None:
+            self.results['TLS-Error-Domains'].append({
+                'domain': domain,
+                'error': scanner.server_error,
+            })
+            continue
+        results = scanner.run()
+        all_errors = results['certificate_validation_errors'] + results['profile_errors'] + results['vulnerability_errors']
+        if len(all_errors) == 0:
+            self.results['TLS-Profile-Match-Domains'].append(domain)
+        else:
+            self.results['TLS-Profile-Mismatch-Domains'].append({
+                'domain': domain,
+                'error': ', '.join(all_errors),
+            })
+            
         
 class TLSSettingsScanner:
     PROFILES_URL = 'https://statics.tls.security.mozilla.org/server-side-tls-conf-5.0.json'
@@ -32,9 +61,12 @@ class TLSSettingsScanner:
         "TLSv1.3": Tlsv13ScanCommand,
     }
     
-    def __init__(self, domain):
+    def __init__(self, domain, target_profile_name):
         if TLSSettingsScanner.PROFILES is None:
-            TLSSettingsScanner.PROFILES = json.loads(requests.get(self.PROFILES_URL).text)
+            TLSSettingsScanner.PROFILES = requests.get(self.PROFILES_URL).json()
+            log.info(f"Loaded version {TLSSettingsScanner.PROFILES['version']} of the Mozilla TLS configuration recommendations.")
+
+        self.target_profile = TLSSettingsScanner.PROFILES[target_profile_name]
             
         self.scanner = SynchronousScanner()
         try:
@@ -43,25 +75,30 @@ class TLSSettingsScanner:
             )
         log.info(f'Testing connectivity with {server_tester.hostname}:{server_tester.port}...')
         self.server_info = server_tester.perform()
+        self.server_error = None
     except ServerConnectivityError as e:
         # Could not establish an SSL connection to the server
         log.warning(f'Could not connect to {e.server_info.hostname}: {e.error_message}')
-        return
+        self.server_error = e.error_message
+        self.server_info = None
 
+        
     def run(self):
+        if self.server_info is None:
+            return
+        
         certificate_valid, certificate_validation_errors = self.check_certificate()
-        profiles, profile_errors = self.get_profiles()
-        vulnerabilities, vulnerability_errors = check_vulnerabilities(scanner, server_info)
+        self.scan_supported_ciphers_and_protocols()
+        profile_ok, profile_errors = self.check_server_matches_profile()
+        vulnerabilities, vulnerability_errors = self.check_vulnerabilities()
 
         return {
-            'certificate_valid': certificate_valid,
             'certificate_validation_errors': certificate_validation_errors,
-            'profiles': profiles,
             'profile_errors': profile_errors,
-            'vulnerabilities': vulnerabilities,
             'vulnerability_errors': vulnerability_errors,
         }
 
+    
     def scan(self, command):
         return self.scanner.run_scan_command(self.server_info, command())
         
@@ -79,41 +116,23 @@ class TLSSettingsScanner:
 
         self.supported_ciphers = set(supported_ciphers)
         self.supported_protocols = set(supported_protocols)
-
-    def get_supported_profiles(self):
-        supported_profiles = []
-        profile_errors = {}
-        self.scan_supported_ciphers_and_protocols()
-
-        for name, profile in self.PROFILES['configurations'].items():
-            profile_matched, illegal_ciphers, illegal_protocols = self.check_server_matches_profile(profile)
-            if profile_matched:
-                supported_profiles.append(name)
-                log.debug(f"matches {required_profile}")
-            else:
-                profile_errors[name] = {
-                    'illegal_ciphers': illegal_ciphers,
-                    'illegal_protocols': illegal_protocols
-                }
-                log.debug(f"does not match {required_profile}:")
-                if illegal_ciphers:
-                    log.debug(f"  → illegal ciphers: {', '.join(illegal_ciphers)}")
-                if illegal_protocols:
-                    log.debug(f"  → illegal protocols: {', '.join(illegal_protocols)}")
-                    
-        return supported_profiles, profile_errors
-
-    
-    def check_server_matches_profile(self, profile):
-        allowed_ciphers = set(profile['openssl_ciphersuites'] + profile['openssl_ciphers'])
-        allowed_protocols = set(profile['tls_versions'])
-
-        illegal_ciphers = self.supported_ciphers - allowed_ciphers
+   
+    def check_server_matches_profile(self):
+        errors = []
+        
+        allowed_protocols = set(self.target_profile['tls_versions'])
         illegal_protocols = self.supported_protocols - allowed_protocols
 
-        matches = (len(illegal_ciphers) == 0) and (len(illegal_protocols) == 0)
-        return matches, illegal_ciphers, illegal_protocols
+        for protocol in illegal_protocols:
+            errors.append(f'must not support "{protocol}"')
 
+        allowed_ciphers = set(self.target_profile['openssl_ciphersuites'] + self.target_profile['openssl_ciphers'])
+        illegal_ciphers = self.supported_ciphers - allowed_ciphers
+
+        for cipher in illegal_ciphers:
+            errors.append(f'must not support "{cipher}"')
+     
+        return errors
     
     def check_certificate(self):
         result = self.scan(CertificateInfoScanCommand)
@@ -150,7 +169,7 @@ class TLSSettingsScanner:
             for error in errors:
                 log.debug(f"  → {error}")
 
-        return (len(errors) == 0), errors
+        return errors
 
 
     def check_vulnerabilities(self):
@@ -174,7 +193,7 @@ class TLSSettingsScanner:
         ]:
             errors.append(f"Server is vulnerable to ROBOT attack.")
 
-        return (len(errors) > 0), errors
+        return errors
     
 
         

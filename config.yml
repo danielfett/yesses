@@ -60,19 +60,15 @@ run:
     expect:
       - no added Web-Origins, otherwise alert high
 
-#  - scan TLS Settings:
-#      domains: use TLS-Domains
-#      allowed_grades:
-#        - 'A'
-#        - 'A+'
-#    find:
-#      - TLS-Grade-Error
-#      - TLS-Grade-Fail
-#      - TLS-Grade-Success-IPs
-#    expect:
-#      - no TLS-Grade-Fail, otherwise alert high
-#      - no TLS-Grade-Error, otherwise alert high
-#      - all TLS-Grade-Success-IPs in Good-IPs, otherwise alert high
+  - scan TLS Settings:
+      domains: use TLS-Domains
+      tls_profile: intermediate
+    find:
+      - TLS-Profile-Mismatch-Error-Domains
+      - TLS-Error-Domains
+    expect:
+      - no TLS-Profile-Mismatch-Error-Domains, otherwise alert high
+      - no TLS-Error-Domains, otherwise alert high
 #          
   - scan Web Security Settings:
       origins: use Web-Origins
