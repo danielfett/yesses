@@ -2,8 +2,16 @@ import requests
 import logging
 from yesses.utils import force_ip_connection
 import re
+from yesses.types import IP, URL, Errors, Error, YType
 
 log = logging.getLogger('scan/websecuritysettings')
+
+class WebErrorsIPURL(IP, URL, Errors, YType):
+    pass
+
+class WebErrorIPURL(IP, URL, Errors, YType):
+    pass
+
 
 class WebSecuritySettings:
     DISALLOWED_METHODS = [
@@ -63,7 +71,6 @@ class WebSecuritySettings:
     ):
         self.origins = origins
         self.results = {
-            'Non-TLS-URLs': [],
             'Missing-HTTPS-Redirect-URLs': [],
             'Redirect-to-non-HTTPS-URLs': [],
             'Disallowed-Header-URLs': [],
@@ -77,65 +84,65 @@ class WebSecuritySettings:
 
     def run(self):
         for origin in set(self.origins):
-            url, domain, ip = origin
-            log.info(f"{domain} on IP {ip}")
-            with force_ip_connection(ip):
+            self.run_checks(*origin)
+        
+        #self.compress_results()
+        return self.results
+
+    def run_checks(self, url, domain, ip):
+        log.info(f"Now checking {domain} on IP {ip}")
+        with force_ip_connection(domain, ip):
+            try:
+                log.debug(f'GET {url} with IP {ip}')
+                response = requests.get(url, timeout=10, stream=True)
+            except requests.exceptions.RequestException as e:
+                log.debug(f"Exception {e} on {url}, ip={ip}")
+            else:
+                if url.startswith('http://'):
+                    self.check_http_settings(ip, response)
+                self.check_https_settings(ip, response)
+
+            response.close()
+
+            found_disallowed_methods = []
+            for method in self.disallowed_methods:
                 try:
-                    log.debug(f'GET {url}')
-                    response = requests.get(url, timeout=10)
+                    log.debug(f'{method} {url} with IP {ip}')
+                    response = requests.request(method, url, timeout=10)
                 except requests.exceptions.RequestException as e:
                     log.debug(f"Exception {e} on {url}, ip={ip}")
                 else:
-                    if url.startswith('http://'):
-                        self.check_http_settings(url, ip, response)
-                    self.check_https_settings(url, ip, response)
+                    if response.status_code < 400:
+                        found_disallowed_methods.append(f"must not support method {method}")
+                        
+            if found_disallowed_methods:
+                self.results['Disallowed-Method-URLs'].append(WebErrorsIPURL(
+                    url=url,
+                    ip=ip,
+                    errors=found_disallowed_methods
+                ))
 
-                found_disallowed_methods = []
-                for method in self.disallowed_methods:
-                    try:
-                        log.debug(f'{method} {url}')
-                        response = requests.request(method, url, timeout=10)
-                    except requests.exceptions.RequestException as e:
-                        log.debug(f"Exception {e} on {url}, ip={ip}")
-                    else:
-                        if response.status_code < 400:
-                            found_disallowed_methods.append(method)
-                if found_disallowed_methods:
-                    self.results['Disallowed-Method-URLs'].append((url, ip, found_disallowed_methods))
 
-        self.compress_results()
-        return self.results
-
-    def compress_results(self):
-        for key in self.results.keys():
-            compressed_results = []
-            for result in self.results[key]:
-                (url, ip, findings) = result
-                canonic_url = re.sub(r"""https://([^:/]+):443/""", r"""https://\1/""", url)
-                canonic_url = re.sub(r"""http://([^:/]+):80/""", r"""http://\1/""", canonic_url)
-
-                for cres in compressed_results:
-                    if cres[0] == canonic_url and cres[2] == findings: # compare URL and results
-                        if not ip in cres[1]:
-                            cres[1].append(ip)
-                        break
-                else:
-                    compressed_results.append(
-                        (canonic_url, [ip], findings)
-                    )
-            self.results[key] = compressed_results
-
-    def check_http_settings(self, url, ip, response):
+    def check_http_settings(self, ip, response):
         if len(response.history) == 0:
-            self.results['Missing-HTTPS-Redirect-URLs'].append((url, ip, ''))
+            self.results['Missing-HTTPS-Redirect-URLs'].append(WebErrorIPURL(
+                url=response.url,
+                ip=ip,
+                error="no redirection encountered"
+            ))
 
-    def check_https_settings(self, url, ip, response):
-        for step_response in response.history[1:] + [response]:
-            if not step_response.url.startswith('https://'):
-                self.results['Redirect-to-non-HTTPS-URLs'].append((url, ip, step_response.url))
-                self.results['Non-TLS-URLs'].append((step_response.url, ip, ''))
+    def check_https_settings(self, ip, response):
+        chain = [sr.url for sr in response.history + [response]]
+        for step_uri in chain[1:]:
+            if not step_uri.startswith('https://'):
+                error = f"got redirections to non-HTTPS-URIs; redirection chain: {' → '.join(chain)}"
+                self.results['Redirect-to-non-HTTPS-URLs'].append(WebErrorIPURL(
+                    url=chain[0],
+                    ip=ip,
+                    error=error))
+                break
 
-        self.check_headers(response, ip)
+        self.check_headers(ip, response)
 
     def match_header(self, url, rule, header, value):
         header = header.strip()
@@ -159,16 +166,32 @@ class WebSecuritySettings:
             
         return None
         
-    def check_headers(self, response, ip):
+    def check_headers(self, ip, response):
+        try:
+            actual_ip = response.raw._connection.sock.socket.getsockname()[0]
+        except AttributeError:
+            actual_ip = response.raw._connection.sock.getsockname()[0]
+            
+        self.check_disallowed_headers(actual_ip, response)
+        self.check_missing_headers(actual_ip, response)
+        self.check_insecure_cookies(actual_ip, response)
+
+    def check_disallowed_headers(self, actual_ip, response):
         found_disallowed_headers = []
         for rule in self.disallowed_headers:
             for header, value in response.headers.items():
                 match = self.match_header(response.url, rule, header, value)
                 if match is True:
-                    found_disallowed_headers.append((header, value))
+                    found_disallowed_headers.append(f"illegal header {header} (with value {value}): {rule['reason']}")
+                    
         if found_disallowed_headers:
-            self.results['Disallowed-Header-URLs'].append((response.url, ip, found_disallowed_headers))
+            self.results['Disallowed-Header-URLs'].append(WebErrorsIPURL(
+                url=response.url,
+                ip=actual_ip,
+                errors=found_disallowed_headers
+            ))
 
+    def check_missing_headers(self, actual_ip, response):
         found_missing_headers = []
         for rule in self.required_headers:
             if 'origin' in rule:
@@ -180,11 +203,22 @@ class WebSecuritySettings:
                 if match is True:
                     break
             else:
-                found_missing_headers.append((rule))
+                if 'value' in rule:
+                    text = f" with value '{rule['value']}'"
+                elif 'value_expr' in rule:
+                    text = f" matching expression '{rule['value_expr']}'"
+                else:
+                    text = ''
+                found_missing_headers.append(f"missing header: '{rule['header']}' {text}")
                 
         if found_missing_headers:
-            self.results['Missing-Header-URLs'].append((response.url, ip, found_missing_headers))
+            self.results['Missing-Header-URLs'].append(WebErrorsIPURL(
+                url=response.url,
+                ip=actual_ip,
+                errors=found_missing_headers
+            ))
 
+    def check_insecure_cookies(self, actual_ip, response):
         # check cookie headers
         found_insecure_cookies = []
         for c in response.cookies:
@@ -201,10 +235,14 @@ class WebSecuritySettings:
                 insecure.append('missing HttpOnly attribute')
 
             if len(insecure):
-                found_insecure_cookies.append((c.name, ', '.join(insecure)))
+                found_insecure_cookies.append(f"insecure cookie {c.name}: {', '.join(insecure)}")
                 
         if found_insecure_cookies:
-            self.results['Insecure-Cookie-URLs'].append((response.url, ip, found_insecure_cookies))
+            self.results['Insecure-Cookie-URLs'].append(WebErrorsIPURL(
+                url=response.url,
+                ip=actual_ip,
+                errors=found_insecure_cookies
+            ))
                 
         
 

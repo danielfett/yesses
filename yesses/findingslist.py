@@ -10,10 +10,10 @@ class FindingsList:
     class NotAUseExpression(Exception):
         pass
     
-    def __init__(self, persist_path, resume_path, initial):
+    def __init__(self, persist_path, resume_path, initial, fresh=False):
         self.current_findings = initial
-        self.persist = State(persist_path)
-        self.resume = State(resume_path)
+        self.persist = State(persist_path, fresh)
+        self.resume = State(resume_path, fresh)
         self.persist.load()
         self.previous_findings = self.persist.data
         self.ignore_existing = False
@@ -41,11 +41,12 @@ class FindingsList:
         self.resume.save()
 
     def load_resume(self, step=None):
-        log.debug("Loading findings list resume data")
         self.resume.load()
         if step is None:
             step = self.resume.data['_step']
+        log.debug(f"Loading findings list resume data, step={step}")
         self.current_findings = self.resume.data[step]
+        self.ignore_existing = True
         return step
 
     def get_from_use_expression(self, use_expr):

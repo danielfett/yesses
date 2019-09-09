@@ -4,6 +4,9 @@ import re
 import slack
 import prettytable
 import io
+import logging
+
+log = logging.getLogger('output/slack')
 
 class Slack:
     def __init__(self, channels, token=None):
@@ -17,7 +20,7 @@ class Slack:
                 
         self.client = slack.WebClient(token=token)
 
-    def run(self, alertslist):
+    def run(self, alertslist, time):
         avars = alertslist.get_vars()
 
         if avars['max_severity'] is not None:
@@ -33,18 +36,10 @@ class Slack:
             findings_summary = "No findings."
             
         message = f"""*yesses report*:
-Run started on {avars['started']}. {findings_summary}
+Run started on {avars['started']}; took {time}s. {findings_summary}
 """
         for channel in self.channels:
             response = self.client.chat_postMessage(
                 channel=channel,
                 text=message)
-            #ts = response['ts']
-            #self.client.files_upload(
-            #    channels=[channel],
-            #    filename='sample.txt',
-            #    title='sampletitle',
-            #    initial_comment='sampletext',
-            #    file=io.BytesIO(bytes(message, 'ascii')),
-            #    thread_ts=ts,
-            #)
+            log.info(f"Notification sent on channel {channel}")

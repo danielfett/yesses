@@ -19,7 +19,7 @@ class Webservers:
         for ip in self.ips:
             for domain in self.domains:
                 for protocol in ('http', 'https'):
-                    with force_ip_connection(ip):
+                    with force_ip_connection(domain, ip):
                         url = f'{protocol}://{domain}/'
                         try:
                             result = requests.get(url, timeout=10)

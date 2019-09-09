@@ -17,5 +17,5 @@ class Output:
         except TypeError as e:
             raise Exception(f'Unable to initialize output "{self.output_class}": {str(e)}\n\n{self}')
 
-    def run(self, alertslist):
-        self.output_obj.run(alertslist)
+    def run(self, alertslist, time):
+        self.output_obj.run(alertslist, time)

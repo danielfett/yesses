@@ -1,7 +1,28 @@
+{% macro dump(item) %}
+{% if item is mapping %}
+<table class="findingstable">
+  {% for key, value in item.items() %}
+  <tr>
+    <th>{{ key }}</th>
+    <td>{{ dump(value) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% elif item is iterable and item is not string %}
+<ul>
+  {% for el in item %}
+  <li>{{ dump(el) }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<span class="finding">{{ item }}</span>
+{% endif %}
+{% endmacro %}
+
 <html>
     <head>
         <style>
-         .step-raw {
+         .step-raw, .log-raw {
              white-space: pre;
              font-family: monospace;
              padding: 1rem 1rem .75rem;
@@ -123,27 +144,14 @@
                     <summary>{{ alert.findings|length }} Findings</summary>
                     
                     <ol>
-                        {%- for item in alert.findings recursive %}
-                            <li>
-                                {% if item is mapping %}
-                                    <table class="findingstable">
-                                        {% for key, value in item.items() %}
-                                            <tr>
-                                                <th>{{ key }}</th>
-                                                <td>{{ value }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </table>
-                                {% elif item is iterable and item is not string %}
-                                    <ul>
-                                        {{ loop(item) }}
-                                    </ul>
-                                {% else %}
-                                    <span class="finding">{{ item }}</span>
-                                {% endif %}
-                            </li>
-                        {%- endfor %}
+                      {% for finding in alert.findings %}
+                      <li>{{ dump(finding) }}</li>
+                      {% endfor %}
                     </ol>
+                </details>
+                <details class="log">
+                  <summary>{{alert.step.action}} took {{alert.step.duration.total_seconds()}}s</summary>
+                  <p class="log-raw">{{- alert.step.get_log() -}}</p>
                 </details>
             {% endfor %}
         </article>

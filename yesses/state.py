@@ -1,13 +1,15 @@
 import yaml
 from pathlib import Path
+import yesses.scan.tls_settings
 
 class State:
-    def __init__(self, filename):
+    def __init__(self, filename, fresh):
         self.statefilepath = Path(filename)
         self.data = {}
+        self.fresh = fresh
 
     def load(self):
-        if not self.statefilepath.exists():
+        if self.fresh or not self.statefilepath.exists():
             self.data = {}
         else:
             with self.statefilepath.open() as f:

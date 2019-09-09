@@ -3,9 +3,9 @@ from .state import State
 from datetime import datetime
 
 class AlertsList:
-    def __init__(self, resume_path):
+    def __init__(self, resume_path, fresh=False):
         self.alerts = []
-        self.resume = State(resume_path)
+        self.resume = State(resume_path, fresh)
         self.started = datetime.now()
 
     def save_resume(self, step):
@@ -59,6 +59,6 @@ class AlertsList:
             'started': self.started,
             'created': datetime.now(),
             'summary': summary_table,
-            'max_severity': max_severity,
+            'max_severity': max_severity
         }
             
