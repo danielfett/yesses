@@ -40,17 +40,17 @@ class Step:
             except FindingsList.NotAUseExpression:
                 kwargs_modified[name] = value
 
-        temp_findings = self.call_class_from_action(
-            **kwargs_modified
-        )
+        self.inputs = kwargs_modified
+
+        temp_findings = self.call_class_from_action()
         log.info(f"{self.action} took {self.duration.total_seconds()}s and produced {len(self.get_log())} bytes of output.")
         yield from verbs.execute(self, temp_findings, findings)
 
-    def call_class_from_action(self, **kwargs):
+    def call_class_from_action(self):
         try:
             with self.capture_log():
                 obj = getattr(import_module(f'yesses.{self.action_module}'), self.action_class)(
-                    **kwargs
+                    **self.inputs
                 )
             
         except TypeError as e:
@@ -83,6 +83,9 @@ class Step:
 
     def __str__(self):
         return yaml.safe_dump(self.raw)
+
+    def get_inputs(self):
+        return yaml.safe_dump(self.inputs)
 
     @staticmethod
     def split_action(action):

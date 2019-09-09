@@ -130,13 +130,14 @@
                     {% endfor %}
                 </table>
             </p>
+            <h2>Alerts</h2>
             {% for alert in alerts %}
                 {% if loop.changed(alert.severity) %}
-                    <h2 class="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h2>
+                    <h3 class="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h3>
                 {% endif %}
-                <h3><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h3>
+                <h4><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h4>
                 <details>
-                    <summary class="step-explain">In step #{{ alert.step.number }}, <b>{{ alert.step.action }}</b></summary>
+                    <summary class="step-explain">In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.action }}</b></summary>
                     <p class="step-raw">{{- alert.step -}}</p>
                 </details>
 
@@ -145,13 +146,22 @@
                     
                     <ol>
                       {% for finding in alert.findings %}
-                      <li>{{ dump(finding) }}</li>
+                          <li>{{ dump(finding) }}</li>
                       {% endfor %}
                     </ol>
                 </details>
+            {% endfor %}
+            <h2>Steps</h2>
+            {% for step in steps %}
+                <h3 id="step-{{ step.number }}">Step #{{ step.number }}: {{step.action}}</h3>
+                <details>
+                    <summary>{{ step.inputs|count }} input variables</summary>
+                    <p class="log-raw">{{- step.get_inputs() -}}</p>
+                </details>                            
+                        
                 <details class="log">
-                  <summary>{{alert.step.action}} took {{alert.step.duration.total_seconds()}}s</summary>
-                  <p class="log-raw">{{- alert.step.get_log() -}}</p>
+                    <summary>Execution took {{ '%.1f' % step.duration.total_seconds()}}s</summary>
+                    <p class="log-raw">{{- step.get_log() -}}</p>
                 </details>
             {% endfor %}
         </article>

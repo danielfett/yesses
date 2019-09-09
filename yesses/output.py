@@ -6,8 +6,9 @@ import yaml
 
 
 class Output:
-    def __init__(self, raw):
+    def __init__(self, config, raw):
         self.output_class = list(raw.keys())[0]
+        self.config = config
         kwargs = raw[self.output_class]
         
         try:
@@ -17,5 +18,5 @@ class Output:
         except TypeError as e:
             raise Exception(f'Unable to initialize output "{self.output_class}": {str(e)}\n\n{self}')
 
-    def run(self, alertslist, time):
-        self.output_obj.run(alertslist, time)
+    def run(self, time):
+        self.output_obj.run(self.config.alertslist, self.config.steps, time)
