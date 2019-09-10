@@ -1,0 +1,47 @@
+# yesses #
+
+Simple tool to enumerate domains and IPs and test those domains and
+IPs for basic network and web security properties.
+
+## Usage ##
+
+```
+{{usage}}
+```
+
+## Configuration file ##
+
+[todo]
+
+### `expect` ###
+Expects arguments of the form "no added X, otherwise action args".
+
+## Modules ##
+
+The following modules are currently provided by yesses. For each
+module, a short description in given plus a list of input and output
+fields. The field names can be used in the yaml configuration file. 
+
+{% for module_name, modules in modules.items() %}
+{% for module in modules %}
+### `{{ module_name }} {{ module.__name__ }}` ###
+{{ module.__doc__ }}
+
+#### Inputs ####
+
+| Name             | Description    | Required keys                                            |
+|------------------|----------------|----------------------------------------------------------|
+{% for input in module.INPUTS -%}
+| `{{ input[0] }}` | {{ input[2] }} | {% if input[1] %}`{{ '`, '.join(input[1]) }}`{% endif %} |
+{% endfor %}
+
+#### Outputs ####
+
+| Name             | Description    | Provided keys                                            |
+|------------------|----------------|----------------------------------------------------------|
+{% for output in module.OUTPUTS -%}
+| `{{ output[0] }}` | {{ output[2] }} | {% if output[1] %}`{{ '`, '.join(output[1]) }}`{% endif %} |
+{% endfor %}
+
+{% endfor %}
+{% endfor %}

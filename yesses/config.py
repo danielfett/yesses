@@ -32,3 +32,17 @@ class Config:
             self.configfilepath.with_suffix(".alerts"),
             fresh
         )
+
+    def load_resume(self, step=None):
+        skip_to = self.findingslist.load_resume(step)
+        skip_to_2 = self.alertslist.load_resume(step)
+        if skip_to != skip_to_2:
+            raise Exception(f"Inconsistent file state. Findings list is in Step {skip_to}, alerts list is in Step {skip_to_2}. Cannot resume/repeat.")
+        return skip_to
+
+    def save_resume(self, step):
+        self.findingslist.save_resume(step)
+        self.alertslist.save_resume(step)
+
+    def save_persist(self):
+        self.findingslist.save_persist()

@@ -50,11 +50,12 @@ class Step:
         try:
             with self.capture_log():
                 obj = getattr(import_module(f'yesses.{self.action_module}'), self.action_class)(
+                    self,
                     **self.inputs
                 )
             
         except TypeError as e:
-            raise Exception(f'Unable to initialize action "{self.action}": {str(e)}\n\n{self}')
+            raise Exception(f'Unable to initialize action "{self.action}": {str(e)}\n\n{self.get_definition()}') 
 
         with self.capture_log():
             return obj.run()
@@ -82,6 +83,9 @@ class Step:
         return self.raw[verb_name]
 
     def __str__(self):
+        return f"Step #{self.number}: {self.action}"
+    
+    def get_definition(self):
         return yaml.safe_dump(self.raw)
 
     def get_inputs(self):

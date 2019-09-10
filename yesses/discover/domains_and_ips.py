@@ -4,15 +4,74 @@ import logging
 import dns.resolver
 import dns.rdtypes.IN.A
 import dns.rdtypes.IN.AAAA
+from yesses.module import YModule, unwrap_key
 
 log = logging.getLogger('discover/domains_and_ips')
 
-class DomainsAndIPs:
+class DomainsAndIPs(YModule):
+    """Based on domain names as "seeds", tries to find new domain names by
+guessing expansions for wildcards and expanding CNAMEs. Finds IP
+addresses from A and AAAA records.
+
+#### Examples ####
+This example expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.
+```
+  - discover Domains and IPs:
+      seeds: use Domain-Seeds and TLS-Names
+      resolvers: use DNS-Resolvers
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+    expect:
+      - no added IPs, otherwise alert high
+      - no added Domains, otherwise alert high
+      - no added DNS-Entries, otherwise alert high
+      - all IPs in Good-IPs, otherwise alert high
+```
+
+In this example, the same module is used to check if homoglyph (or homograph) domains (similar-looking domain names) have been registered. This example assumes that a list of such domains has been generated before.
+
+```
+data:
+  Homoglyph-Domains:
+    - eхample.com  # note that "х" is a greek character, not the latin "x"
+    - 3xample.com
+      (...)
+
+run:
+    (...)
+  - discover Domains and IPs:
+      seeds: use Homoglyph-Domains
+      resolvers: use DNS-Resolvers
+    find:
+      - Domains as Homoglyph-Matches
+    expect:
+      - no Homoglyph-Matches, otherwise alert high
+```
+
+    """
+    
+    INPUTS = [
+        ('seeds', ['domain'], 'List of initial domains to start search from'),
+        ('resolvers', ['ip'], 'List of DNS resolvers to use'),
+    ]
+
+    OUTPUTS = [
+        ('Domains', ['domain'], 'List of domains found'),
+        ('IPs', ['ip'], 'List of IPs found'),
+        ('DNS-Entries', ['domain', 'ip'], 'Pairs of (domain, IP) associations'),
+        ('Ignored-Domains', ['domain'], 'CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results.'),
+    ]
+    
     base_url = "https://crt.sh/?q=%25.{}&output=json"
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
     rdtypes = [1, 28] # A and AAAA
-    
-    def __init__(self, seeds, resolvers=None):
+
+    @unwrap_key('seeds', 'domain')
+    @unwrap_key('resolvers', 'ip')
+    def __init__(self, step, seeds, resolvers=None):
+        self.step = step
         self.seeds = seeds
         log.info(f'Using seeds: {seeds!r}')
         self.resolver = dns.resolver.Resolver()
@@ -32,12 +91,6 @@ class DomainsAndIPs:
         self.ips_from_domains()
         log.info(f'Left with {len(self.domains)} domains after checking for records')
         
-        return {
-            'Domains': self.domains,
-            'IPs': self.ips,
-            'DNS-Entries': self.domains_to_ips,
-            'Ignored-Domains': self.ignored_domains,
-        }
 
     def domains_from_ctlog(self, query_domain):
         url = self.base_url.format(query_domain)
@@ -69,7 +122,8 @@ class DomainsAndIPs:
                 else:
                     self.ignored_domains |= set(candidate)
                         
-        self.domains |= newdomains        
+        self.domains |= newdomains
+        self.results['Ignored-Domains'] = [{'domain': d} for d in self.ignored_domains]
 
     def expand_wildcards(self):
         subdomains = set()
@@ -106,13 +160,13 @@ class DomainsAndIPs:
                     log.debug(f"Not found: {e}")
                 else:
                     for answer in answers:
-                        domains_to_ips.append((d, answer.address))
+                        domains_to_ips.append({'domain': d, 'ip': answer.address})
                         ips.append(answer.address)
                     newdomainset.add(d)
 
-        self.domains = list(newdomainset)
-        self.domains_to_ips = domains_to_ips
-        self.ips = list(set(ips))
+        self.results['Domains'] = [{'domain': d} for d in newdomainset]
+        self.results['DNS-Entries'] = domains_to_ips
+        self.results['IPs'] = [{'ip': i} for i in set(ips)]
         
 
 if __name__ == "__main__":

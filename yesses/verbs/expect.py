@@ -58,9 +58,11 @@ expect_regexes = [
 ]        
         
 def check_added(new_list, old_list):
-    n = set(new_list)
-    o = set(old_list)
-    return list(n - o)
+    added = []
+    for entry in new_list:
+        if not entry in old_list:
+            added.append(entry)
+    return added
 
 def check_any(new_list, old_list):
     return new_list

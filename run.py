@@ -19,8 +19,7 @@ class YessesRunner:
         log.info(f"Starting run. do_resume={do_resume}, repeat={repeat}")
         start = datetime.now()
         if do_resume:
-            skip_to = self.config.findingslist.load_resume()
-            self.config.alertslist.load_resume()
+            skip_to = self.config.load_resume()
         if repeat is not None:
             if do_resume:
                 skip_to -= repeat    
@@ -28,8 +27,7 @@ class YessesRunner:
                 skip_to = len(self.config.steps) - repeat
             if skip_to < 0:
                 raise Exception(f"There are {len(self.config.steps)} steps, we were asked to resume from step {skip_to}. That does not work.")
-            self.config.findingslist.load_resume(skip_to)
-            self.config.alertslist.load_resume(skip_to)
+            self.config.load_resume(skip_to)
 
         if do_resume or repeat is not None:
             log.info(f"Resuming after step {skip_to}.")
@@ -37,19 +35,17 @@ class YessesRunner:
             if not (do_resume or repeat is not None) or step.number > skip_to:
                 log.info(f"Step: {step.action}")
                 self.config.alertslist.collect(step.execute(self.config.findingslist))
-            self.config.findingslist.save_resume(step.number)
-            self.config.alertslist.save_resume(step.number)
-
+                self.config.save_resume(step.number)
             
         end = datetime.now()
         time = end-start
-            
+        
         for output in self.config.outputs:
             output.run(time)
 
-        self.config.findingslist.save_persist()
+        self.config.save_persist()
         log.info(f"Run finished in {time}s.")
-            
+
 
 if __name__ == "__main__":
     import argparse
