@@ -56,7 +56,7 @@ Uses `nmap` to scan for open ports.
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Host-Ports` | Each open port on a scanned IP | `ip`, protocol`, port` |
+| `Host-Ports` | Each open port on a scanned IP | `ip`, `protocol`, `port` |
 | `*-IPs` | For certain protocols (SSH, HTTP, HTTPS), a list of IPs that have this port open | `ip` |
 | `Other-Port-IPs` | List of IPs that have any other ports open. |  |
 
@@ -80,11 +80,11 @@ compare it to the Mozilla TLS configuration profiles.
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `TLS-Profile-Mismatch-Domains` | Domains of servers that do not match the TLS profile. `errors` contains the list of deviations from the profile. | `domain`, errors` |
-| `TLS-Validation-Fail-Domains` | Domains of servers that presented an invalid certificate. `errors` contains the list of validation errors. | `domain`, errors` |
-| `TLS-Vulnerability-Domains` | Domains where a TLS vulnerability was detected. `errors` contains the list of vulnerabilities found. | `domain`, errors` |
+| `TLS-Profile-Mismatch-Domains` | Domains of servers that do not match the TLS profile. `errors` contains the list of deviations from the profile. | `domain`, `errors` |
+| `TLS-Validation-Fail-Domains` | Domains of servers that presented an invalid certificate. `errors` contains the list of validation errors. | `domain`, `errors` |
+| `TLS-Vulnerability-Domains` | Domains where a TLS vulnerability was detected. `errors` contains the list of vulnerabilities found. | `domain`, `errors` |
 | `TLS-Okay-Domains` | Domains where no errors or vulnerabilities were found. | `domain` |
-| `TLS-Other-Error-Domains` | Domains that could not be tested because of some error (e.g., a network error). `error` contains the error description. | `domain`, error` |
+| `TLS-Other-Error-Domains` | Domains that could not be tested because of some error (e.g., a network error). `error` contains the error description. | `domain`, `error` |
 
 
 
@@ -111,9 +111,9 @@ https://dev.ssllabs.com/about/terms.html
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `TLS-Grade-Success` | Object containing information about IP/Host combinations that passed the SSL test with an acceptable grade. | `ip`, domain`, grade` |
-| `TLS-Grade-Fail` | As above, but only IP/Host combinations that did not get an acceptable grade. | `ip`, domain`, grade` |
-| `TLS-Grade-Error` | As above, but only IP/Host combinations that failed due to errors during the test. | `ip`, domain`, grade` |
+| `TLS-Grade-Success` | Object containing information about IP/Host combinations that passed the SSL test with an acceptable grade. | `ip`, `domain`, `grade` |
+| `TLS-Grade-Fail` | As above, but only IP/Host combinations that did not get an acceptable grade. | `ip`, `domain`, `grade` |
+| `TLS-Grade-Error` | As above, but only IP/Host combinations that failed due to errors during the test. | `ip`, `domain`, `grade` |
 
 
 
@@ -201,7 +201,7 @@ Cookies are only considered "secure" if they have the following properties:
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `origins` | List of web origins to scan. | `uri`, domain`, ip` |
+| `origins` | List of web origins to scan. | `uri`, `domain`, `ip` |
 | `disallowed_methods` | List of methods that should be rejected by web servers. |  |
 | `disallowed_headers` | Objects defining headers that are not allowed (see description). | `header` |
 | `required_headers` | Objects defining headers that are required (see description). | `headers` |
@@ -211,12 +211,12 @@ Cookies are only considered "secure" if they have the following properties:
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Missing-HTTPS-Redirect-URLs` | HTTP URLs which do not redirect to HTTPS. | `uri`, ip`, error` |
-| `Redirect-to-non-HTTPS-URLs` | URLs which redirect to HTTP URLs. | `uri`, ip`, error` |
-| `Disallowed-Header-URLs` | URLs that set disallowed headers. | `uri`, ip`, errors` |
-| `Missing-Header-URLs` | URLs that miss headers. | `uri`, ip`, errors` |
-| `Disallowed-Method-URLs` | URLs where disallowed methods do not trigger an error. | `uri`, ip`, errors` |
-| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `uri`, ip`, error` |
+| `Missing-HTTPS-Redirect-URLs` | HTTP URLs which do not redirect to HTTPS. | `uri`, `ip`, `error` |
+| `Redirect-to-non-HTTPS-URLs` | URLs which redirect to HTTP URLs. | `uri`, `ip`, `error` |
+| `Disallowed-Header-URLs` | URLs that set disallowed headers. | `uri`, `ip`, `errors` |
+| `Missing-Header-URLs` | URLs that miss headers. | `uri`, `ip`, `errors` |
+| `Disallowed-Method-URLs` | URLs where disallowed methods do not trigger an error. | `uri`, `ip`, `errors` |
+| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `uri`, `ip`, `error` |
 
 
 
@@ -227,8 +227,8 @@ Based on domain names as "seeds", tries to find new domain names by
 guessing expansions for wildcards and expanding CNAMEs. Finds IP
 addresses from A and AAAA records.
 
-==== Examples ====
-This examples expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.
+#### Examples ####
+This example expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.
 ```
   - discover Domains and IPs:
       seeds: use Domain-Seeds and TLS-Names
@@ -264,7 +264,6 @@ run:
       - no Homoglyph-Matches, otherwise alert high
 ```
 
-
     
 
 #### Inputs ####
@@ -281,7 +280,7 @@ run:
 |------------------|----------------|----------------------------------------------------------|
 | `Domains` | List of domains found | `domain` |
 | `IPs` | List of IPs found | `ip` |
-| `DNS-Entries` | Pairs of (domain, IP) associations | `domain`, ip` |
+| `DNS-Entries` | Pairs of (domain, IP) associations | `domain`, `ip` |
 | `Ignored-Domains` | CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results. | `domain` |
 
 
@@ -304,7 +303,7 @@ existing TLS certificates for given domains and their subdomains.
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `TLS-Names` | DNS names found in certificates (may include wildcards, such as `*.example.com`). | `domain` |
-| `TLS-Certificates` | Unique identifiers for found TLS certificates; also links to more information about the certificates. `certificate_id` and `certificate_url` have the same content in this module, as the URI is also used to uniquely identify the certificate. | `certificate_id`, certificate_url` |
+| `TLS-Certificates` | Unique identifiers for found TLS certificates; also links to more information about the certificates. `certificate_id` and `certificate_url` have the same content in this module, as the URI is also used to uniquely identify the certificate. | `certificate_id`, `certificate_url` |
 
 
 
@@ -327,8 +326,8 @@ existing TLS certificates for given domains and their subdomains.
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Web-Origins` | HTTP origins | `domain`, url`, ip` |
-| `TLS-Web-Origins` | as above, but for HTTPS | `domain`, url`, ip` |
+| `Web-Origins` | HTTP origins | `domain`, `url`, `ip` |
+| `TLS-Web-Origins` | as above, but for HTTPS | `domain`, `url`, `ip` |
 | `TLS-Domains` | List of domains with HTTPS servers | `domain` |
 
 
