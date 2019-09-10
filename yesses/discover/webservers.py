@@ -9,10 +9,10 @@ log = logging.getLogger('scan/webservers')
 
 
 class Webservers(YModule):
-    """
-    Scans an IP range for web servers (on standard HTTP and HTTPs ports);
-    combines a list of IPs with a list of domains to use for the Host
-    header in web requests.
+    """Scans an IP range for web servers (on standard HTTP and HTTPs
+ports); combines a list of IPs with a list of domains to use for the
+Host header in web requests.
+
     """
     
     INPUTS = [
