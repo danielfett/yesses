@@ -31,16 +31,25 @@ fields. The field names can be used in the yaml configuration file.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-{% for input in module.INPUTS -%}
-| `{{ input[0] }}` | {{ input[2] }} | {% if input[1] %}`{{ '`, `'.join(input[1]) }}`{% endif %} |
+{% for field, input in module.INPUTS.items() -%}
+| `{{ field }}` {% if not 'default' in input %}(required){% endif %} | {{ input['description'] }} | {% if input['required_keys'] %}`{{ '`, `'.join(input['required_keys']) }}`{% endif %} |
+{% endfor %}
+
+{% for field, input in module.INPUTS.items() -%}
+{% if 'default' in input %}
+##### Default for `{{ field }}` #####
+```
+{{ input['default']|yaml }}
+```
+{%- endif %}
 {% endfor %}
 
 #### Outputs ####
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-{% for output in module.OUTPUTS -%}
-| `{{ output[0] }}` | {{ output[2] }} | {% if output[1] %}`{{ '`, `'.join(output[1]) }}`{% endif %} |
+{% for field, output in module.OUTPUTS.items() -%}
+| `{{ field }}` | {{ output['description'] }} | {% if output['provided_keys'] %}`{{ '`, `'.join(output['provided_keys']) }}`{% endif %} |
 {% endfor %}
 
 {% endfor %}

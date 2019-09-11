@@ -47,9 +47,25 @@ Uses `nmap` to scan for open ports.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `ips` | Required. IP range to scan (e.g., `use IPs`) | `ip` |
-| `protocols` | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`) |  |
-| `ports` | Port range in nmap notation (e.g., '22,80,443-445'); default: 0-65535 |  |
+| `ips` (required) | Required. IP range to scan (e.g., `use IPs`) | `ip` |
+| `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`) |  |
+| `ports`  | Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap. |  |
+
+
+
+
+##### Default for `protocols` #####
+```
+- tcp
+
+```
+
+##### Default for `ports` #####
+```
+null
+...
+
+```
 
 
 #### Outputs ####
@@ -72,8 +88,18 @@ compare it to the Mozilla TLS configuration profiles.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `domains` | List of domain names to scan. | `domain` |
-| `tls_profile` | The Mozilla TLS profile to test against (`old`, `intermediate`, or `new`). |  |
+| `domains` (required) | List of domain names to scan. | `domain` |
+| `tls_profile`  | The Mozilla TLS profile to test against (`old`, `intermediate`, or `new`). |  |
+
+
+
+
+##### Default for `tls_profile` #####
+```
+intermediate
+...
+
+```
 
 
 #### Outputs ####
@@ -103,8 +129,18 @@ https://dev.ssllabs.com/about/terms.html
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `domains` | List of domain names to scan. | `domain` |
-| `allowed_grades` | List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`. |  |
+| `domains` (required) | List of domain names to scan. | `domain` |
+| `allowed_grades`  | List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`. |  |
+
+
+
+
+##### Default for `allowed_grades` #####
+```
+- A
+- A+
+
+```
 
 
 #### Outputs ####
@@ -129,24 +165,10 @@ Scans web origins and finds:
 Note: Only tests the web origins' root URLs.
 
 
-##### Disallowed Methods #####
-
-Default: `['TRACE', 'TRACK', 'DELETE', 'PUT', 'CONNECT']`
-
 ##### Disallowed Headers #####
 Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers' value, and a human-readable reason that explains the rule. 
 
 Header names and values can be matched using regular expressions (matching is done using python3's `re.fullmatch`, case-insensitive).
-
-Default:
-
-```
-- header: Access-Control-.*
-  reason: CORS must be disabled
-- header: Server
-  reason: Server headers must not contain version information
-  value: .* .*[0-9].*
-```
 
 Values can be matched using python expressions (see below).
 
@@ -155,28 +177,6 @@ If any disallowed header is found for a given URL, an entry for the respective U
 ##### Required Headers #####
 
 Defines headers that must be present in all responses. The `reason` keyword is not necessary for required header definitions.
-
-Default:
-
-```
-- header: 'Strict-Transport-Security:'
-  origin: 'https:'
-  reason: STS header must be set and be valid for at least one year
-  value_expr: max_age >= 31536000
-- header: X-Frame-Options
-  origin: 'https:'
-  value: DENY
-- header: X-Content-Type-Options
-  origin: 'https:'
-  value: nosniff
-- header: Referrer-Policy
-  origin: 'https:'
-- header: Content-Security-Policy
-  origin: 'https:'
-- header: Expect-CT
-  origin: 'https:'
-  value_expr: value.startswith("enforce,") and max_age > 86400
-```
 
 If the `origin` keyword is present, the header is only required on origins that match the respective value (using `re.match`).
 
@@ -201,10 +201,53 @@ Cookies are only considered "secure" if they have the following properties:
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `origins` | List of web origins to scan. | `uri`, `domain`, `ip` |
-| `disallowed_methods` | List of methods that should be rejected by web servers. |  |
-| `disallowed_headers` | Objects defining headers that are not allowed (see description). | `header` |
-| `required_headers` | Objects defining headers that are required (see description). | `headers` |
+| `origins` (required) | List of web origins to scan. | `uri`, `domain`, `ip` |
+| `disallowed_methods`  | List of methods that should be rejected by web servers. |  |
+| `disallowed_headers`  | Objects defining headers that are not allowed (see description). | `header` |
+| `required_headers`  | Objects defining headers that are required (see description). | `headers` |
+
+
+
+
+##### Default for `disallowed_methods` #####
+```
+- TRACE
+- TRACK
+- CONNECT
+
+```
+
+##### Default for `disallowed_headers` #####
+```
+- header: Access-Control-.*
+  reason: CORS must be disabled
+- header: Server
+  reason: Server headers must not contain version information
+  value: .* .*[0-9].*
+
+```
+
+##### Default for `required_headers` #####
+```
+- header: Strict-Transport-Security
+  origin: 'https:'
+  reason: STS header must be set and be valid for at least one year
+  value_expr: max_age >= 31536000
+- header: X-Frame-Options
+  origin: 'https:'
+  value: DENY
+- header: X-Content-Type-Options
+  origin: 'https:'
+  value: nosniff
+- header: Referrer-Policy
+  origin: 'https:'
+- header: Content-Security-Policy
+  origin: 'https:'
+- header: Expect-CT
+  origin: 'https:'
+  value_expr: value.startswith("enforce,") and max_age > 86400
+
+```
 
 
 #### Outputs ####
@@ -270,8 +313,17 @@ run:
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `seeds` | List of initial domains to start search from | `domain` |
-| `resolvers` | List of DNS resolvers to use | `ip` |
+| `seeds` (required) | List of initial domains to start search from | `domain` |
+| `resolvers`  | List of DNS resolvers to use. Default (empty list): System DNS resolvers. | `ip` |
+
+
+
+
+##### Default for `resolvers` #####
+```
+[]
+
+```
 
 
 #### Outputs ####
@@ -295,7 +347,10 @@ existing TLS certificates for given domains and their subdomains.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `seeds` | List of domains for search. Certificates for domains in this list and their subdomains will be found | `domain` |
+| `seeds` (required) | List of domains for search. Certificates for domains in this list and their subdomains will be found | `domain` |
+
+
+
 
 
 #### Outputs ####
@@ -318,8 +373,12 @@ Host header in web requests.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `ips` | IP range to scan (e.g., `use HTTP-IPs and HTTPS-IPs`) | `ip` |
-| `domains` | Domain names to try on these IPs | `domain` |
+| `ips` (required) | IP range to scan (e.g., `use HTTP-IPs and HTTPS-IPs`) | `ip` |
+| `domains` (required) | Domain names to try on these IPs | `domain` |
+
+
+
+
 
 
 #### Outputs ####

@@ -4,7 +4,7 @@ import logging
 import dns.resolver
 import dns.rdtypes.IN.A
 import dns.rdtypes.IN.AAAA
-from yesses.module import YModule, unwrap_key
+from yesses.module import YModule
 
 log = logging.getLogger('discover/domains_and_ips')
 
@@ -52,33 +52,62 @@ run:
 
     """
     
-    INPUTS = [
-        ('seeds', ['domain'], 'List of initial domains to start search from'),
-        ('resolvers', ['ip'], 'List of DNS resolvers to use'),
-    ]
+    INPUTS = {
+        "seeds": {
+            "required_keys": [
+                "domain"
+            ],
+            "description": "List of initial domains to start search from",
+            "unwrap": True,
+        },
+        "resolvers": {
+            "required_keys": [
+                "ip"
+            ],
+            "description": "List of DNS resolvers to use. Default (empty list): System DNS resolvers.",
+            "unwrap": True,
+            "default": [],
+        }
+    }
 
-    OUTPUTS = [
-        ('Domains', ['domain'], 'List of domains found'),
-        ('IPs', ['ip'], 'List of IPs found'),
-        ('DNS-Entries', ['domain', 'ip'], 'Pairs of (domain, IP) associations'),
-        ('Ignored-Domains', ['domain'], 'CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results.'),
-    ]
+    OUTPUTS = {
+        "Domains": {
+            "provided_keys": [
+                "domain"
+            ],
+            "description": "List of domains found"
+        },
+        "IPs": {
+            "provided_keys": [
+                "ip"
+            ],
+            "description": "List of IPs found"
+        },
+        "DNS-Entries": {
+            "provided_keys": [
+                "domain",
+                "ip"
+            ],
+            "description": "Pairs of (domain, IP) associations"
+        },
+        "Ignored-Domains": {
+            "provided_keys": [
+                "domain"
+            ],
+            "description": "CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results."
+        }
+    }
+    
     
     base_url = "https://crt.sh/?q=%25.{}&output=json"
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
     rdtypes = [1, 28] # A and AAAA
 
-    @unwrap_key('seeds', 'domain')
-    @unwrap_key('resolvers', 'ip')
-    def __init__(self, step, seeds, resolvers=None):
-        self.step = step
-        self.seeds = seeds
-        log.info(f'Using seeds: {seeds!r}')
-        self.resolver = dns.resolver.Resolver()
-        if resolvers is not None:
-            self.resolver.nameservers = resolvers
-
     def run(self):
+        self.resolver = dns.resolver.Resolver()
+        if self.resolvers != []:
+            self.resolver.nameservers = self.resolvers
+
         self.domains = set(self.seeds)
         self.ignored_domains = set()
         for d in self.seeds:

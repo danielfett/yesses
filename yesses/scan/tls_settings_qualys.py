@@ -1,7 +1,7 @@
 from ssllabs import SSLLabsAssessment
 import logging
 import re
-from yesses.module import unwrap_key, YModule
+from yesses.module import YModule
 
 log = logging.getLogger('scan/tls_settings')
 
@@ -15,26 +15,51 @@ Note: The assessment service is provided free of charge by Qualys SSL
 Labs, subject to their terms and conditions:
 https://dev.ssllabs.com/about/terms.html
     """
-
-    INPUTS = [
-        ('domains', ['domain'], 'List of domain names to scan.'),
-        ('allowed_grades', None, 'List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`.'),
-    ]
-
-    OUTPUTS = [
-        ('TLS-Grade-Success', ['ip', 'domain', 'grade'], 'Object containing information about IP/Host combinations that passed the SSL test with an acceptable grade.'),
-        ('TLS-Grade-Fail', ['ip', 'domain', 'grade'], 'As above, but only IP/Host combinations that did not get an acceptable grade.'),
-        ('TLS-Grade-Error', ['ip', 'domain', 'grade'], 'As above, but only IP/Host combinations that failed due to errors during the test.'),
-    ]
     
-    @unwrap_key('domains', 'domain')
-    def __init__(self, step, domains=None, allowed_grades=['A', 'A+']):
-        self.step = step
-        self.hosts = domains
-        self.allowed_grades = allowed_grades
+    INPUTS = {
+        "domains": {
+            "required_keys": [
+                "domain"
+            ],
+            "description": "List of domain names to scan.",
+            "unwrap": True,
+        },
+        "allowed_grades": {
+            "required_keys": None,
+            "description": "List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`.",
+            "default": ['A', 'A+'],
+        }
+    }
+
+    OUTPUTS = {
+        "TLS-Grade-Success": {
+            "provided_keys": [
+                "ip",
+                "domain",
+                "grade"
+            ],
+            "description": "Object containing information about IP/Host combinations that passed the SSL test with an acceptable grade."
+        },
+        "TLS-Grade-Fail": {
+            "provided_keys": [
+                "ip",
+                "domain",
+                "grade"
+            ],
+            "description": "As above, but only IP/Host combinations that did not get an acceptable grade."
+        },
+        "TLS-Grade-Error": {
+            "provided_keys": [
+                "ip",
+                "domain",
+                "grade"
+            ],
+            "description": "As above, but only IP/Host combinations that failed due to errors during the test."
+        }
+    }
 
     def run(self):
-        for host in self.hosts:
+        for host in self.domains:
             self.run_assessment(host)
 
     def run_assessment(self, host):

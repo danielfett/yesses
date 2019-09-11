@@ -1,24 +1,53 @@
 import nmap
 import logging
-from yesses.module import unwrap_key, YModule
+from yesses.module import YModule
 
 log = logging.getLogger('scan/ports')
 
 class Ports(YModule):
     """Uses `nmap` to scan for open ports.
     """
+    INPUTS = {
+        "ips": {
+            "required_keys": [
+                "ip"
+            ],
+            "description": "Required. IP range to scan (e.g., `use IPs`)",
+            "unwrap": True,
+        },
+        "protocols": {
+            "required_keys": None,
+            "description": "List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`)",
+            "default": ['tcp'],
+        },
+        "ports": {
+            "required_keys": None,
+            "description": "Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap.",
+            "default": None,
+        }
+    }
 
-    INPUTS = [
-        ('ips', ['ip'], 'Required. IP range to scan (e.g., `use IPs`)'),
-        ('protocols', None, 'List of protocols (`udp`, `tcp`,...) in nmap\'s notations to scan. (Default: `tcp`)'),
-        ('ports', None, 'Port range in nmap notation (e.g., \'22,80,443-445\'); default: 0-65535'),
-    ]
+    OUTPUTS = {
+        "Host-Ports": {
+            "provided_keys": [
+                "ip",
+                "protocol",
+                "port"
+            ],
+            "description": "Each open port on a scanned IP"
+        },
+        "*-IPs": {
+            "provided_keys": [
+                "ip"
+            ],
+            "description": "For certain protocols (SSH, HTTP, HTTPS), a list of IPs that have this port open"
+        },
+        "Other-Port-IPs": {
+            "provided_keys": None,
+            "description": "List of IPs that have any other ports open."
+        }
+    }
 
-    OUTPUTS = [
-        ('Host-Ports', ['ip', 'protocol', 'port'], 'Each open port on a scanned IP'),
-        ('*-IPs', ['ip'], 'For certain protocols (SSH, HTTP, HTTPS), a list of IPs that have this port open'),
-        ('Other-Port-IPs', None, 'List of IPs that have any other ports open.'),
-    ]
         
     default_arguments = ['-T4', '-n', '-Pn']
     protocol_arguments = {
@@ -30,14 +59,6 @@ class Ports(YModule):
         'HTTP': 80,
         'HTTPS': 443
     }
-
-    @unwrap_key('ips', 'ip')
-    def __init__(self, step, ips, protocols=['tcp'], ports=None):
-        self.step = step
-        self.ips = ips
-        self.protocols = protocols
-        self.ports = ports
-        log.info(f'Using IPs: {ips!r} and protocols: {protocols!r}')
 
     def run(self):
         for ip in self.ips:

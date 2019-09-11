@@ -2,7 +2,7 @@ import requests
 import logging
 from yesses.utils import force_ip_connection
 import re
-from yesses.module import assert_keys, YModule
+from yesses.module import YModule
 
 log = logging.getLogger('scan/websecuritysettings')
 
@@ -19,24 +19,10 @@ class WebSecuritySettings(YModule):
 Note: Only tests the web origins' root URLs.
 
 
-##### Disallowed Methods #####
-
-Default: `['TRACE', 'TRACK', 'DELETE', 'PUT', 'CONNECT']`
-
 ##### Disallowed Headers #####
 Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers' value, and a human-readable reason that explains the rule. 
 
 Header names and values can be matched using regular expressions (matching is done using python3's `re.fullmatch`, case-insensitive).
-
-Default:
-
-```
-- header: Access-Control-.*
-  reason: CORS must be disabled
-- header: Server
-  reason: Server headers must not contain version information
-  value: .* .*[0-9].*
-```
 
 Values can be matched using python expressions (see below).
 
@@ -45,28 +31,6 @@ If any disallowed header is found for a given URL, an entry for the respective U
 ##### Required Headers #####
 
 Defines headers that must be present in all responses. The `reason` keyword is not necessary for required header definitions.
-
-Default:
-
-```
-- header: 'Strict-Transport-Security:'
-  origin: 'https:'
-  reason: STS header must be set and be valid for at least one year
-  value_expr: max_age >= 31536000
-- header: X-Frame-Options
-  origin: 'https:'
-  value: DENY
-- header: X-Content-Type-Options
-  origin: 'https:'
-  value: nosniff
-- header: Referrer-Policy
-  origin: 'https:'
-- header: Content-Security-Policy
-  origin: 'https:'
-- header: Expect-CT
-  origin: 'https:'
-  value_expr: value.startswith("enforce,") and max_age > 86400
-```
 
 If the `origin` keyword is present, the header is only required on origins that match the respective value (using `re.match`).
 
@@ -86,22 +50,6 @@ Cookies are only considered "secure" if they have the following properties:
   * The `HttpOnly` attribute must be set.
 
     """
-
-    INPUTS = [
-        ('origins', ['uri', 'domain', 'ip'], 'List of web origins to scan.'),
-        ('disallowed_methods', None, 'List of methods that should be rejected by web servers.'),
-        ('disallowed_headers', ['header'], 'Objects defining headers that are not allowed (see description).'),
-        ('required_headers', ['headers'], 'Objects defining headers that are required (see description).'),
-    ]
-
-    OUTPUTS = [
-        ('Missing-HTTPS-Redirect-URLs', ['uri', 'ip', 'error'], 'HTTP URLs which do not redirect to HTTPS.'),
-        ('Redirect-to-non-HTTPS-URLs', ['uri', 'ip', 'error'], 'URLs which redirect to HTTP URLs.'),
-        ('Disallowed-Header-URLs', ['uri', 'ip', 'errors'], 'URLs that set disallowed headers.'),
-        ('Missing-Header-URLs', ['uri', 'ip', 'errors'], 'URLs that miss headers.'),
-        ('Disallowed-Method-URLs', ['uri', 'ip', 'errors'], 'URLs where disallowed methods do not trigger an error.'),
-        ('Insecure-Cookie-URLs', ['uri', 'ip', 'error'], 'URLs where cookie settings are not sufficient.'),
-    ]
     
     DISALLOWED_METHODS = [
         'TRACE', 'TRACK', 'CONNECT'
@@ -151,20 +99,87 @@ Cookies are only considered "secure" if they have the following properties:
         }
     ]
         
-    @assert_keys('origins', ['domain', 'ip', 'url'])
-    def __init__(self,
-                 step,
-                 origins,
-                 disallowed_methods=DISALLOWED_METHODS,
-                 disallowed_headers=DISALLOWED_HEADERS,
-                 required_headers=REQUIRED_HEADERS,
-    ):
-        self.step = step
-        self.origins = origins
-        self.disallowed_headers = disallowed_headers
-        self.disallowed_methods = disallowed_methods
-        self.required_headers = required_headers
+    INPUTS = {
+        "origins": {
+            "required_keys": [
+                "uri",
+                "domain",
+                "ip"
+            ],
+            "description": "List of web origins to scan."
+        },
+        "disallowed_methods": {
+            "required_keys": None,
+            "description": "List of methods that should be rejected by web servers.",
+            "default": DISALLOWED_METHODS,
+        },
+        "disallowed_headers": {
+            "required_keys": [
+                "header"
+            ],
+            "description": "Objects defining headers that are not allowed (see description).",
+            "default": DISALLOWED_HEADERS,
+        },
+        "required_headers": {
+            "required_keys": [
+                "headers"
+            ],
+            "description": "Objects defining headers that are required (see description).",
+            "default": REQUIRED_HEADERS,
+        }
+    }
 
+    OUTPUTS = {
+        "Missing-HTTPS-Redirect-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "error"
+            ],
+            "description": "HTTP URLs which do not redirect to HTTPS."
+        },
+        "Redirect-to-non-HTTPS-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "error"
+            ],
+            "description": "URLs which redirect to HTTP URLs."
+        },
+        "Disallowed-Header-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "errors"
+            ],
+            "description": "URLs that set disallowed headers."
+        },
+        "Missing-Header-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "errors"
+            ],
+            "description": "URLs that miss headers."
+        },
+        "Disallowed-Method-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "errors"
+            ],
+            "description": "URLs where disallowed methods do not trigger an error."
+        },
+        "Insecure-Cookie-URLs": {
+            "provided_keys": [
+                "uri",
+                "ip",
+                "error"
+            ],
+            "description": "URLs where cookie settings are not sufficient."
+        }
+    }
+        
     def run(self):
         for origin in self.origins:
             self.run_checks(*origin)

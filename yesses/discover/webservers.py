@@ -2,7 +2,7 @@ import nmap
 import logging
 from yesses.utils import force_ip_connection
 import requests
-from yesses.module import YModule, unwrap_key
+from yesses.module import YModule
 
 log = logging.getLogger('scan/webservers')
 
@@ -15,23 +15,47 @@ Host header in web requests.
 
     """
     
-    INPUTS = [
-        ('ips', ['ip'], 'IP range to scan (e.g., `use HTTP-IPs and HTTPS-IPs`)'),
-        ('domains', ['domain'], 'Domain names to try on these IPs'),
-    ]
+    INPUTS = {
+        "ips": {
+            "required_keys": [
+                "ip"
+            ],
+            "description": "IP range to scan (e.g., `use HTTP-IPs and HTTPS-IPs`)",
+            "unwrap": True,
+        },
+        "domains": {
+            "required_keys": [
+                "domain"
+            ],
+            "description": "Domain names to try on these IPs",
+            "unwrap": True,
+        }
+    }
 
-    OUTPUTS = [
-        ('Web-Origins', ['domain', 'url', 'ip' ], 'HTTP origins'),
-        ('TLS-Web-Origins', ['domain', 'url', 'ip' ], 'as above, but for HTTPS'),
-        ('TLS-Domains', ['domain'], 'List of domains with HTTPS servers'),
-    ]
-    
-    @unwrap_key('domains', 'domain')
-    @unwrap_key('ips', 'ip')
-    def __init__(self, step, domains, ips):
-        self.step = step
-        self.ips = ips
-        self.domains = domains
+    OUTPUTS = {
+        "Web-Origins": {
+            "provided_keys": [
+                "domain",
+                "url",
+                "ip"
+            ],
+            "description": "HTTP origins"
+        },
+        "TLS-Web-Origins": {
+            "provided_keys": [
+                "domain",
+                "url",
+                "ip"
+            ],
+            "description": "as above, but for HTTPS"
+        },
+        "TLS-Domains": {
+            "provided_keys": [
+                "domain"
+            ],
+            "description": "List of domains with HTTPS servers"
+        }
+    }
 
     def run(self):
         output = []

@@ -58,7 +58,7 @@ class Step:
             raise Exception(f'Unable to initialize action "{self.action}": {str(e)}\n\n{self.get_definition()}') 
 
         with self.capture_log():
-            return obj.run()
+            return obj.run_module()
 
     @contextmanager
     def capture_log(self):
