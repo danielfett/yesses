@@ -39,9 +39,9 @@ fields. The field names can be used in the yaml configuration file.
 {% if 'default' in input %}
 ##### Default for `{{ field }}` #####
 ```
-{{ input['default']|yaml }}
+{{ input['default']|yaml -}}
 ```
-{%- endif %}
+{% endif %}
 {% endfor %}
 
 #### Outputs ####

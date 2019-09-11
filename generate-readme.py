@@ -21,7 +21,11 @@ for m in modules:
     template_modules[m] = list(member[1] for member in inspect.getmembers(module) if type(member[1]) == type)
 
 def jinja2_yaml_filter(obj):
-    return yaml.safe_dump(obj, default_flow_style=False)
+    out = yaml.safe_dump(obj, default_flow_style=False, default_style='')
+    if out.endswith("...\n"):
+        return out[:-4]
+    else:
+        return out
 
 res = subprocess.run(['./run.py', '--help'], stdout=subprocess.PIPE)
 usage = str(res.stdout, 'ascii')

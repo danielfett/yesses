@@ -57,15 +57,14 @@ Uses `nmap` to scan for open ports.
 ##### Default for `protocols` #####
 ```
 - tcp
-
 ```
+
 
 ##### Default for `ports` #####
 ```
 null
-...
-
 ```
+
 
 
 #### Outputs ####
@@ -97,9 +96,8 @@ compare it to the Mozilla TLS configuration profiles.
 ##### Default for `tls_profile` #####
 ```
 intermediate
-...
-
 ```
+
 
 
 #### Outputs ####
@@ -139,8 +137,8 @@ https://dev.ssllabs.com/about/terms.html
 ```
 - A
 - A+
-
 ```
+
 
 
 #### Outputs ####
@@ -214,8 +212,8 @@ Cookies are only considered "secure" if they have the following properties:
 - TRACE
 - TRACK
 - CONNECT
-
 ```
+
 
 ##### Default for `disallowed_headers` #####
 ```
@@ -224,8 +222,8 @@ Cookies are only considered "secure" if they have the following properties:
 - header: Server
   reason: Server headers must not contain version information
   value: .* .*[0-9].*
-
 ```
+
 
 ##### Default for `required_headers` #####
 ```
@@ -246,8 +244,8 @@ Cookies are only considered "secure" if they have the following properties:
 - header: Expect-CT
   origin: 'https:'
   value_expr: value.startswith("enforce,") and max_age > 86400
-
 ```
+
 
 
 #### Outputs ####
@@ -322,8 +320,8 @@ run:
 ##### Default for `resolvers` #####
 ```
 []
-
 ```
+
 
 
 #### Outputs ####
