@@ -18,7 +18,7 @@ class Config:
         )
 
         self.outputs = list(
-            Output(self, raw) for raw in self.data['output']
+            Output(self, raw) for raw in self.data.get('output', [])
         )
 
         self.findingslist = FindingsList(

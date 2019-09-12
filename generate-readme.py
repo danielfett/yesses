@@ -18,7 +18,13 @@ template_modules = {}
 
 for m in modules:
     module = importlib.import_module(f"yesses.{m}")
-    template_modules[m] = list(member[1] for member in inspect.getmembers(module) if type(member[1]) == type)
+    classes = list(member[1] for member in inspect.getmembers(module) if type(member[1]) == type)
+    template_modules[m] = classes
+
+    for c in classes:
+        print (f"Testing {m} {c.__name__}")
+        c.selftest()
+
 
 def jinja2_yaml_filter(obj):
     out = yaml.safe_dump(obj, default_flow_style=False, default_style='')

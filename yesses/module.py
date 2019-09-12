@@ -1,3 +1,23 @@
+class YExample:
+    def __init__(self, name, raw):
+        self.name = name
+        self.raw = raw[1:] if raw.startswith("\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
+        self.output = None
+
+    def run(self):
+        from yesses import Runner
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        with TemporaryDirectory(prefix='yesses-test') as td:
+            tempdir = Path(td)
+            configfile = tempdir / Path("config.yml")
+            configfile.write_text("run:\n" + self.raw)
+            with open(configfile, 'r') as f:
+                runner = Runner(f, fresh=True)
+                runner.run()
+                self.output = runner.config.findingslist.current_findings
+
+
 class YModule:
     def __init__(self, step, **kwargs):
         self.step = step
@@ -56,6 +76,14 @@ class YModule:
                         el[key]
                     except KeyError:
                         raise Exception(f"In field {field}: Missing key '{key}' on output element '{el}' in {self.step}.")
+
+    @classmethod
+    def selftest(cls):
+        if not hasattr(cls, 'EXAMPLES'):
+            return None
+        for ex in cls.EXAMPLES:
+            ex.run()
+        return True
 
     def run_module(self):
         self.run()

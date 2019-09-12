@@ -7,9 +7,9 @@ yesses provides a number of modules that each perform a certain task.
 For example, the module `discover Domains and IPs` queries DNS servers
 for IP addresses. Each module has a number of defined inputs (in this
 case, for example, domain names) and outputs (e.g., IP addresses and
-domain names expanded from CNAMEs). 
+domain names expanded from CNAMEs). These outputs are called "findings".
 
-Modules can be combined by feeding the output of one module into the
+Modules can be combined by feeding the findings of one module into the
 input of another module. For example, the module `discover Webservers`
 can use the domain names and IP addresses from `discover Domains and
 IPs` as inputs. This enables a dynamic scanning of infrastructures
@@ -23,7 +23,6 @@ module.
 
 Alerts are processed by one or more user-defined outputs. yesses comes
 with an HTML template output and Slack notification output.
-
 
 
 ## Usage ##
@@ -47,9 +46,7 @@ optional arguments:
 
 ```
 
-
-
-## Configuration ##
+## Configuration file ##
 
 [todo]
 
@@ -68,6 +65,8 @@ fields. The field names can be used in the yaml configuration file.
 Uses `nmap` to scan for open ports.
     
 
+
+
 #### Inputs ####
 
 | Name             | Description    | Required keys                                            |
@@ -80,13 +79,13 @@ Uses `nmap` to scan for open ports.
 
 
 ##### Default for `protocols` #####
-```
+```YAML
 - tcp
 ```
 
 
 ##### Default for `ports` #####
-```
+```YAML
 null
 ```
 
@@ -108,6 +107,57 @@ compare it to the Mozilla TLS configuration profiles.
 
     
 
+
+#### Examples ####
+
+##### Check TLS settings on badssl.com #####
+Configuration:
+```YAML
+ - scan TLS Settings:
+     domains:
+      - domain: mozilla-intermediate.badssl.com
+     tls_profile: intermediate
+   find:
+     - TLS-Profile-Mismatch-Domains
+     - TLS-Validation-Fail-Domains
+     - TLS-Vulnerability-Domains
+     - TLS-Okay-Domains
+     - TLS-Other-Error-Domains
+```
+Findings returned:
+```YAML
+TLS-Okay-Domains: []
+TLS-Other-Error-Domains: []
+TLS-Profile-Mismatch-Domains:
+- domain: mozilla-intermediate.badssl.com
+  errors:
+  - must not support "TLSv1.1"
+  - must not support "TLSv1"
+  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "AES128-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "ECDHE-RSA-AES128-SHA256"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "DES-CBC3-SHA"
+  - must not support "AES128-SHA256"
+  - must not support "AES256-SHA256"
+  - must not support "DHE-RSA-AES128-SHA256"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "AES256-GCM-SHA384"
+  - must not support "DHE-RSA-AES256-SHA256"
+  - must not support "AES256-SHA"
+TLS-Validation-Fail-Domains: []
+TLS-Vulnerability-Domains: []
+```
+
+
+
+
 #### Inputs ####
 
 | Name             | Description    | Required keys                                            |
@@ -119,7 +169,7 @@ compare it to the Mozilla TLS configuration profiles.
 
 
 ##### Default for `tls_profile` #####
-```
+```YAML
 intermediate
 ```
 
@@ -148,6 +198,8 @@ Labs, subject to their terms and conditions:
 https://dev.ssllabs.com/about/terms.html
     
 
+
+
 #### Inputs ####
 
 | Name             | Description    | Required keys                                            |
@@ -159,7 +211,7 @@ https://dev.ssllabs.com/about/terms.html
 
 
 ##### Default for `allowed_grades` #####
-```
+```YAML
 - A
 - A+
 ```
@@ -220,20 +272,55 @@ Cookies are only considered "secure" if they have the following properties:
 
     
 
+
+#### Examples ####
+
+##### Websecurity Settings of neverssl.com #####
+Configuration:
+```YAML
+ - scan Web Security Settings:
+     origins: 
+       - url: http://neverssl.com
+         ip: '143.204.208.22'
+         domain: neverssl.com
+   find:
+     - Missing-HTTPS-Redirect-URLs
+     - Redirect-to-non-HTTPS-URLs
+     - Disallowed-Header-URLs
+     - Missing-Header-URLs
+     - Disallowed-Method-URLs
+     - Insecure-Cookie-URLs
+```
+Findings returned:
+```YAML
+Disallowed-Header-URLs: []
+Disallowed-Method-URLs: []
+Insecure-Cookie-URLs: []
+Missing-HTTPS-Redirect-URLs:
+- error: no redirection encountered
+  ip: 143.204.208.22
+  url: http://neverssl.com/
+Missing-Header-URLs: []
+Redirect-to-non-HTTPS-URLs: []
+```
+
+
+
+
 #### Inputs ####
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `origins` (required) | List of web origins to scan. | `uri`, `domain`, `ip` |
+| `origins` (required) | List of web origins to scan. | `url`, `domain`, `ip` |
 | `disallowed_methods`  | List of methods that should be rejected by web servers. |  |
 | `disallowed_headers`  | Objects defining headers that are not allowed (see description). | `header` |
-| `required_headers`  | Objects defining headers that are required (see description). | `headers` |
+| `required_headers`  | Objects defining headers that are required (see description). | `header` |
 
 
 
 
 ##### Default for `disallowed_methods` #####
-```
+```YAML
 - TRACE
 - TRACK
 - CONNECT
@@ -241,7 +328,7 @@ Cookies are only considered "secure" if they have the following properties:
 
 
 ##### Default for `disallowed_headers` #####
-```
+```YAML
 - header: Access-Control-.*
   reason: CORS must be disabled
 - header: Server
@@ -251,7 +338,7 @@ Cookies are only considered "secure" if they have the following properties:
 
 
 ##### Default for `required_headers` #####
-```
+```YAML
 - header: Strict-Transport-Security
   origin: 'https:'
   reason: STS header must be set and be valid for at least one year
@@ -277,12 +364,12 @@ Cookies are only considered "secure" if they have the following properties:
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Missing-HTTPS-Redirect-URLs` | HTTP URLs which do not redirect to HTTPS. | `uri`, `ip`, `error` |
-| `Redirect-to-non-HTTPS-URLs` | URLs which redirect to HTTP URLs. | `uri`, `ip`, `error` |
-| `Disallowed-Header-URLs` | URLs that set disallowed headers. | `uri`, `ip`, `errors` |
-| `Missing-Header-URLs` | URLs that miss headers. | `uri`, `ip`, `errors` |
-| `Disallowed-Method-URLs` | URLs where disallowed methods do not trigger an error. | `uri`, `ip`, `errors` |
-| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `uri`, `ip`, `error` |
+| `Missing-HTTPS-Redirect-URLs` | HTTP URLs which do not redirect to HTTPS. | `url`, `ip`, `error` |
+| `Redirect-to-non-HTTPS-URLs` | URLs which redirect to HTTP URLs. | `url`, `ip`, `error` |
+| `Disallowed-Header-URLs` | URLs that set disallowed headers. | `url`, `ip`, `errors` |
+| `Missing-Header-URLs` | URLs that miss headers. | `url`, `ip`, `errors` |
+| `Disallowed-Method-URLs` | URLs where disallowed methods do not trigger an error. | `url`, `ip`, `errors` |
+| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `url`, `ip`, `error` |
 
 
 
@@ -332,6 +419,8 @@ run:
 
     
 
+
+
 #### Inputs ####
 
 | Name             | Description    | Required keys                                            |
@@ -343,7 +432,7 @@ run:
 
 
 ##### Default for `resolvers` #####
-```
+```YAML
 []
 ```
 
@@ -365,6 +454,8 @@ Queries Certificate Transparency logs (using https://crt.sh) for
 existing TLS certificates for given domains and their subdomains.
 
     
+
+
 
 #### Inputs ####
 
@@ -391,6 +482,8 @@ ports); combines a list of IPs with a list of domains to use for the
 Host header in web requests.
 
     
+
+
 
 #### Inputs ####
 

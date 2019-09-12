@@ -1,5 +1,5 @@
 from tlsprofiler import TLSProfiler
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 import requests
 import logging
 
@@ -62,6 +62,21 @@ compare it to the Mozilla TLS configuration profiles.
             "description": "Domains that could not be tested because of some error (e.g., a network error). `error` contains the error description."
         }
     }
+
+    EXAMPLES = [
+        YExample("Check TLS settings on badssl.com", """
+ - scan TLS Settings:
+     domains:
+      - domain: mozilla-intermediate.badssl.com
+     tls_profile: intermediate
+   find:
+     - TLS-Profile-Mismatch-Domains
+     - TLS-Validation-Fail-Domains
+     - TLS-Vulnerability-Domains
+     - TLS-Okay-Domains
+     - TLS-Other-Error-Domains
+""")
+    ]
 
     def run(self):
         for domain in self.domains:

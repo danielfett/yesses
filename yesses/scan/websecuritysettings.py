@@ -2,7 +2,7 @@ import requests
 import logging
 from yesses.utils import force_ip_connection
 import re
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 
 log = logging.getLogger('scan/websecuritysettings')
 
@@ -102,7 +102,7 @@ Cookies are only considered "secure" if they have the following properties:
     INPUTS = {
         "origins": {
             "required_keys": [
-                "uri",
+                "url",
                 "domain",
                 "ip"
             ],
@@ -122,7 +122,7 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "required_headers": {
             "required_keys": [
-                "headers"
+                "header"
             ],
             "description": "Objects defining headers that are required (see description).",
             "default": REQUIRED_HEADERS,
@@ -132,7 +132,7 @@ Cookies are only considered "secure" if they have the following properties:
     OUTPUTS = {
         "Missing-HTTPS-Redirect-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "error"
             ],
@@ -140,7 +140,7 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "Redirect-to-non-HTTPS-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "error"
             ],
@@ -148,7 +148,7 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "Disallowed-Header-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "errors"
             ],
@@ -156,7 +156,7 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "Missing-Header-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "errors"
             ],
@@ -164,7 +164,7 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "Disallowed-Method-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "errors"
             ],
@@ -172,17 +172,34 @@ Cookies are only considered "secure" if they have the following properties:
         },
         "Insecure-Cookie-URLs": {
             "provided_keys": [
-                "uri",
+                "url",
                 "ip",
                 "error"
             ],
             "description": "URLs where cookie settings are not sufficient."
         }
     }
+
+    EXAMPLES = [
+        YExample("Websecurity Settings of neverssl.com", """
+ - scan Web Security Settings:
+     origins: 
+       - url: http://neverssl.com
+         ip: '143.204.208.22'
+         domain: neverssl.com
+   find:
+     - Missing-HTTPS-Redirect-URLs
+     - Redirect-to-non-HTTPS-URLs
+     - Disallowed-Header-URLs
+     - Missing-Header-URLs
+     - Disallowed-Method-URLs
+     - Insecure-Cookie-URLs
+""")
+        ]
         
     def run(self):
         for origin in self.origins:
-            self.run_checks(*origin)
+            self.run_checks(**origin)
 
     def run_checks(self, url, domain, ip):
         log.info(f"Now checking {domain} on IP {ip}")
@@ -229,7 +246,7 @@ Cookies are only considered "secure" if they have the following properties:
         chain = [sr.url for sr in response.history + [response]]
         for step_uri in chain[1:]:
             if not step_uri.startswith('https://'):
-                error = f"got redirections to non-HTTPS-URIs; redirection chain: {' → '.join(chain)}"
+                error = f"got redirections to non-HTTPS-URLs; redirection chain: {' → '.join(chain)}"
                 self.results['Redirect-to-non-HTTPS-URLs'].append({
                     'url': chain[0],
                     'ip': ip,
