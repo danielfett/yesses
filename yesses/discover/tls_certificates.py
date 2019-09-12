@@ -1,13 +1,15 @@
 import requests
 import json
 import logging
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 
 log = logging.getLogger('discover/tls_certificates')
 
 class TLSCertificates(YModule):
     """Queries Certificate Transparency logs (using https://crt.sh) for
 existing TLS certificates for given domains and their subdomains.
+
+Note: The output may contain wildcards, e.g., '*.example.com'.
 
     """
     
@@ -36,6 +38,17 @@ existing TLS certificates for given domains and their subdomains.
             "description": "Unique identifiers for found TLS certificates; also links to more information about the certificates. `certificate_id` and `certificate_url` have the same content in this module, as the URI is also used to uniquely identify the certificate."
         }
     }
+
+    EXAMPLES = [
+        YExample("list certificates of example.com", """
+  - discover TLS Certificates:
+      seeds:
+        - domain: example.com
+    find:
+      - TLS-Names
+      - TLS-Certificates
+""")
+    ]
         
     base_url = "https://crt.sh/?q=%25.{}&output=json"
     cert_url = "https://crt.sh/?id={min_cert_id}"
@@ -65,3 +78,7 @@ existing TLS certificates for given domains and their subdomains.
         found_domains = set(crt['name_value'] for crt in data)
         found_certs = set(self.cert_url.format(**crt) for crt in data)
         return found_domains, found_certs
+
+
+if __name__ == "__main__":
+    TLSCertificates.selftest()

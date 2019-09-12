@@ -4,7 +4,7 @@ import logging
 import dns.resolver
 import dns.rdtypes.IN.A
 import dns.rdtypes.IN.AAAA
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 
 log = logging.getLogger('discover/domains_and_ips')
 
@@ -97,6 +97,20 @@ run:
             "description": "CNAME targets that are not a subdomain of one of the seeding domains; these are not expanded further and are not contained in the other results."
         }
     }
+    
+    EXAMPLES = [
+        YExample("discover DNS details of example.com", """
+  - discover Domains and IPs:
+      seeds:
+        - domain: example.com
+      resolvers: 
+        - ip: '1.1.1.1'
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+""")
+    ]
     
     
     base_url = "https://crt.sh/?q=%25.{}&output=json"
@@ -199,7 +213,4 @@ run:
         
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    import sys
-    d = DiscoverDomainsAndIPs(sys.argv[1:])
-    print (d.run())
+    DomainsAndIPs.selftest()

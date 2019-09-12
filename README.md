@@ -66,6 +66,38 @@ Uses `nmap` to scan for open ports.
     
 
 
+#### Examples ####
+
+##### scan ports on Google DNS server #####
+Configuration:
+```YAML
+  - scan Ports:
+      ips: 
+        - ip: '8.8.8.8'
+      protocols: ['tcp']
+    find:
+      - Host-Ports
+      - HTTPS-Ports
+      - Other-Port-IPs
+```
+Findings returned:
+```YAML
+HTTPS-Ports:
+- &id001
+  ip: 8.8.8.8
+  port: 443
+  protocol: tcp
+Host-Ports:
+- ip: 8.8.8.8
+  port: 53
+  protocol: tcp
+- *id001
+Other-Port-IPs:
+- ip: 8.8.8.8
+```
+
+
+
 
 #### Inputs ####
 
@@ -74,6 +106,8 @@ Uses `nmap` to scan for open ports.
 | `ips` (required) | Required. IP range to scan (e.g., `use IPs`) | `ip` |
 | `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`) |  |
 | `ports`  | Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap. |  |
+| `named_ports`  | A mapping of names to ports. This can be used to control the output of this module. | `name`, `port` |
+| `protocol_arguments`  | Command-line arguments to provide to nmap when scanning for a specific protocol. | `protocol`, `arguments` |
 
 
 
@@ -90,13 +124,33 @@ null
 ```
 
 
+##### Default for `named_ports` #####
+```YAML
+- name: SSH
+  port: 22
+- name: HTTP
+  port: 80
+- name: HTTPS
+  port: 443
+```
+
+
+##### Default for `protocol_arguments` #####
+```YAML
+- arguments: -sU
+  protocol: udp
+- arguments: -sT
+  protocol: tcp
+```
+
+
 
 #### Outputs ####
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Host-Ports` | Each open port on a scanned IP | `ip`, `protocol`, `port` |
-| `*-IPs` | For certain protocols (SSH, HTTP, HTTPS), a list of IPs that have this port open | `ip` |
+| `Host-Ports` | Each open port on a scanned IP (with IP, protocol, and port) | `ip`, `protocol`, `port` |
+| `*-Ports` | For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port) | `ip`, `protocol`, `port` |
 | `Other-Port-IPs` | List of IPs that have any other ports open. |  |
 
 
@@ -131,26 +185,26 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support "TLSv1.1"
   - must not support "TLSv1"
-  - must not support "ECDHE-RSA-AES128-SHA"
-  - must not support "AES128-SHA"
-  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "TLSv1.1"
   - must not support "ECDHE-RSA-AES128-SHA256"
-  - must not support "DHE-RSA-DES-CBC3-SHA"
-  - must not support "ECDHE-RSA-DES-CBC3-SHA"
-  - must not support "EDH-RSA-DES-CBC3-SHA"
-  - must not support "DHE-RSA-AES128-SHA"
-  - must not support "ECDHE-RSA-AES256-SHA384"
-  - must not support "AES128-GCM-SHA256"
+  - must not support "AES256-SHA"
   - must not support "DES-CBC3-SHA"
-  - must not support "AES128-SHA256"
+  - must not support "DHE-RSA-AES256-SHA256"
+  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
   - must not support "AES256-SHA256"
   - must not support "DHE-RSA-AES128-SHA256"
-  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "AES128-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
   - must not support "AES256-GCM-SHA384"
-  - must not support "DHE-RSA-AES256-SHA256"
-  - must not support "AES256-SHA"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "AES128-SHA"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA384"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
@@ -420,6 +474,42 @@ run:
     
 
 
+#### Examples ####
+
+##### discover DNS details of example.com #####
+Configuration:
+```YAML
+  - discover Domains and IPs:
+      seeds:
+        - domain: example.com
+      resolvers: 
+        - ip: '1.1.1.1'
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+```
+Findings returned:
+```YAML
+DNS-Entries:
+- domain: example.com
+  ip: 93.184.216.34
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+- domain: www.example.com
+  ip: 93.184.216.34
+- domain: www.example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+Domains:
+- domain: www.example.com
+- domain: example.com
+IPs:
+- ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+```
+
+
+
 
 #### Inputs ####
 
@@ -453,7 +543,51 @@ run:
 Queries Certificate Transparency logs (using https://crt.sh) for
 existing TLS certificates for given domains and their subdomains.
 
+Note: The output may contain wildcards, e.g., '*.example.com'.
+
     
+
+
+#### Examples ####
+
+##### list certificates of example.com #####
+Configuration:
+```YAML
+  - discover TLS Certificates:
+      seeds:
+        - domain: example.com
+    find:
+      - TLS-Names
+      - TLS-Certificates
+```
+Findings returned:
+```YAML
+TLS-Certificates:
+- certificate_id: https://crt.sh/?id=24560621
+  certificate_url: https://crt.sh/?id=24560621
+- certificate_id: https://crt.sh/?id=24564717
+  certificate_url: https://crt.sh/?id=24564717
+- certificate_id: https://crt.sh/?id=24558997
+  certificate_url: https://crt.sh/?id=24558997
+- certificate_id: https://crt.sh/?id=5857507
+  certificate_url: https://crt.sh/?id=5857507
+- certificate_id: https://crt.sh/?id=10557607
+  certificate_url: https://crt.sh/?id=10557607
+- certificate_id: https://crt.sh/?id=24560643
+  certificate_url: https://crt.sh/?id=24560643
+- certificate_id: https://crt.sh/?id=984858191
+  certificate_url: https://crt.sh/?id=984858191
+- certificate_id: https://crt.sh/?id=987119772
+  certificate_url: https://crt.sh/?id=987119772
+TLS-Names:
+- domain: www.example.com
+- domain: m.example.com
+- domain: dev.example.com
+- domain: '*.example.com'
+- domain: products.example.com
+- domain: support.example.com
+```
+
 
 
 
@@ -484,6 +618,51 @@ Host header in web requests.
     
 
 
+#### Examples ####
+
+##### detect webservers on example.com #####
+Configuration:
+```YAML
+  - discover Webservers:
+      ips: 
+        - ip: '93.184.216.34'
+        - ip: '2606:2800:220:1:248:1893:25c8:1946'
+      domains:
+        - domain: example.com
+        - domain: dev.example.com
+    find:
+      - Insecure-Origins
+      - Secure-Origins
+      - TLS-Domains
+```
+Findings returned:
+```YAML
+Insecure-Origins:
+- domain: example.com
+  ip: 93.184.216.34
+  url: http://example.com/
+- domain: dev.example.com
+  ip: 93.184.216.34
+  url: http://dev.example.com/
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+  url: http://example.com/
+- domain: dev.example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+  url: http://dev.example.com/
+Secure-Origins:
+- domain: example.com
+  ip: 93.184.216.34
+  url: https://example.com/
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+  url: https://example.com/
+TLS-Domains:
+- domain: example.com
+```
+
+
+
 
 #### Inputs ####
 
@@ -501,8 +680,8 @@ Host header in web requests.
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Web-Origins` | HTTP origins | `domain`, `url`, `ip` |
-| `TLS-Web-Origins` | as above, but for HTTPS | `domain`, `url`, `ip` |
+| `Insecure-Origins` | HTTP origins | `domain`, `url`, `ip` |
+| `Secure-Origins` | as above, but for HTTPS | `domain`, `url`, `ip` |
 | `TLS-Domains` | List of domains with HTTPS servers | `domain` |
 
 

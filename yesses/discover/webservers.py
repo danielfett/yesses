@@ -2,7 +2,7 @@ import nmap
 import logging
 from yesses.utils import force_ip_connection
 import requests
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 
 log = logging.getLogger('scan/webservers')
 
@@ -33,7 +33,7 @@ Host header in web requests.
     }
 
     OUTPUTS = {
-        "Web-Origins": {
+        "Insecure-Origins": {
             "provided_keys": [
                 "domain",
                 "url",
@@ -41,7 +41,7 @@ Host header in web requests.
             ],
             "description": "HTTP origins"
         },
-        "TLS-Web-Origins": {
+        "Secure-Origins": {
             "provided_keys": [
                 "domain",
                 "url",
@@ -57,8 +57,24 @@ Host header in web requests.
         }
     }
 
+    EXAMPLES = [
+        YExample("detect webservers on example.com", """
+  - discover Webservers:
+      ips: 
+        - ip: '93.184.216.34'
+        - ip: '2606:2800:220:1:248:1893:25c8:1946'
+      domains:
+        - domain: example.com
+        - domain: dev.example.com
+    find:
+      - Insecure-Origins
+      - Secure-Origins
+      - TLS-Domains
+""")
+    ]
+
     def run(self):
-        output = []
+        output_insecure = []
         output_secure = []
         tls_domains = []
         for ip in self.ips:
@@ -72,11 +88,18 @@ Host header in web requests.
                             log.debug(f"Exception {e} on {url}, ip={ip}")
                         else:
                             el = {'url': url, 'domain': domain, 'ip': ip}
-                            output.append(el)
                             if protocol == 'https':
                                 output_secure.append(el)
-                                tls_domains.append({'domain': domain})
+                                domain = {'domain': domain}
+                                if not domain in tls_domains:
+                                    tls_domains.append(domain)
+                            else:
+                                output_insecure.append(el)
                             log.info(f"Found webserver {url} on {ip}")
-        self.results['Web-Origins'] = output
-        self.results['TLS-Web-Origins'] = output_secure
+        self.results['Insecure-Origins'] = output_insecure
+        self.results['Secure-Origins'] = output_secure
         self.results['TLS-Domains'] = tls_domains
+
+
+if __name__ == "__main__":
+    Webservers.selftest()

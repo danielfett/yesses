@@ -1,12 +1,24 @@
 import nmap
 import logging
-from yesses.module import YModule
+from yesses.module import YModule, YExample
 
 log = logging.getLogger('scan/ports')
 
 class Ports(YModule):
     """Uses `nmap` to scan for open ports.
     """
+    
+    DEFAULT_PROTOCOL_ARGUMENTS = [
+        {'protocol': 'udp', 'arguments': '-sU'},
+        {'protocol': 'tcp', 'arguments': '-sT'},
+    ]
+    
+    DEFAULT_NAMED_PORTS = [
+        {'name': 'SSH', 'port': 22},
+        {'name': 'HTTP', 'port': 80},
+        {'name': 'HTTPS', 'port': 443},
+    ]
+    
     INPUTS = {
         "ips": {
             "required_keys": [
@@ -24,6 +36,16 @@ class Ports(YModule):
             "required_keys": None,
             "description": "Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap.",
             "default": None,
+        },
+        "named_ports": {
+            "required_keys": ['name', 'port'],
+            "description": "A mapping of names to ports. This can be used to control the output of this module.",
+            "default": DEFAULT_NAMED_PORTS,
+        },
+        "protocol_arguments": {
+            "required_keys": ['protocol', 'arguments'],
+            "description": "Command-line arguments to provide to nmap when scanning for a specific protocol.",
+            "default": DEFAULT_PROTOCOL_ARGUMENTS,
         }
     }
 
@@ -34,13 +56,15 @@ class Ports(YModule):
                 "protocol",
                 "port"
             ],
-            "description": "Each open port on a scanned IP"
+            "description": "Each open port on a scanned IP (with IP, protocol, and port)"
         },
-        "*-IPs": {
+        "*-Ports": {
             "provided_keys": [
-                "ip"
+                "ip",
+                "protocol",
+                "port"
             ],
-            "description": "For certain protocols (SSH, HTTP, HTTPS), a list of IPs that have this port open"
+            "description": "For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port)"
         },
         "Other-Port-IPs": {
             "provided_keys": None,
@@ -48,34 +72,43 @@ class Ports(YModule):
         }
     }
 
+    EXAMPLES = [
+        YExample("scan ports on Google DNS server", """
+  - scan Ports:
+      ips: 
+        - ip: '8.8.8.8'
+      protocols: ['tcp']
+    find:
+      - Host-Ports
+      - HTTPS-Ports
+      - Other-Port-IPs
+""")
+    ]
+
         
     default_arguments = ['-T4', '-n', '-Pn']
-    protocol_arguments = {
-        'udp': '-sU',
-        'tcp': '-sT'
-    }
-    named_ports = {
-        'SSH': 22,
-        'HTTP': 80,
-        'HTTPS': 443
-    }
+    
 
     def run(self):
         for ip in self.ips:
             self.results['Host-Ports'] += self.scan(ip)
-            
-        for protocol, port in self.named_ports.items():
-            #self.results[f'{protocol}-Ports'] = [x for x in self.results['Host-Ports'] if x[2] == port]
-            iplist = list(set(x[0] for x in self.results['Host-Ports'] if x[2] == port))
-            self.results[f'{protocol}-IPs'] = [{'ip': i} for i in iplist]
 
-        iplist = list(set(x[0] for x in self.results['Host-Ports'] if x[2] not in self.named_ports.values()))
-        self.results[f'Other-Port-IPs'] = [{'ip': i} for i in iplist]
+        known_ports = []
+        for namedport in self.named_ports:
+            port = namedport['port']
+            name = namedport['name']
+            known_ports.append(port)
+            self.results[f'{name}-Ports'] = [x for x in self.results['Host-Ports'] if x['port'] == port]
+            #iplist = list(set(x['ip'] for x in self.results['Host-Ports'] if x['port'] == port))
+            #self.results[f'{protocol}-IPs'] = [{'ip': i} for i in iplist]
+
+        iplist = list(set(x['ip'] for x in self.results['Host-Ports'] if x['port'] not in known_ports))
+        self.results['Other-Port-IPs'] = [{'ip': i} for i in iplist]
             
 
     def scan(self, ip):
         log.info(f"Scanning {ip}.")
-        args = [self.protocol_arguments[p] for p in self.protocols]
+        args = [pa['arguments'] for pa in self.protocol_arguments if pa['protocol'] in self.protocols]
         if ':' in ip: # poor man's IPv6 detection
             args.append('-6')
         args += self.default_arguments
@@ -88,8 +121,6 @@ class Ports(YModule):
             for (port, data) in scanner[ip].get(protocol, {}).items() if data['state'] == 'open'
             ]
     
+
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    import sys
-    d = ScanPorts(sys.argv[1].split(','), sys.argv[2:])
-    print (d.run())
+    Ports.selftest()

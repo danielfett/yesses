@@ -1,3 +1,5 @@
+import fnmatch
+
 class YExample:
     def __init__(self, name, raw):
         self.name = name
@@ -45,11 +47,13 @@ class YModule:
         if field not in kwargs or kwargs[field] is None:
             return
         for el in kwargs[field]:
+            if not isinstance(el, dict):
+                raise Exception(f"Field '{field}' should contain mappings. Element '{el}' is a {type(el)}.")
             for key in properties['required_keys']:
                 try:
                     el[key]
                 except KeyError:
-                    raise Exception(f"In field {field}: Missing key '{key}' on input element '{el}' in {self.step}.")
+                    raise Exception(f"In field '{field}': Missing key '{key}' on input element '{el}' in {self.step}.")
 
     def __unwrap_field(self, field, properties, kwargs):        
         if not properties.get('unwrap', False):
@@ -63,26 +67,55 @@ class YModule:
             if '*' in field or '?' in field:  # field names may contain placeholders; we skip these
                 continue
             self.results[field] = []
+
+    def __find_matching_output_field(self, result_key):
+        """First tries to match the non-wildcard keys, then the wildcard keys."""
+        
+        for output_field, properties in self.OUTPUTS.items():
+            if '*' in output_field or '?' in output_field:
+                continue
+            if result_key == output_field:
+                return output_field, properties
+
+        for output_field, properties in self.OUTPUTS.items():
+            if fnmatch.fnmatchcase(result_key, output_field):
+                return output_field, properties
+            
+        raise Exception(f"Superfluous output field found: {result_field}, does not match any of {', '.join(self.OUTPUTS.keys())}")
+        
                 
-    def __check_output_types(self):        
-        for field, properties in self.OUTPUTS.items():
-            if field not in self.results:
-                raise Exception(f"Missing field {field} in output of {self.step}")
+    def __check_output_types(self):
+        output_fields_found = []
+        for result_field, findings in self.results.items():
+            output_field, properties = self.__find_matching_output_field(result_field)
+            output_fields_found.append(output_field)
             if properties['provided_keys'] is None:
                 continue
-            for el in self.results[field]:
+            for el in findings:
                 for key in properties['provided_keys']:
                     try:
                         el[key]
                     except KeyError:
-                        raise Exception(f"In field {field}: Missing key '{key}' on output element '{el}' in {self.step}.")
+                        raise Exception(f"In field {result_field}: Missing key '{key}' on output element '{el}' in {self.step}.")
+
+        if set(output_fields_found) != set(self.OUTPUTS.keys()):
+            missing = set(self.OUTPUTS.keys()) - set(output_fields_found)
+            breakpoint()
+            raise Exception(f"Missing field(s) in output of {self.step}: {', '.join(missing)}")
 
     @classmethod
-    def selftest(cls):
+    def selftest(cls, standalone=True):
+        import logging
+        import yaml
+        if standalone:
+            logging.getLogger().setLevel(logging.DEBUG)
+        logging.info(f"Running examples in {cls.__name__}")
         if not hasattr(cls, 'EXAMPLES'):
             return None
         for ex in cls.EXAMPLES:
             ex.run()
+            res = yaml.safe_dump(ex.output, default_flow_style=False, default_style='')
+            logging.debug(f"Findings:\n{res}")
         return True
 
     def run_module(self):

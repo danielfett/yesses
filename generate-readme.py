@@ -3,11 +3,13 @@
 import inspect
 import importlib
 import subprocess
+import logging
+import yaml
 
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 
-import yaml
+loggin.getLogger().setLevel(logging.INFO)
 
 INFILE = Path('README.j2')
 OUTFILE = Path('README.md')
@@ -23,7 +25,7 @@ for m in modules:
 
     for c in classes:
         print (f"Testing {m} {c.__name__}")
-        c.selftest()
+        c.selftest(standalone=False)
 
 
 def jinja2_yaml_filter(obj):
