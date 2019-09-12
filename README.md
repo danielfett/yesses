@@ -25,7 +25,7 @@ Alerts are processed by one or more user-defined outputs. yesses comes
 with an HTML template output and Slack notification output.
 
 
-## Usage ##
+# Usage #
 
 ```
 usage: run.py [-h] [--verbose] [--resume] [--repeat N] [--fresh] configfile
@@ -46,14 +46,14 @@ optional arguments:
 
 ```
 
-## Configuration file ##
+# Configuration file #
 
 [todo]
 
-### `expect` ###
+## `expect` ##
 Expects arguments of the form "no added X, otherwise action args".
 
-## Modules ##
+# Modules #
 
 The following modules are currently provided by yesses. For each
 module, a short description in given plus a list of input and output
@@ -61,14 +61,14 @@ fields. The field names can be used in the yaml configuration file.
 
 
 
-### `scan Ports` ###
+## `scan Ports` ##
 Uses `nmap` to scan for open ports.
     
 
 
-#### Examples ####
+### Examples ###
 
-##### scan ports on Google DNS server #####
+#### scan ports on Google DNS server ####
 Configuration:
 ```YAML
   - scan Ports:
@@ -99,7 +99,7 @@ Other-Port-IPs:
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -112,19 +112,19 @@ Other-Port-IPs:
 
 
 
-##### Default for `protocols` #####
+#### Default for `protocols` ####
 ```YAML
 - tcp
 ```
 
 
-##### Default for `ports` #####
+#### Default for `ports` ####
 ```YAML
 null
 ```
 
 
-##### Default for `named_ports` #####
+#### Default for `named_ports` ####
 ```YAML
 - name: SSH
   port: 22
@@ -135,7 +135,7 @@ null
 ```
 
 
-##### Default for `protocol_arguments` #####
+#### Default for `protocol_arguments` ####
 ```YAML
 - arguments: -sU
   protocol: udp
@@ -145,7 +145,7 @@ null
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -155,16 +155,16 @@ null
 
 
 
-### `scan TLSSettings` ###
+## `scan TLSSettings` ##
 Uses the sslyze library to scan a webserver's TLS configuration and
 compare it to the Mozilla TLS configuration profiles.
 
     
 
 
-#### Examples ####
+### Examples ###
 
-##### Check TLS settings on badssl.com #####
+#### Check TLS settings on badssl.com ####
 Configuration:
 ```YAML
  - scan TLS Settings:
@@ -187,24 +187,24 @@ TLS-Profile-Mismatch-Domains:
   errors:
   - must not support "TLSv1"
   - must not support "TLSv1.1"
-  - must not support "ECDHE-RSA-AES128-SHA256"
-  - must not support "AES256-SHA"
-  - must not support "DES-CBC3-SHA"
-  - must not support "DHE-RSA-AES256-SHA256"
-  - must not support "ECDHE-RSA-AES256-SHA"
-  - must not support "DHE-RSA-AES128-SHA"
-  - must not support "AES128-GCM-SHA256"
-  - must not support "DHE-RSA-AES256-SHA"
-  - must not support "EDH-RSA-DES-CBC3-SHA"
-  - must not support "AES256-SHA256"
-  - must not support "DHE-RSA-AES128-SHA256"
-  - must not support "AES128-SHA256"
-  - must not support "ECDHE-RSA-AES128-SHA"
   - must not support "AES256-GCM-SHA384"
-  - must not support "DHE-RSA-DES-CBC3-SHA"
   - must not support "AES128-SHA"
-  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES128-SHA256"
   - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES256-SHA256"
+  - must not support "AES256-SHA256"
+  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "DES-CBC3-SHA"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "AES256-SHA"
+  - must not support "AES128-SHA256"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "ECDHE-RSA-AES128-SHA256"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
@@ -212,7 +212,7 @@ TLS-Vulnerability-Domains: []
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -222,14 +222,14 @@ TLS-Vulnerability-Domains: []
 
 
 
-##### Default for `tls_profile` #####
+#### Default for `tls_profile` ####
 ```YAML
 intermediate
 ```
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -241,7 +241,7 @@ intermediate
 
 
 
-### `scan TLSSettingsQualys` ###
+## `scan TLSSettingsQualys` ##
 Uses the Qualys SSL Labs TLS assessment service to determine the
 security level of the TLS configuration. Only works for the HTTPS
 standard port 443, therefore expects a list of domain names, not web
@@ -254,7 +254,7 @@ https://dev.ssllabs.com/about/terms.html
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -264,7 +264,7 @@ https://dev.ssllabs.com/about/terms.html
 
 
 
-##### Default for `allowed_grades` #####
+#### Default for `allowed_grades` ####
 ```YAML
 - A
 - A+
@@ -272,7 +272,7 @@ https://dev.ssllabs.com/about/terms.html
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -282,7 +282,7 @@ https://dev.ssllabs.com/about/terms.html
 
 
 
-### `scan WebSecuritySettings` ###
+## `scan WebSecuritySettings` ##
 Scans web origins and finds:
 
   * web servers accepting insecure methods (like TRACE)
@@ -327,9 +327,9 @@ Cookies are only considered "secure" if they have the following properties:
     
 
 
-#### Examples ####
+### Examples ###
 
-##### Websecurity Settings of neverssl.com #####
+#### Websecurity Settings of neverssl.com ####
 Configuration:
 ```YAML
  - scan Web Security Settings:
@@ -361,7 +361,7 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -373,7 +373,7 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 
-##### Default for `disallowed_methods` #####
+#### Default for `disallowed_methods` ####
 ```YAML
 - TRACE
 - TRACK
@@ -381,7 +381,7 @@ Redirect-to-non-HTTPS-URLs: []
 ```
 
 
-##### Default for `disallowed_headers` #####
+#### Default for `disallowed_headers` ####
 ```YAML
 - header: Access-Control-.*
   reason: CORS must be disabled
@@ -391,7 +391,7 @@ Redirect-to-non-HTTPS-URLs: []
 ```
 
 
-##### Default for `required_headers` #####
+#### Default for `required_headers` ####
 ```YAML
 - header: Strict-Transport-Security
   origin: 'https:'
@@ -414,7 +414,7 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -429,12 +429,11 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 
-### `discover DomainsAndIPs` ###
+## `discover DomainsAndIPs` ##
 Based on domain names as "seeds", tries to find new domain names by
 guessing expansions for wildcards and expanding CNAMEs. Finds IP
 addresses from A and AAAA records.
 
-#### Examples ####
 This example expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.
 ```
   - discover Domains and IPs:
@@ -474,9 +473,9 @@ run:
     
 
 
-#### Examples ####
+### Examples ###
 
-##### discover DNS details of example.com #####
+#### discover DNS details of example.com ####
 Configuration:
 ```YAML
   - discover Domains and IPs:
@@ -492,26 +491,26 @@ Configuration:
 Findings returned:
 ```YAML
 DNS-Entries:
-- domain: example.com
+- domain: www.example.com
   ip: 93.184.216.34
-- domain: example.com
+- domain: www.example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
-- domain: www.example.com
+- domain: example.com
   ip: 93.184.216.34
-- domain: www.example.com
+- domain: example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
 Domains:
 - domain: www.example.com
 - domain: example.com
 IPs:
-- ip: 93.184.216.34
 - ip: 2606:2800:220:1:248:1893:25c8:1946
+- ip: 93.184.216.34
 ```
 
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -521,14 +520,14 @@ IPs:
 
 
 
-##### Default for `resolvers` #####
+#### Default for `resolvers` ####
 ```YAML
 []
 ```
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -539,7 +538,7 @@ IPs:
 
 
 
-### `discover TLSCertificates` ###
+## `discover TLSCertificates` ##
 Queries Certificate Transparency logs (using https://crt.sh) for
 existing TLS certificates for given domains and their subdomains.
 
@@ -548,9 +547,9 @@ Note: The output may contain wildcards, e.g., '*.example.com'.
     
 
 
-#### Examples ####
+### Examples ###
 
-##### list certificates of example.com #####
+#### list certificates of example.com ####
 Configuration:
 ```YAML
   - discover TLS Certificates:
@@ -563,35 +562,35 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- certificate_id: https://crt.sh/?id=24560621
-  certificate_url: https://crt.sh/?id=24560621
-- certificate_id: https://crt.sh/?id=24564717
-  certificate_url: https://crt.sh/?id=24564717
-- certificate_id: https://crt.sh/?id=24558997
-  certificate_url: https://crt.sh/?id=24558997
-- certificate_id: https://crt.sh/?id=5857507
-  certificate_url: https://crt.sh/?id=5857507
 - certificate_id: https://crt.sh/?id=10557607
   certificate_url: https://crt.sh/?id=10557607
-- certificate_id: https://crt.sh/?id=24560643
-  certificate_url: https://crt.sh/?id=24560643
-- certificate_id: https://crt.sh/?id=984858191
-  certificate_url: https://crt.sh/?id=984858191
+- certificate_id: https://crt.sh/?id=24564717
+  certificate_url: https://crt.sh/?id=24564717
 - certificate_id: https://crt.sh/?id=987119772
   certificate_url: https://crt.sh/?id=987119772
+- certificate_id: https://crt.sh/?id=5857507
+  certificate_url: https://crt.sh/?id=5857507
+- certificate_id: https://crt.sh/?id=984858191
+  certificate_url: https://crt.sh/?id=984858191
+- certificate_id: https://crt.sh/?id=24560621
+  certificate_url: https://crt.sh/?id=24560621
+- certificate_id: https://crt.sh/?id=24560643
+  certificate_url: https://crt.sh/?id=24560643
+- certificate_id: https://crt.sh/?id=24558997
+  certificate_url: https://crt.sh/?id=24558997
 TLS-Names:
-- domain: www.example.com
 - domain: m.example.com
-- domain: dev.example.com
-- domain: '*.example.com'
 - domain: products.example.com
+- domain: dev.example.com
+- domain: www.example.com
+- domain: '*.example.com'
 - domain: support.example.com
 ```
 
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -601,7 +600,7 @@ TLS-Names:
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -610,7 +609,7 @@ TLS-Names:
 
 
 
-### `discover Webservers` ###
+## `discover Webservers` ##
 Scans an IP range for web servers (on standard HTTP and HTTPs
 ports); combines a list of IPs with a list of domains to use for the
 Host header in web requests.
@@ -618,9 +617,9 @@ Host header in web requests.
     
 
 
-#### Examples ####
+### Examples ###
 
-##### detect webservers on example.com #####
+#### detect webservers on example.com ####
 Configuration:
 ```YAML
   - discover Webservers:
@@ -664,7 +663,7 @@ TLS-Domains:
 
 
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -676,7 +675,7 @@ TLS-Domains:
 
 
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|

@@ -13,7 +13,6 @@ class DomainsAndIPs(YModule):
 guessing expansions for wildcards and expanding CNAMEs. Finds IP
 addresses from A and AAAA records.
 
-#### Examples ####
 This example expands domains from a list of domain seeds and the TLS names found with `discover TLS Certificates`. The alerting assumes that a whitelist of IP addresses (`Good-IPs`) exists.
 ```
   - discover Domains and IPs:

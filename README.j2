@@ -25,20 +25,20 @@ Alerts are processed by one or more user-defined outputs. yesses comes
 with an HTML template output and Slack notification output.
 
 
-## Usage ##
+# Usage #
 
 ```
 {{usage}}
 ```
 
-## Configuration file ##
+# Configuration file #
 
 [todo]
 
-### `expect` ###
+## `expect` ##
 Expects arguments of the form "no added X, otherwise action args".
 
-## Modules ##
+# Modules #
 
 The following modules are currently provided by yesses. For each
 module, a short description in given plus a list of input and output
@@ -46,13 +46,13 @@ fields. The field names can be used in the yaml configuration file.
 
 {% for module_name, modules in modules.items() %}
 {% for module in modules %}
-### `{{ module_name }} {{ module.__name__ }}` ###
+## `{{ module_name }} {{ module.__name__ }}` ##
 {{ module.__doc__ }}
 
 {% if module.EXAMPLES|default(False) %}
-#### Examples ####
+### Examples ###
 {% for ex in module.EXAMPLES %}
-##### {{ ex.name }} #####
+#### {{ ex.name }} ####
 Configuration:
 ```YAML
 {{ ex.raw -}}
@@ -65,7 +65,7 @@ Findings returned:
 {% endfor %}
 {% endif %}
 
-#### Inputs ####
+### Inputs ###
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
@@ -75,14 +75,14 @@ Findings returned:
 
 {% for field, input in module.INPUTS.items() -%}
 {% if 'default' in input %}
-##### Default for `{{ field }}` #####
+#### Default for `{{ field }}` ####
 ```YAML
 {{ input['default']|yaml -}}
 ```
 {% endif %}
 {% endfor %}
 
-#### Outputs ####
+### Outputs ###
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|

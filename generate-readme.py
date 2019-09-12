@@ -9,7 +9,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 
-loggin.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.INFO)
 
 INFILE = Path('README.j2')
 OUTFILE = Path('README.md')
