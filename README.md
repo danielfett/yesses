@@ -3,6 +3,29 @@
 Simple tool to enumerate domains and IPs and test those domains and
 IPs for basic network and web security properties.
 
+yesses provides a number of modules that each perform a certain task.
+For example, the module `discover Domains and IPs` queries DNS servers
+for IP addresses. Each module has a number of defined inputs (in this
+case, for example, domain names) and outputs (e.g., IP addresses and
+domain names expanded from CNAMEs). 
+
+Modules can be combined by feeding the output of one module into the
+input of another module. For example, the module `discover Webservers`
+can use the domain names and IP addresses from `discover Domains and
+IPs` as inputs. This enables a dynamic scanning of infrastructures
+without configuring every domain name, IP address, etc. manually.
+
+After the execution of each module, alerts can be defined. Alerts can
+trigger when certain elements are contained (or are not contained) in
+the output of a module; alerts can also be triggered when — compared
+to the previous run of yesses — new elements appear in the output of a
+module. 
+
+Alerts are processed by one or more user-defined outputs. yesses comes
+with an HTML template output and Slack notification output.
+
+
+
 ## Usage ##
 
 ```
@@ -24,7 +47,9 @@ optional arguments:
 
 ```
 
-## Configuration file ##
+
+
+## Configuration ##
 
 [todo]
 

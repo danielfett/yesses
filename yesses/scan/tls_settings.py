@@ -82,19 +82,19 @@ compare it to the Mozilla TLS configuration profiles.
             })
             
         if not tls_results.validated:
-            self.results['TLS-Validation-Errors-Domains'].append({
+            self.results['TLS-Validation-Fail-Domains'].append({
                 'domain': domain,
                 'errors': tls_results.validation_errors,
             })
             
         if not tls_results.profile_matched:
-            self.results['TLS-Profile-Mismatch-Errors-Domains'].append({
+            self.results['TLS-Profile-Mismatch-Domains'].append({
                 'domain': domain,
                 'errors': tls_results.profile_errors,
             })
 
         if tls_results.vulnerable:
-            self.results['TLS-Vulnerability-Errors-Domains'].append({
+            self.results['TLS-Vulnerability-Domains'].append({
                 'domain': domain,
                 'errors': tls_results.vulnerability_errors,
             })

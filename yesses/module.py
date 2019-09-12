@@ -2,12 +2,12 @@ class YModule:
     def __init__(self, step, **kwargs):
         self.step = step
         self.__input_validation(kwargs)
-        self.create_result_dict()
+        self.__create_result_dict()
 
     def __input_validation(self, kwargs):        
         for field, properties in self.INPUTS.items():
             self.__check_required_field(field, properties, kwargs)
-            self.__check_required_keys(self, field, properties, kwargs)
+            self.__check_required_keys(field, properties, kwargs)
             self.__unwrap_field(field, properties, kwargs)
             setattr(self, field, kwargs[field])
 
@@ -35,9 +35,10 @@ class YModule:
         if not properties.get('unwrap', False):
             return
         assert(len(properties['required_keys']) == 1)
-        kwargs[field] = list(getattr(el, properties['required_keys'][0]) for el in kwargs[field])
+        kwargs[field] = list(el.get(properties['required_keys'][0]) for el in kwargs[field])
                     
     def __create_result_dict(self):
+        self.results = {}
         for field, properties in self.OUTPUTS.items():
             if '*' in field or '?' in field:  # field names may contain placeholders; we skip these
                 continue
@@ -45,12 +46,12 @@ class YModule:
                 
     def __check_output_types(self):        
         for field, properties in self.OUTPUTS.items():
-            if properties['required_keys'] is None:
-                continue
             if field not in self.results:
+                raise Exception(f"Missing field {field} in output of {self.step}")
+            if properties['provided_keys'] is None:
                 continue
             for el in self.results[field]:
-                for key in properties['required_keys']:
+                for key in properties['provided_keys']:
                     try:
                         el[key]
                     except KeyError:
