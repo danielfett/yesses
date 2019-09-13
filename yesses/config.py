@@ -6,6 +6,10 @@ from .step import Step
 from .output import Output
 
 class Config:
+    STATE_SUFFIX = '.state'
+    RESUME_SUFFIX = '.resume'
+    ALERTS_SUFFIX = '.alerts'
+    
     def __init__(self, configfile, fresh=False):
         self.data = yaml.full_load(configfile.read())
         
@@ -22,14 +26,14 @@ class Config:
         )
 
         self.findingslist = FindingsList(
-            self.configfilepath.with_suffix(".state"),
-            self.configfilepath.with_suffix(".resume"),
+            self.configfilepath.with_suffix(self.STATE_SUFFIX),
+            self.configfilepath.with_suffix(self.RESUME_SUFFIX),
             self.initial_data,
             fresh
         )
 
         self.alertslist = AlertsList(
-            self.configfilepath.with_suffix(".alerts"),
+            self.configfilepath.with_suffix(self.ALERTS_SUFFIX),
             fresh
         )
 
