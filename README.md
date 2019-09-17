@@ -194,24 +194,24 @@ TLS-Profile-Mismatch-Domains:
   errors:
   - must not support "TLSv1.1"
   - must not support "TLSv1"
-  - must not support "AES128-GCM-SHA256"
-  - must not support "DHE-RSA-AES256-SHA"
-  - must not support "ECDHE-RSA-DES-CBC3-SHA"
-  - must not support "DHE-RSA-DES-CBC3-SHA"
-  - must not support "AES128-SHA256"
-  - must not support "DES-CBC3-SHA"
-  - must not support "ECDHE-RSA-AES128-SHA256"
-  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "AES256-GCM-SHA384"
   - must not support "DHE-RSA-AES128-SHA256"
-  - must not support "AES256-SHA256"
-  - must not support "DHE-RSA-AES256-SHA256"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "AES128-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "AES128-SHA"
+  - must not support "ECDHE-RSA-AES128-SHA256"
   - must not support "EDH-RSA-DES-CBC3-SHA"
   - must not support "ECDHE-RSA-AES256-SHA"
-  - must not support "AES128-SHA"
-  - must not support "DHE-RSA-AES128-SHA"
-  - must not support "AES256-GCM-SHA384"
-  - must not support "ECDHE-RSA-AES128-SHA"
   - must not support "AES256-SHA"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "AES256-SHA256"
+  - must not support "DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES256-SHA256"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
@@ -502,16 +502,11 @@ DNS-Entries:
   ip: 93.184.216.34
 - domain: example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
-- domain: www.example.com
-  ip: 93.184.216.34
-- domain: www.example.com
-  ip: 2606:2800:220:1:248:1893:25c8:1946
 Domains:
 - domain: example.com
-- domain: www.example.com
 IPs:
-- ip: 2606:2800:220:1:248:1893:25c8:1946
 - ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
 ```
 
 
@@ -569,29 +564,29 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- certificate_id: https://crt.sh/?id=10557607
-  certificate_url: https://crt.sh/?id=10557607
-- certificate_id: https://crt.sh/?id=987119772
-  certificate_url: https://crt.sh/?id=987119772
 - certificate_id: https://crt.sh/?id=24564717
   certificate_url: https://crt.sh/?id=24564717
 - certificate_id: https://crt.sh/?id=984858191
   certificate_url: https://crt.sh/?id=984858191
 - certificate_id: https://crt.sh/?id=24558997
   certificate_url: https://crt.sh/?id=24558997
+- certificate_id: https://crt.sh/?id=987119772
+  certificate_url: https://crt.sh/?id=987119772
 - certificate_id: https://crt.sh/?id=24560621
   certificate_url: https://crt.sh/?id=24560621
+- certificate_id: https://crt.sh/?id=10557607
+  certificate_url: https://crt.sh/?id=10557607
 - certificate_id: https://crt.sh/?id=5857507
   certificate_url: https://crt.sh/?id=5857507
 - certificate_id: https://crt.sh/?id=24560643
   certificate_url: https://crt.sh/?id=24560643
 TLS-Names:
-- domain: support.example.com
-- domain: '*.example.com'
-- domain: m.example.com
 - domain: dev.example.com
-- domain: products.example.com
+- domain: support.example.com
+- domain: m.example.com
 - domain: www.example.com
+- domain: products.example.com
+- domain: '*.example.com'
 ```
 
 
