@@ -1,4 +1,6 @@
+from importlib import import_module
 import fnmatch
+import re
 
 class YExample:
     def __init__(self, name, raw):
@@ -117,6 +119,13 @@ class YModule:
             res = yaml.safe_dump(ex.output, default_flow_style=False, default_style='')
             logging.debug(f"Findings:\n{res}")
         return True
+
+    @staticmethod
+    def class_from_string(action_string):
+        verb, subj = action_string.split(' ', 1)
+        cls = re.sub('( [a-z])', lambda match: match.group(1).upper(), subj)
+        cls = cls.replace(' ', '')
+        return getattr(import_module(f'yesses.{verb}'), cls)
 
     def run_module(self):
         self.run()

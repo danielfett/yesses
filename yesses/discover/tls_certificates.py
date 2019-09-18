@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 from yesses.module import YModule, YExample
+from time import sleep
 
 log = logging.getLogger('discover/tls_certificates')
 
@@ -54,6 +55,9 @@ Note: The output may contain wildcards, e.g., '*.example.com'.
     cert_url = "https://crt.sh/?id={min_cert_id}"
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
 
+    TRIES = 10
+    WAIT = 10
+
     def run(self):
         domains = set()
         certs = set()
@@ -68,10 +72,20 @@ Note: The output may contain wildcards, e.g., '*.example.com'.
 
     def from_ctlog(self, query_domain):
         url = self.base_url.format(query_domain)
-        req = requests.get(url, headers={'User-Agent': self.user_agent})
 
-        if not req.ok:
+        tries = self.TRIES
+        while tries:
+            req = requests.get(url, headers={'User-Agent': self.user_agent})
+            if req.ok:
+                break
+
+            log.info(f"Error retrieving {url}, trying again in {self.WAIT} seconds.")
+            tries -= 1
+            sleep(self.WAIT)
+        else:
             raise Exception(f"Cannot retrieve certificate transparency log from {url}")
+            
+        
         content = req.content.decode('utf-8')
         data = json.loads(content)
 

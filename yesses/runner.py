@@ -30,7 +30,8 @@ class Runner:
         for step in self.config.steps:
             if not (do_resume or repeat is not None) or step.number > skip_to:
                 log.info(f"Step: {step.action}")
-                self.config.alertslist.collect(step.execute(self.config.findingslist))
+                step.load_findings(self.config.findingslist)
+                self.config.alertslist.collect(step.execute())
                 self.config.save_resume(step.number)
             
         end = datetime.now()

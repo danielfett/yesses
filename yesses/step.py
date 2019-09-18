@@ -1,7 +1,6 @@
-from importlib import import_module
 from yesses import verbs
+from .module import YModule
 from .findingslist import FindingsList
-import re
 import yaml
 import logging
 from contextlib import contextmanager
@@ -19,7 +18,7 @@ class Step:
         self.raw = raw
         self.number = number
         self.action = list(raw.keys())[0]
-        self.action_module, self.action_class = self.split_action(self.action)
+        self.action_class = YModule.class_from_string(self.action)
 
         self.log_buffer = StringBuffer()
         self.duration = timedelta(0)
@@ -31,7 +30,8 @@ class Step:
     def get_log(self):
         return self.log_buffer.getvalue()
 
-    def execute(self, findings):
+    def load_findings(self, findings):
+        self.findings = findings
         kwargs_modified = {}
         for name, value in self.kwargs.items():
             name = name.replace(' ', '_')
@@ -42,14 +42,15 @@ class Step:
 
         self.inputs = kwargs_modified
 
+    def execute(self):
         temp_findings = self.call_class_from_action()
         log.info(f"{self.action} took {self.duration.total_seconds()}s and produced {len(self.get_log())} bytes of output.")
-        yield from verbs.execute(self, temp_findings, findings)
+        yield from verbs.execute(self, temp_findings, self.findings)
 
     def call_class_from_action(self):
         try:
             with self.capture_log():
-                obj = getattr(import_module(f'yesses.{self.action_module}'), self.action_class)(
+                obj = self.action_class(
                     self,
                     **self.inputs
                 )
@@ -90,12 +91,3 @@ class Step:
 
     def get_inputs(self):
         return yaml.safe_dump(self.inputs)
-
-    @staticmethod
-    def split_action(action):
-        verb, subj = action.split(' ', 1)
-        def uc(match):
-            return match.group(1).upper()
-        cls = re.sub('( [a-z])', uc, subj)
-        cls = cls.replace(' ', '')
-        return verb, cls

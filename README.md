@@ -60,7 +60,7 @@ optional arguments:
 ## `expect` ##
 Expects arguments of the form "no added X, otherwise action args".
 
-# Modules #
+# Discovery and Scanning Modules #
 
 The following modules are currently provided by yesses. For each
 module, a short description in given plus a list of input and output
@@ -192,26 +192,26 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support "TLSv1.1"
   - must not support "TLSv1"
+  - must not support "TLSv1.1"
+  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "ECDHE-RSA-AES256-SHA"
   - must not support "AES256-GCM-SHA384"
-  - must not support "DHE-RSA-AES128-SHA256"
+  - must not support "AES128-SHA256"
   - must not support "ECDHE-RSA-DES-CBC3-SHA"
   - must not support "DHE-RSA-AES128-SHA"
-  - must not support "ECDHE-RSA-AES256-SHA384"
-  - must not support "AES128-SHA256"
-  - must not support "ECDHE-RSA-AES128-SHA"
-  - must not support "DHE-RSA-AES256-SHA"
-  - must not support "DHE-RSA-DES-CBC3-SHA"
-  - must not support "AES128-SHA"
-  - must not support "ECDHE-RSA-AES128-SHA256"
-  - must not support "EDH-RSA-DES-CBC3-SHA"
-  - must not support "ECDHE-RSA-AES256-SHA"
-  - must not support "AES256-SHA"
-  - must not support "AES128-GCM-SHA256"
-  - must not support "AES256-SHA256"
   - must not support "DES-CBC3-SHA"
+  - must not support "ECDHE-RSA-AES128-SHA256"
+  - must not support "DHE-RSA-AES256-SHA"
   - must not support "DHE-RSA-AES256-SHA256"
+  - must not support "AES128-SHA"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
+  - must not support "AES256-SHA"
+  - must not support "DHE-RSA-AES128-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "AES256-SHA256"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
@@ -430,7 +430,7 @@ Redirect-to-non-HTTPS-URLs: []
 | `Disallowed-Header-URLs` | URLs that set disallowed headers. | `url`, `ip`, `errors` |
 | `Missing-Header-URLs` | URLs that miss headers. | `url`, `ip`, `errors` |
 | `Disallowed-Method-URLs` | URLs where disallowed methods do not trigger an error. | `url`, `ip`, `errors` |
-| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `url`, `ip`, `error` |
+| `Insecure-Cookie-URLs` | URLs where cookie settings are not sufficient. | `url`, `ip`, `errors` |
 
 
 
@@ -505,8 +505,8 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 93.184.216.34
 - ip: 2606:2800:220:1:248:1893:25c8:1946
+- ip: 93.184.216.34
 ```
 
 
@@ -564,29 +564,29 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- certificate_id: https://crt.sh/?id=24564717
-  certificate_url: https://crt.sh/?id=24564717
 - certificate_id: https://crt.sh/?id=984858191
   certificate_url: https://crt.sh/?id=984858191
-- certificate_id: https://crt.sh/?id=24558997
-  certificate_url: https://crt.sh/?id=24558997
 - certificate_id: https://crt.sh/?id=987119772
   certificate_url: https://crt.sh/?id=987119772
 - certificate_id: https://crt.sh/?id=24560621
   certificate_url: https://crt.sh/?id=24560621
-- certificate_id: https://crt.sh/?id=10557607
-  certificate_url: https://crt.sh/?id=10557607
+- certificate_id: https://crt.sh/?id=24564717
+  certificate_url: https://crt.sh/?id=24564717
 - certificate_id: https://crt.sh/?id=5857507
   certificate_url: https://crt.sh/?id=5857507
+- certificate_id: https://crt.sh/?id=24558997
+  certificate_url: https://crt.sh/?id=24558997
+- certificate_id: https://crt.sh/?id=10557607
+  certificate_url: https://crt.sh/?id=10557607
 - certificate_id: https://crt.sh/?id=24560643
   certificate_url: https://crt.sh/?id=24560643
 TLS-Names:
-- domain: dev.example.com
-- domain: support.example.com
-- domain: m.example.com
 - domain: www.example.com
-- domain: products.example.com
+- domain: dev.example.com
 - domain: '*.example.com'
+- domain: m.example.com
+- domain: support.example.com
+- domain: products.example.com
 ```
 
 
@@ -687,3 +687,34 @@ TLS-Domains:
 
 
 
+
+
+# Output Modules
+
+Output modules take the alerts created from the findings of the
+discovery and scanning modules and produce some kind of output - a
+file, a notification, or potentially other forms of output.
+
+## `Template`
+
+This module uses a jinja2 template to create output, for example, an HTML summary of the alerts.
+
+
+Parameters:
+
+  * `template`: defines the jinja2 template that is to be used to create the output.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function]    (https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-09-18-095358.html`.
+
+Both filenames can be relative paths (evaluated relative to the
+working directory) or absolute paths.
+
+
+## `Slack`
+
+Sends a slack notification to one or more recipients. The notification
+contains a summary of the alerts (grouped by severity).
+
+Parameters:
+
+  * `channels`: List of channel identifiers to send the notification to. Can also be user identifiers (which can be retrieved from the Slack user interface) to send the notification to individual users.
+  * `token`: A valid slack bot API token. The token can alternatively be provided in an environment variable `YESSES_SLACK_TOKEN`.

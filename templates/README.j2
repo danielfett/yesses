@@ -38,7 +38,7 @@ with an HTML template output and Slack notification output.
 ## `expect` ##
 Expects arguments of the form "no added X, otherwise action args".
 
-# Modules #
+# Discovery and Scanning Modules #
 
 The following modules are currently provided by yesses. For each
 module, a short description in given plus a list of input and output
@@ -92,3 +92,34 @@ Findings returned:
 
 {% endfor %}
 {% endfor %}
+
+# Output Modules
+
+Output modules take the alerts created from the findings of the
+discovery and scanning modules and produce some kind of output - a
+file, a notification, or potentially other forms of output.
+
+## `Template`
+
+This module uses a jinja2 template to create output, for example, an HTML summary of the alerts.
+
+{% with timeformatexample="yesses-report-%Y-%m-%d-%H%M%S.html" %}
+Parameters:
+
+  * `template`: defines the jinja2 template that is to be used to create the output.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function]    (https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `{{ timeformatexample }}` would be converted to a filename like `{{ time.strftime(timeformatexample) }}`.
+
+Both filenames can be relative paths (evaluated relative to the
+working directory) or absolute paths.
+{% endwith %}
+
+## `Slack`
+
+Sends a slack notification to one or more recipients. The notification
+contains a summary of the alerts (grouped by severity).
+
+Parameters:
+
+  * `channels`: List of channel identifiers to send the notification to. Can also be user identifiers (which can be retrieved from the Slack user interface) to send the notification to individual users.
+  * `token`: A valid slack bot API token. The token can alternatively be provided in an environment variable `YESSES_SLACK_TOKEN`.
+

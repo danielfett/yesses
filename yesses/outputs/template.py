@@ -1,5 +1,6 @@
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+from datetime import datetime
 
 import logging
 
@@ -8,7 +9,7 @@ log = logging.getLogger('output/template')
 
 class Template:
     def __init__(self, filename, template):
-        self.filename = Path(filename)
+        self.filename = Path(datetime.now().strftime(filename))
         self.template = Path(template)
     
     def run(self, alertslist, steps, time):

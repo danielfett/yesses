@@ -4,6 +4,7 @@ import logging
 import sys
 from pathlib import Path
 from yesses import Runner, all_modules, Config
+from datetime import datetime
 
 log = logging.getLogger('run')
 
@@ -37,7 +38,7 @@ def generate_readme(usage):
     env = Environment(loader=file_loader)
     env.filters['yaml'] = jinja2_yaml_filter
     template = env.get_template(README_INFILE.name)
-    output = template.render(modules=all_modules_tested, usage=usage)
+    output = template.render(modules=all_modules_tested, usage=usage, time=datetime.now())
     README_OUTFILE.write_text(output)
 
 

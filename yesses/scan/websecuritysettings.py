@@ -174,7 +174,7 @@ Cookies are only considered "secure" if they have the following properties:
             "provided_keys": [
                 "url",
                 "ip",
-                "error"
+                "errors"
             ],
             "description": "URLs where cookie settings are not sufficient."
         }

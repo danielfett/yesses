@@ -42,6 +42,8 @@ class Config:
         skip_to_2 = self.alertslist.load_resume(step)
         if skip_to != skip_to_2:
             raise Exception(f"Inconsistent file state. Findings list is in Step {skip_to}, alerts list is in Step {skip_to_2}. Cannot resume/repeat.")
+        for s in self.steps:
+            s.load_findings(self.findingslist)
         return skip_to
 
     def save_resume(self, step):
