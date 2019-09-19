@@ -107,7 +107,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function]    (https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `{{ timeformatexample }}` would be converted to a filename like `{{ time.strftime(timeformatexample) }}`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `{{ timeformatexample }}` would be converted to a filename like `{{ time.strftime(timeformatexample) }}`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
