@@ -86,6 +86,8 @@ Configuration:
       - Host-Ports
       - HTTPS-Ports
       - Other-Port-IPs
+    expect:
+      - no Host-Ports, otherwise alert high
 ```
 Findings returned:
 ```YAML
@@ -102,6 +104,12 @@ Host-Ports:
 Other-Port-IPs:
 - ip: 8.8.8.8
 ```
+Alerts created (details hidden for brevity):
+| Severity | Rule | #Findings |
+|----------|------|-----------|
+| Severity.HIGH | `no Host-Ports, otherwise alert high` | 1 |
+
+
 
 
 
@@ -184,6 +192,8 @@ Configuration:
      - TLS-Vulnerability-Domains
      - TLS-Okay-Domains
      - TLS-Other-Error-Domains
+   expect:
+     - some TLS-Okay-Domains, otherwise alert medium
 ```
 Findings returned:
 ```YAML
@@ -194,27 +204,33 @@ TLS-Profile-Mismatch-Domains:
   errors:
   - must not support "TLSv1"
   - must not support "TLSv1.1"
-  - must not support "ECDHE-RSA-AES256-SHA384"
-  - must not support "AES128-GCM-SHA256"
-  - must not support "ECDHE-RSA-AES256-SHA"
   - must not support "AES256-GCM-SHA384"
-  - must not support "AES128-SHA256"
-  - must not support "ECDHE-RSA-DES-CBC3-SHA"
-  - must not support "DHE-RSA-AES128-SHA"
-  - must not support "DES-CBC3-SHA"
-  - must not support "ECDHE-RSA-AES128-SHA256"
-  - must not support "DHE-RSA-AES256-SHA"
   - must not support "DHE-RSA-AES256-SHA256"
-  - must not support "AES128-SHA"
-  - must not support "EDH-RSA-DES-CBC3-SHA"
   - must not support "AES256-SHA"
+  - must not support "DES-CBC3-SHA"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
   - must not support "DHE-RSA-AES128-SHA256"
-  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "AES128-SHA256"
+  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "ECDHE-RSA-AES128-SHA256"
+  - must not support "DHE-RSA-AES128-SHA"
   - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "AES128-SHA"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "AES128-GCM-SHA256"
   - must not support "AES256-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
+Alerts created (details hidden for brevity):
+| Severity | Rule | #Findings |
+|----------|------|-----------|
+| Severity.MEDIUM | `some TLS-Okay-Domains, otherwise alert medium` | 0 |
+
+
 
 
 
@@ -368,6 +384,7 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 
+
 ### Inputs ###
 
 | Name             | Description    | Required keys                                            |
@@ -505,9 +522,10 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 2606:2800:220:1:248:1893:25c8:1946
 - ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
 ```
+
 
 
 
@@ -564,30 +582,31 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- certificate_id: https://crt.sh/?id=984858191
-  certificate_url: https://crt.sh/?id=984858191
 - certificate_id: https://crt.sh/?id=987119772
   certificate_url: https://crt.sh/?id=987119772
-- certificate_id: https://crt.sh/?id=24560621
-  certificate_url: https://crt.sh/?id=24560621
-- certificate_id: https://crt.sh/?id=24564717
-  certificate_url: https://crt.sh/?id=24564717
+- certificate_id: https://crt.sh/?id=10557607
+  certificate_url: https://crt.sh/?id=10557607
+- certificate_id: https://crt.sh/?id=984858191
+  certificate_url: https://crt.sh/?id=984858191
 - certificate_id: https://crt.sh/?id=5857507
   certificate_url: https://crt.sh/?id=5857507
 - certificate_id: https://crt.sh/?id=24558997
   certificate_url: https://crt.sh/?id=24558997
-- certificate_id: https://crt.sh/?id=10557607
-  certificate_url: https://crt.sh/?id=10557607
+- certificate_id: https://crt.sh/?id=24564717
+  certificate_url: https://crt.sh/?id=24564717
 - certificate_id: https://crt.sh/?id=24560643
   certificate_url: https://crt.sh/?id=24560643
+- certificate_id: https://crt.sh/?id=24560621
+  certificate_url: https://crt.sh/?id=24560621
 TLS-Names:
-- domain: www.example.com
 - domain: dev.example.com
-- domain: '*.example.com'
-- domain: m.example.com
-- domain: support.example.com
 - domain: products.example.com
+- domain: m.example.com
+- domain: '*.example.com'
+- domain: support.example.com
+- domain: www.example.com
 ```
+
 
 
 
@@ -665,6 +684,7 @@ TLS-Domains:
 
 
 
+
 ### Inputs ###
 
 | Name             | Description    | Required keys                                            |
@@ -703,7 +723,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function]    (https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-09-18-095358.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-09-27-145035.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.

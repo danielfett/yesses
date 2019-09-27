@@ -7,6 +7,7 @@ class YExample:
         self.name = name
         self.raw = raw[1:] if raw.startswith("\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
         self.output = None
+        self.alerts = []
 
     def run(self):
         from yesses import Runner
@@ -20,6 +21,7 @@ class YExample:
                 runner = Runner(f, fresh=True)
                 runner.run()
                 self.output = runner.config.findingslist.current_findings
+                self.alerts = runner.config.alertslist.alerts
 
 
 class YModule:
@@ -50,7 +52,7 @@ class YModule:
             return
         for el in kwargs[field]:
             if not isinstance(el, dict):
-                raise Exception(f"Field '{field}' should contain mappings. Element '{el}' is a {type(el)}.")
+                raise Exception(f"Field '{field}' should contain mappings with the keys {properties['required_keys']}. Element '{el}' is a {type(el)}.")
             for key in properties['required_keys']:
                 try:
                     el[key]

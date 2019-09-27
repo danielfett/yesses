@@ -75,6 +75,8 @@ compare it to the Mozilla TLS configuration profiles.
      - TLS-Vulnerability-Domains
      - TLS-Okay-Domains
      - TLS-Other-Error-Domains
+   expect:
+     - some TLS-Okay-Domains, otherwise alert medium
 """)
     ]
 

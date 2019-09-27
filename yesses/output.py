@@ -1,5 +1,4 @@
 from importlib import import_module
-from yesses import verbs
 from .findingslist import FindingsList
 import re
 import yaml

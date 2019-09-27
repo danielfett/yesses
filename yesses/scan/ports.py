@@ -82,6 +82,8 @@ class Ports(YModule):
       - Host-Ports
       - HTTPS-Ports
       - Other-Port-IPs
+    expect:
+      - no Host-Ports, otherwise alert high
 """)
     ]
 

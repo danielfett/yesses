@@ -17,9 +17,12 @@ class Config:
 
         self.initial_data = self.data.get('data', {})
         
-        self.steps = list(
-            Step(raw, number) for raw, number in zip(self.data['run'], range(len(self.data['run'])))
-        )
+        self.steps = []
+        for raw, number in zip(self.data['run'], range(len(self.data['run']))):
+            try:
+                self.steps.append(Step(raw, number))
+            except Exception as e:
+                raise Exception(f"Unable to initialize step no. {number}.")
 
         self.outputs = list(
             Output(self, raw) for raw in self.data.get('output', [])

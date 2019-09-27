@@ -1,4 +1,3 @@
-from yesses import verbs
 from .module import YModule
 from .findingslist import FindingsList
 import yaml
@@ -6,26 +5,48 @@ import logging
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from io import StringIO as StringBuffer
-
+from .parsers import FindParser, ExpectParser
 
 log = logging.getLogger('step')
 
 class Step:
     LOG_FORMATTER = logging.Formatter()
     LOG_LEVEL = logging.DEBUG
+    VERBS = ['find', 'expect']
     
     def __init__(self, raw, number):
         self.raw = raw
         self.number = number
-        self.action = list(raw.keys())[0]
-        self.action_class = YModule.class_from_string(self.action)
-
+        self.parse_action()
+        self.parse_find()
+        self.parse_expect()
         self.log_buffer = StringBuffer()
         self.duration = timedelta(0)
 
-        self.kwargs = raw[self.action]
+    def parse_action(self):
+        """
+        From the raw step description, find the key that describes the
+        action, get the respective class for executing the action, and store
+        the keywords.
+        """
+        
+        words = [word for word in self.raw.keys() if word not in self.VERBS]
+        if len(words) == 0:
+            raise Exception(f"No action found.")
+        if len(words) > 1:
+            raise Exception(f"More than one action found: {words}.")
+        self.action = words[0]
+        self.action_class = YModule.class_from_string(self.action)
+        self.kwargs = self.raw[self.action]
+        log.info(f"Step {self.number} = {self.action}")
 
-        log.info(f"Step {number} = {self.action}")
+    def parse_find(self):
+        if not 'find' in self.raw:
+            raise Exception(f"Missing keyword 'find'.")
+        self.find_mapping = FindParser.parse_find_mapping(self.raw['find'])
+
+    def parse_expect(self):
+        self.expect_functions = ExpectParser.parse_expect(self.raw.get('expect', []))
 
     def get_log(self):
         return self.log_buffer.getvalue()
@@ -45,7 +66,18 @@ class Step:
     def execute(self):
         temp_findings = self.call_class_from_action()
         log.info(f"{self.action} took {self.duration.total_seconds()}s and produced {len(self.get_log())} bytes of output.")
-        yield from verbs.execute(self, temp_findings, self.findings)
+
+        # Merge temporary findings into permanent findings
+        # using alias table created in init
+        for name, alias in self.find_mapping.items():
+            if not name in temp_findings:
+                raise Exception(f"Did not find key {name} in output {temp_findings}.")
+            self.findings.set(alias, temp_findings[name])
+
+        # Return a generator producing all alerts created by the
+        # expect functions
+        for fn in self.expect_functions:
+            yield from fn(self)
 
     def call_class_from_action(self):
         try:
@@ -91,3 +123,4 @@ class Step:
 
     def get_inputs(self):
         return yaml.safe_dump(self.inputs)
+

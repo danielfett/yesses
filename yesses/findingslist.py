@@ -1,7 +1,8 @@
 import logging
 from .state import State
-from .utils import clean_expression
+from .parsers import UseParser
 from functools import reduce
+
     
 log = logging.getLogger('findingslist')
 
@@ -51,12 +52,15 @@ class FindingsList:
 
     def get_from_use_expression(self, use_expr):
         if type(use_expr) is not str or not use_expr.startswith('use '):
-            raise self.NotAUseExpression
+            return use_expr
+
+        res = UseParser.parse(use_expr)
         
-        keys = use_expr.split(' ', 1)[1].split(' and ')
         all_entries = []
 
-        for key in keys:
-            all_entries += self.get(key)
-        unique = reduce(lambda l, x: l if x in l else l+[x], all_entries, [])
-        return unique
+        for group in res:
+            for entry in self.get(group.key):
+                if not entry in all_entries:
+                    all_entries.append(entry)
+                    
+        return all_entries

@@ -61,6 +61,14 @@ Findings returned:
 ```YAML
 {{ ex.output|yaml -}}
 ```
+{% if ex.alerts -%}
+Alerts created (details hidden for brevity):
+| Severity | Rule | #Findings |
+|----------|------|-----------|
+{% for alert in ex.alerts -%}
+| {{alert.severity}} | `{{alert.violated_rule}}` | {{ alert.findings|count }} |
+{% endfor %}
+{% endif %}
 
 {% endfor %}
 {% endif %}
