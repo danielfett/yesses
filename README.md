@@ -24,6 +24,10 @@ module.
 Alerts are processed by one or more user-defined outputs. yesses comes
 with an HTML template output and Slack notification output.
 
+## TL;DR ##
+
+Have a look at the [example configuration file](docs/examples/example.yml). yesses uses a fairly human-readable syntax; most things should be self-explanatory. If not, read on! 
+
 ## Table of Contents ##
 
   * [Usage](#user-content-usage)
