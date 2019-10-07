@@ -19,7 +19,6 @@ class Step:
         self.number = number
         self.parse_action()
         self.parse_find()
-        self.parse_expect()
         self.log_buffer = StringBuffer()
         self.duration = timedelta(0)
 
@@ -43,10 +42,7 @@ class Step:
     def parse_find(self):
         if not 'find' in self.raw:
             raise Exception(f"Missing keyword 'find'.")
-        self.find_mapping = FindParser.parse_find_mapping(self.raw['find'])
-
-    def parse_expect(self):
-        self.expect_functions = ExpectParser.parse_expect(self.raw.get('expect', []))
+        self.find_mapping = FindParser.parse_find_mapping(self.raw['find']) 
 
     def get_log(self):
         return self.log_buffer.getvalue()
@@ -75,8 +71,13 @@ class Step:
             self.findings.set(alias, temp_findings[name])
 
         # Return a generator producing all alerts created by the
-        # expect functions
-        for fn in self.expect_functions:
+        # expect functions. Ideally, the ExpectParser would run when
+        # initializing the whole step, but then the expect_functions
+        # need to be stored somewhere so that they do not get picked
+        # up by the yaml serializer (they are not serializable, and
+        # there is no need to serialize them).
+        expect_functions = ExpectParser.parse_expect(self.raw.get('expect', []))
+        for fn in expect_functions:
             yield from fn(self)
 
     def call_class_from_action(self):

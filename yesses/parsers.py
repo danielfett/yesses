@@ -1,4 +1,5 @@
-from pyparsing import Word, alphas, Keyword, Optional, Or, ParseException, Group, Suppress, ZeroOrMore, Combine
+from pyparsing import Word, alphas, Keyword, Optional, Or, ParseException, Group, Suppress, ZeroOrMore, Combine, OneOrMore
+
 from .alerts import Alert
 
 class Parser:
@@ -36,7 +37,7 @@ class ExpectParser(Parser):
 
     IN_EXPR = QUANTIFIER_WITH_ALL('quantifier') - Parser.FINDINGS_IDENTIFIER("list1") - Keyword('in')('in') - Parser.FINDINGS_IDENTIFIER("list2")
     
-    ALERT_SUBEXPR = Optional(",")  - Keyword("otherwise") - Keyword("alert") - Combine(Word(alphas) - Optional(Word(alphas)))("alert_action_args")
+    ALERT_SUBEXPR = Optional(",")  - Keyword("otherwise") - Keyword("alert") - OneOrMore(Word(alphas))("alert_action_args")
     
 
     FULL_EXPR = (DEFAULT_EXPR("default_expr") ^ IN_EXPR("in_expr")) - ALERT_SUBEXPR
@@ -46,7 +47,7 @@ class ExpectParser(Parser):
         expect_fns = []
         for rule in expect_rules:
             parsed = cls.parse(rule)
-            alert_severity = Alert.Severity.parse(parsed.alert_action_args)
+            alert_severity = Alert.Severity.parse(' '.join(parsed.alert_action_args))
             if parsed.get('in', False):
                 expect_fns.append(cls.get_function_in_expr(rule, parsed.quantifier, parsed.list1, parsed.list2, alert_severity))
             else:
@@ -56,67 +57,52 @@ class ExpectParser(Parser):
     @classmethod
     def get_function_in_expr(cls, rule, quantifier, list1, list2, severity):
         def expect_fn(step):
-            items1 = step.findings.get(list1)
-            items2 = step.findings.get(list2)
+            common_items, missing_items = step.findings.get_common_and_missing_items(list1, list2)
             
-            items_from_1_in_2 = [item for item in items1 if item in items2]
-            
-            if quantifier == 'no':
-                if items_from_1_in_2:
-                    yield Alert(
-                        severity=severity,
-                        violated_rule=rule,
-                        findings={'extra items': items_from_1_in_2},
-                        step=step
-                    )
+            if quantifier == 'no' and common_items:
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings={'extra items': items_from_1_in_2},
+                    step=step
+                )
                 
-            elif quantifier == 'some':
-                if not items_from_1_in_2:
-                    yield Alert(
-                        severity=severity,
-                        violated_rule=rule,
-                        findings=[],
-                        step=step
-                        )
-            elif quantifier == 'all':
-                missing_items = [item for item in items1 if item not in items2]
-                if missing_items:
-                    yield Alert(
-                        severity=severity,
-                        violated_rule=rule,
-                        findings={'missing items': missing_items},
-                        step=step
-                    )
-            else:
-                raise Exception(f"Unexpected quantifier: {quantifier}")    
+            elif quantifier == 'some' and not common_items:
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings={},
+                    step=step
+                )
+            elif quantifier == 'all' and missing_items:
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings={'missing items': missing_items},
+                    step=step
+                )    
         return expect_fn
 
     @classmethod
     def get_function_default_expr(cls, rule, quantifier, new, subject, severity):
         def expect_fn(step):
-            current = step.findings.get(subject)
             if new:
-                previous = step.findings.get_previous(subject)
-                items = [item for item in current if item not in previous]
+                items = step.findings.get_added_items(subject)
             else:
-                items = current
+                items = step.findings.get(subject)
 
-            if quantifier == 'no':
-                if items:
-                    yield Alert(
-                        severity=severity,
-                        violated_rule=rule,
-                        findings={'extra items': items},
-                        step=step
-                    )
-            elif quantifier == 'some':
-                if not items:
-                    yield Alert(
-                        severity=severity,
-                        violated_rule=rule,
-                        findings=[],
-                        step=step
-                    )
-            else:
-                raise Exception(f"Unexpected quantifier: {quantifier}")    
+            if quantifier == 'no' and items:
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings={'extra items': items},
+                    step=step
+                )
+            elif quantifier == 'some' and not items:
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings={},
+                    step=step
+                )   
         return expect_fn

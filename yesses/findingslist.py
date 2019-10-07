@@ -19,10 +19,15 @@ class FindingsList:
         self.previous_findings = self.persist.data
         self.ignore_existing = False
 
-    def get(self, key):
+    def get(self, key, attributes=None):
         if not key in self.current_findings:
             raise Exception(f"Unknown findings key: {key}; existing keys are: {', '.join(self.current_findings.keys())}")
-        return self.current_findings[key]
+        out = self.current_findings[key]
+        if attributes is not None:
+            return [
+                {k:el[k] for k in attributes} for el in out
+            ]
+        return out
 
     def set(self, key, value):
         if not self.ignore_existing and key in self.current_findings:
@@ -64,3 +69,52 @@ class FindingsList:
                     all_entries.append(entry)
                     
         return all_entries
+
+    def get_common_and_missing_items(self, key1, key2):
+        """Return items that are in findings with key1 and with key2; and
+        items that are in findings with key1 but not in those with
+        key2.
+
+        """
+        common_attrs = self.find_common_attributes(key1, key2)
+        items1 = self.get(key1, common_attrs)
+        items2 = self.get(key2, common_attrs)
+        common_items = [item for item in items1 if item in items2]
+        missing_items = [item for item in items1 if item not in items2]
+        return common_items, missing_items
+
+    def get_added_items(self, key):
+        """Return items that appear in the current findings list with the
+        given key, but not in the previous one.
+
+        """
+        current = self.get(key)
+        previous = self.get_previous(key, [])
+        added = [item for item in current if item not in previous]
+        return added
+        
+    def find_common_attributes(self, *keys):
+        """Find one or more attributes that each entry in each of the
+        lists has in common. This function compares only the first
+        member of each list and assumes that all further elements have
+        the same attributes. This is enforced in other places in the
+        code.
+
+        """
+
+        common_attrs = None
+        for k in keys:
+            all_items = self.get(k)
+            if len(all_items) == 0:
+                return ['DOES_NOT_MATTER']
+            attrs = set(all_items[0].keys())
+            if common_attrs is None:
+                common_attrs = attrs
+            else:
+                common_attrs &= attrs
+
+        if len(common_attrs) == 0:
+            raise Exception(f"Unable to compare the findings lists {keys} (no common attributes).")
+        return common_attrs
+        
+        
