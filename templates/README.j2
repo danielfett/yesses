@@ -24,6 +24,13 @@ module.
 Alerts are processed by one or more user-defined outputs. yesses comes
 with an HTML template output and Slack notification output.
 
+## Table of Contents ##
+
+  * [Usage](#user-content-usage)
+    * [Concepts](#user-content-concepts)
+    * [Configuration File](#user-content-configuration-file)
+  * [Discovery and Scanning Modules](#user-content-discovery-and-scanning-modules)
+  * [Output Modules](#user-content-output-modules)
 
 # Usage #
 
@@ -31,12 +38,163 @@ with an HTML template output and Slack notification output.
 {{usage}}
 ```
 
-# Configuration file #
+## Concepts ##
 
-[todo]
+A **run** of yesses consists of a call to one or more **modules**. A
+module, as described above, performs one or more checks. Each module
+accepts a custom set of input values and output values. The details
+for each module are described below.
 
-## `expect` ##
-Expects arguments of the form "no added X, otherwise action args".
+There exists a global dictionary of facts, or **findings** which can
+be used as input for other modules or to create alerts based on rules
+on the findings. At the start of the run, the findings dictionary is
+empty, but can be pre-filled with **static data** in the configuration
+file, e.g., a list of domains to scan. When a module is called, **input
+values** can be taken from the findings dictionary (using the `use`
+keyword).
+
+The module produces an **output dictionary** containing the module's own
+findings. Selected keys from this output dictionary can be merged into
+the global findings dictionary. (If necessary, the keys can be
+re-named before merging to avoid collisions.)
+
+**Rules** can be defined on the new global findings dictionary to create
+alerts if necessary. Roughly speaking, these rules can check that (a)
+certain dictionary keys do or do not contain entries, (b) no values
+have been added or removed since the last run, or that (c) two lists
+of entries overlap fully or do not overlap at all.
+
+When rules are violated, **alerts** can be created. Alerts can have
+four different severity levels. Alerts can then be used in the
+**output** of the run, either to create reports or for immediate
+notifications.
+
+**Data** in the global findings list, and in inputs and outputs of
+modules is loosely typed. This can be explained best using an example.
+The following could be the global findings list after the `discover
+Domains and IPs` module was run:
+
+```YAML
+DNS-Entries:
+- domain: example.com
+  ip: 93.184.216.34
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+Domains:
+- domain: example.com
+IPs:
+- ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+```
+
+Under each key in the global findings list, a list of entries can be
+found. Each entry contains one or more keys (`domain` and/or
+`ip`). yesses expects that each member of a list contains the same
+keys.
+
+When a module expects an input having certain keys (which can be found
+in the module description), inputs with additional keys can be used.
+For example, the module `scan Ports` expects a range of IPs as input,
+each entry having the key `ip`. Therefore, `DNS-Entries` or `IPs`
+could be used as inputs for `scan Ports`. E.g., given the above global
+findings list, the following would be valid:
+
+```YAML
+  - scan Ports:
+      ips: use DNS-Entries
+      (...)
+```
+
+
+## Configuration file ##
+
+An example for a configuration file can be found in `docs/examples/example.yml`.
+
+yesses configuration files are YAML files (input and output values
+shown below and in the generated HTML files are shown in YAML syntax
+as well).
+
+Configuration files should adhere to the following top-level structure:
+
+```YAML
+data:                       # data: Predefined variables in the global findings list; can be used in the rest of the document
+  Variable-Name:            # Custom variable name
+    - value: some-value     # Custom variable values
+    - value: another-value
+  Another-Variable:
+
+run:                        # run: List of steps to be run in each test
+  - discover Step Name:     # Step names are documented below
+      step-specific: 42     # Variables here depend on the individual steps
+    find:                   # find: What output values to merge into the global findings list
+      - Finding1 as New-Var # rename output to something else before merging (avoid collisions)
+      - Finding2
+    expect:                 # expect: rules on the output to create alerts
+      - no New-Var, otherwise alert high
+      - some Finding2, otherwise alert medium
+      
+  - scan Another Step:
+      some-value: use Finding2 and New-Var  # re-use existing values from global findings
+
+output:                     # output: one or more modules to create output
+  - Template:               # output module name
+      filename: some-filename.html
+      template: templates/html/main.j2
+      
+```
+
+### `data` ###
+
+`data` is self-explanatory given the example above: It contains keys
+and respective values that make up the initial global findings list.
+
+### `run` ###
+
+`run` contains the steps that are executed, in the order defined here,
+within the yesses run. Each step is described using three keywords:
+the step's identifier, `find`, and `expect`, as explained in the
+following:
+
+The **step's identifier** (like `scan Ports` or `discover Domains and
+IPs`). Valid keys can be found in the module description below. Under
+this key, input values for the respective module are defined. The keys
+that can be used here can be found in the module description. Each key
+can either contain the literal input data (e.g.: `protocols: ['tcp']`,
+see also the examples below) or a `use`-expression. These start with
+the keyword `use` and contain on or more keys from the global findings
+list (multiple keys are separated by "and"). Example: `use DNS-Names
+and My-Arbitrary-Input`.
+    
+**`find`**: This key defines which output names (see module
+description) are merged into the global findings dictionary. Duplicate
+names are not allowed, i.e., if a name already exists in the global
+findings, an error message is shown. Keys can be renamed before
+merging using an expression like `Key-Name as New-Key-Name`.
+    
+**`expect`**: This key defines the alerts triggered after the specific
+step. Rules can refer to any entry in the global findings dictionary,
+include the ones added by the step itself. Rules must adhere to one of the
+following forms:
+
+ 1. (no|some) [new] FINDINGS, otherwise alert (informative|medium|high|very high)
+ 1. (no|some|all) FINDINGS1 in FINDINGS2, otherwise alert (informative|medium|high|very high)
+
+The first form checks if findings exist (or do not exist). With the
+`new` keyword, it checks if, compared to the last run, additional
+entries have been found. yesses does this by creating a file with the
+extension `.state` that stores the findings of the last run. If this
+file is deleted between runs, all findings will be reported as new.
+
+The second form checks if there is some, no, or a complete overlap
+between the lists FINDINGS1 and FINDINGS2. Note that, if the entries
+in these list contain different set of keys, only keys common to both
+lists are matched.
+
+### `output` ###
+
+`output` defines what yesses does with the created alerts. See
+[below](#user-content-output-modules) for a list of available modules
+and their usage.
 
 # Discovery and Scanning Modules #
 

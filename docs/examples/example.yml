@@ -1,0 +1,89 @@
+data:
+  Domain-Seeds:
+    - domain: example.com
+  Homoglyph-Domains:
+    - domain: exampl3.com
+  DNS-Resolvers:
+    - ip: 1.1.1.1
+    - ip: 8.8.8.8
+    - ip: 9.9.9.9
+
+run:
+  - discover Domains and IPs:
+      seeds: use Domain-Seeds
+      resolvers: use DNS-Resolvers
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+    expect:
+      - no new IPs, otherwise alert medium
+      - no new Domains, otherwise alert medium
+      - no new DNS-Entries, otherwise alert high
+
+  - discover Domains and IPs:
+      seeds: use Homoglyph-Domains
+      resolvers: use DNS-Resolvers
+    find:
+      - Domains as Homoglyph-Matches
+    expect:
+      - no Homoglyph-Matches, otherwise alert high
+      
+  - scan Ports:
+      protocols:
+        - tcp
+      ports: 80,443
+      ips: use IPs
+    find:
+      - Host-Ports
+      - HTTP-Ports
+      - HTTPS-Ports
+    expect:
+      - no new Host-Ports, otherwise alert very high
+      
+  - discover Webservers:
+      ips: use HTTP-Ports and HTTPS-Ports
+      domains: use Domains
+    find:
+      - Insecure-Origins
+      - Secure-Origins
+      - TLS-Domains
+    expect:
+      - no new Insecure-Origins, otherwise alert high
+
+  - scan TLS Settings:
+      domains: use TLS-Domains
+      tls_profile: intermediate
+    find:
+      - TLS-Profile-Mismatch-Domains
+      - TLS-Validation-Fail-Domains
+      - TLS-Vulnerability-Domains
+      - TLS-Okay-Domains
+      - TLS-Other-Error-Domains
+    expect:
+      - no TLS-Profile-Mismatch-Domains, otherwise alert medium
+      - no TLS-Validation-Fail-Domains, otherwise alert medium
+      - no TLS-Vulnerability-Domains, otherwise alert medium
+      - no TLS-Other-Error-Domains, otherwise alert medium
+
+  - scan Web Security Settings:
+      origins: use Secure-Origins and Insecure-Origins
+    find:
+      - Missing-HTTPS-Redirect-URLs
+      - Redirect-to-non-HTTPS-URLs
+      - Disallowed-Header-URLs
+      - Missing-Header-URLs
+      - Disallowed-Method-URLs
+      - Insecure-Cookie-URLs
+    expect:
+      - no Missing-HTTPS-Redirect-URLs, otherwise alert high
+      - no Redirect-to-non-HTTPS-URLs, otherwise alert high
+      - no Disallowed-Header-URLs, otherwise alert medium
+      - no Missing-Header-URLs, otherwise alert medium
+      - no Disallowed-Method-URLs, otherwise alert medium
+      - no Insecure-Cookie-URLs, otherwise alert medium
+      
+output:
+  - Template:
+      filename: report-example.html
+      template: templates/html/main.j2      

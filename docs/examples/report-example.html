@@ -1,0 +1,1059 @@
+
+
+<html>
+    <head>
+            
+        <style>
+         html {
+	     font-family: HelveticaNowText-Regular, Helvetica Neue, Helvetica, sans-serif;
+	     font-size: 1.1em;
+	     text-size-adjust: 100%
+         }
+         body {
+	     color: #222;
+	     line-height: 1.6;
+	     margin: 0
+         }
+
+         a {
+	     text-decoration: none
+         }
+
+         a:hover {
+	     text-decoration: underline
+         }
+
+         code,
+         kbd,
+         pre {
+	     font-family: Roboto Mono, monospace
+         }
+
+         b,
+         dt,
+         strong,
+         th {
+	     font-weight: 500
+         }
+         .doc h1,
+         .doc h2,
+         .doc h3,
+         .doc h4,
+         .doc h5,
+         .doc h6 {
+	     color: #191919;
+	     font-weight: 400;
+	     line-height: 1.3;
+	     margin: 1rem 0 0
+         }
+         .doc>h1 {
+	     font-size: 2rem;
+	     border: 1px solid #000;
+	     border-radius: 18vw;
+	     padding: 1rem 2rem;
+	     width: -webkit-fit-content;
+	     width: -moz-fit-content;
+	     width: fit-content;
+	     margin: 2rem 0 1.5rem -1rem
+         }
+         .doc p {
+	     font-size: .95rem;
+	     margin: 0
+         }
+         .doc ol,
+         .doc ul {
+	     margin: 0;
+	     padding: 0 0 0 2rem
+         }
+
+         .doc ol li:before {
+	     color: #444;
+	     font-size: .75rem
+         }
+         .doc {
+	     margin: 0 auto;
+	     max-width: 40rem;
+	     padding: 0 1rem 4rem;
+	     color: #333
+         }
+         .doc h3 {
+	     font-weight: 500
+         }
+
+         .doc h5 {
+	     font-size: 1em;
+	     font-style: italic
+         }
+         .step-raw, .log-raw {
+             white-space: pre;
+             font-family: monospace;
+             padding: 1rem 1rem .75rem;
+             background-color: #fafafa;
+             width: 100%;
+         }
+         .findings > ol {
+             display: table;
+             width: 100%;
+             padding: 0 !important;
+             border: 1px solid #999;
+             counter-reset: section;
+         }
+         .findings > ol > li:before {
+             counter-increment: section;
+             content: "Finding " counter(section);
+             padding: 0.5rem;
+         }
+         .findings > ol > li {
+             display: table-row;
+             padding: 1rem;
+         }
+         .findings > ol > li:nth-child(even) {
+             background: #eee
+         }
+         
+         .findings > ol > li:nth-child(odd) {
+             background: #fff
+         }
+
+         .findings table th {
+             font-weight: bold;
+             text-align: right;
+             vertical-align: top;
+             padding-right: 2ex;
+             width: 20%;
+         }
+
+         .findings table {
+             border: 1px solid #999;
+             margin: 0 0 0.5rem 0;
+             width: 90%;
+         }
+
+         .summarytable th {
+             font-weight: bold;
+             text-align: left;
+         }
+
+         .summarytable {
+             border: 1px solid #999;
+             margin: 0 0 0.5rem 0;
+             width: 30%;
+         }
+
+         .summarytable .number {
+             text-align: right !important;
+         }
+         
+         .rule {
+             font-style: italic;
+         }
+
+         .doc h3 {
+             margin-top: 2rem !important;
+         }
+
+         .finding {
+             font-family: monospace;
+         }
+        </style>
+        
+
+    </head>
+    <body>
+        <article class="doc">
+            <h1>yesses report</h1>
+            <p>Run started 2019-10-07 14:40:19.179996</p>
+            <p>Report generated 2019-10-07 14:41:45.051222</p>
+            <p>Summary:
+                <table class="summarytable">
+                    <tr>
+                        <th>
+                            Severity
+                        </th>
+                        <th class="number">
+                            #&nbsp;Alerts
+                        </th>
+                        <th class="number">
+                            #&nbsp;Findings
+                        </th>
+                    </tr>
+                    
+                        <tr>
+                            <td>
+                                VERY_HIGH
+                            </td>
+                            <td class="number">
+                                0
+                            </td>
+                            <td class="number">
+                                0
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td>
+                                HIGH
+                            </td>
+                            <td class="number">
+                                1
+                            </td>
+                            <td class="number">
+                                1
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td>
+                                MEDIUM
+                            </td>
+                            <td class="number">
+                                3
+                            </td>
+                            <td class="number">
+                                3
+                            </td>
+                        </tr>
+                    
+                        <tr>
+                            <td>
+                                INFORMATIVE
+                            </td>
+                            <td class="number">
+                                0
+                            </td>
+                            <td class="number">
+                                0
+                            </td>
+                        </tr>
+                    
+                </table>
+            </p>
+            <h2>Alerts</h2>
+            
+                
+                    <h3 class="severity-HIGH">Severity HIGH</h3>
+                
+                <h4><span class="violation-of">Violation of</span> <span class="rule">no Missing-HTTPS-Redirect-URLs, otherwise alert high</span></h4>
+                <details>
+                    <summary class="step-explain">In <a href="#step-5">Step #5</a>: <b>scan Web Security Settings</b></summary>
+                    <p class="step-raw">Step #5: scan Web Security Settings</p>
+                </details>
+
+                
+                
+                <details class="findings">
+                    <summary>2 extra items</summary>
+                    <ol>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">http://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">2606:2800:220:1:248:1893:25c8:1946</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>error</th>
+    <td>
+
+<span class="finding">no redirection encountered</span>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">http://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">93.184.216.34</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>error</th>
+    <td>
+
+<span class="finding">no redirection encountered</span>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                    </ol>
+                </details>
+                
+            
+                
+                    <h3 class="severity-MEDIUM">Severity MEDIUM</h3>
+                
+                <h4><span class="violation-of">Violation of</span> <span class="rule">no TLS-Profile-Mismatch-Domains, otherwise alert medium</span></h4>
+                <details>
+                    <summary class="step-explain">In <a href="#step-4">Step #4</a>: <b>scan TLS Settings</b></summary>
+                    <p class="step-raw">Step #4: scan TLS Settings</p>
+                </details>
+
+                
+                
+                <details class="findings">
+                    <summary>1 extra items</summary>
+                    <ol>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>domain</th>
+    <td>
+
+<span class="finding">example.com</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">must not support "TLSv1.1"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "TLSv1"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "ECDHE-RSA-AES128-SHA256"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-SEED-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "CAMELLIA128-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "AES256-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-CAMELLIA256-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-CAMELLIA128-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-AES128-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "AES128-GCM-SHA256"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-AES256-SHA256"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-AES256-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "SEED-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "DHE-RSA-AES128-SHA256"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "CAMELLIA256-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "ECDHE-RSA-AES256-SHA384"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "ECDHE-RSA-AES256-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "ECDHE-RSA-AES128-SHA"</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">must not support "AES128-SHA"</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                    </ol>
+                </details>
+                
+            
+                
+                <h4><span class="violation-of">Violation of</span> <span class="rule">no Disallowed-Header-URLs, otherwise alert medium</span></h4>
+                <details>
+                    <summary class="step-explain">In <a href="#step-5">Step #5</a>: <b>scan Web Security Settings</b></summary>
+                    <p class="step-raw">Step #5: scan Web Security Settings</p>
+                </details>
+
+                
+                
+                <details class="findings">
+                    <summary>4 extra items</summary>
+                    <ol>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">https://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">2001:16b8:1c27:4c00:3c2c:774f:5229:9a3d</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">illegal header Server (with value ECS (dcb/7EC6)): Server headers must not contain version information</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">https://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">10.202.2.129</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">illegal header Server (with value ECS (dcb/7FA3)): Server headers must not contain version information</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">http://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">2001:16b8:1c27:4c00:3c2c:774f:5229:9a3d</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">illegal header Server (with value ECS (dcb/7F7F)): Server headers must not contain version information</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">http://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">10.202.2.129</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">illegal header Server (with value ECS (dcb/7EC9)): Server headers must not contain version information</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                    </ol>
+                </details>
+                
+            
+                
+                <h4><span class="violation-of">Violation of</span> <span class="rule">no Missing-Header-URLs, otherwise alert medium</span></h4>
+                <details>
+                    <summary class="step-explain">In <a href="#step-5">Step #5</a>: <b>scan Web Security Settings</b></summary>
+                    <p class="step-raw">Step #5: scan Web Security Settings</p>
+                </details>
+
+                
+                
+                <details class="findings">
+                    <summary>2 extra items</summary>
+                    <ol>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">https://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">2001:16b8:1c27:4c00:3c2c:774f:5229:9a3d</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">missing header: 'Strict-Transport-Security'  matching expression 'max_age >= 31536000'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'X-Frame-Options'  with value 'DENY'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'X-Content-Type-Options'  with value 'nosniff'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Referrer-Policy' </span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Content-Security-Policy' </span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Expect-CT'  matching expression 'value.startswith("enforce,") and max_age > 86400'</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                            <li>
+
+<table class="findingstable">
+  
+  <tr>
+    <th>url</th>
+    <td>
+
+<span class="finding">https://example.com/</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>ip</th>
+    <td>
+
+<span class="finding">10.202.2.129</span>
+
+</td>
+  </tr>
+  
+  <tr>
+    <th>errors</th>
+    <td>
+
+<ul>
+  
+  <li>
+
+<span class="finding">missing header: 'Strict-Transport-Security'  matching expression 'max_age >= 31536000'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'X-Frame-Options'  with value 'DENY'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'X-Content-Type-Options'  with value 'nosniff'</span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Referrer-Policy' </span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Content-Security-Policy' </span>
+
+</li>
+  
+  <li>
+
+<span class="finding">missing header: 'Expect-CT'  matching expression 'value.startswith("enforce,") and max_age > 86400'</span>
+
+</li>
+  
+</ul>
+
+</td>
+  </tr>
+  
+</table>
+
+</li>
+                        
+                    </ol>
+                </details>
+                
+            
+            <h2>Steps</h2>
+            
+                <h3 id="step-0">Step #0: discover Domains and IPs</h3>
+                <details>
+                    <summary>2 input variables</summary>
+                    <p class="log-raw">resolvers:
+- ip: 1.1.1.1
+- ip: 8.8.8.8
+- ip: 9.9.9.9
+seeds:
+- domain: example.com
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 0.0s</summary>
+                    <p class="log-raw">Domains before expanding: {'example.com'}
+Found 1 domains after expanding CNAMEs
+Found subdomains: set()
+Found 1 domains after expanding wildcards
+Checking DNS: 1 example.com
+Checking DNS: 28 example.com
+Left with 1 domains after checking for records
+</p>
+                </details>
+            
+                <h3 id="step-1">Step #1: discover Domains and IPs</h3>
+                <details>
+                    <summary>2 input variables</summary>
+                    <p class="log-raw">resolvers:
+- ip: 1.1.1.1
+- ip: 8.8.8.8
+- ip: 9.9.9.9
+seeds:
+- domain: exampl3.com
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 0.1s</summary>
+                    <p class="log-raw">Domains before expanding: {'exampl3.com'}
+Found 1 domains after expanding CNAMEs
+Found subdomains: set()
+Found 1 domains after expanding wildcards
+Checking DNS: 1 exampl3.com
+Not found: The DNS response does not contain an answer to the question: exampl3.com. IN A
+Checking DNS: 28 exampl3.com
+Not found: The DNS response does not contain an answer to the question: exampl3.com. IN AAAA
+Left with 1 domains after checking for records
+</p>
+                </details>
+            
+                <h3 id="step-2">Step #2: scan Ports</h3>
+                <details>
+                    <summary>3 input variables</summary>
+                    <p class="log-raw">ips:
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+- ip: 93.184.216.34
+ports: 80,443
+protocols:
+- tcp
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 0.4s</summary>
+                    <p class="log-raw">Scanning 2606:2800:220:1:248:1893:25c8:1946.
+Scanning 93.184.216.34.
+</p>
+                </details>
+            
+                <h3 id="step-3">Step #3: discover Webservers</h3>
+                <details>
+                    <summary>2 input variables</summary>
+                    <p class="log-raw">domains:
+- domain: example.com
+ips:
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+  port: 80
+  protocol: tcp
+- ip: 93.184.216.34
+  port: 80
+  protocol: tcp
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+  port: 443
+  protocol: tcp
+- ip: 93.184.216.34
+  port: 443
+  protocol: tcp
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 2.6s</summary>
+                    <p class="log-raw">Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+Found webserver http://example.com/ on 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+Found webserver https://example.com/ on 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+Found webserver http://example.com/ on 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+Found webserver https://example.com/ on 93.184.216.34
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+Found webserver http://example.com/ on 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+Found webserver https://example.com/ on 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+Found webserver http://example.com/ on 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+Found webserver https://example.com/ on 93.184.216.34
+</p>
+                </details>
+            
+                <h3 id="step-4">Step #4: scan TLS Settings</h3>
+                <details>
+                    <summary>2 input variables</summary>
+                    <p class="log-raw">domains:
+- domain: example.com
+tls_profile: intermediate
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 37.6s</summary>
+                    <p class="log-raw">Starting new HTTPS connection (1): statics.tls.security.mozilla.org:443
+https://statics.tls.security.mozilla.org:443 "GET /server-side-tls-conf-5.0.json HTTP/1.1" 200 4569
+Loaded version 5.0 of the Mozilla TLS configuration recommendations.
+Testing connectivity with example.com:443...
+Certificate is ok
+Testing protocol SSLv2
+Testing protocol SSLv3
+Testing protocol TLSv1
+Testing protocol TLSv1.1
+Testing protocol TLSv1.2
+Testing protocol TLSv1.3
+</p>
+                </details>
+            
+                <h3 id="step-5">Step #5: scan Web Security Settings</h3>
+                <details>
+                    <summary>1 input variables</summary>
+                    <p class="log-raw">origins:
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+  url: https://example.com/
+- domain: example.com
+  ip: 93.184.216.34
+  url: https://example.com/
+- domain: example.com
+  ip: 2606:2800:220:1:248:1893:25c8:1946
+  url: http://example.com/
+- domain: example.com
+  ip: 93.184.216.34
+  url: http://example.com/
+</p>
+                </details>                            
+                        
+                <details class="log">
+                    <summary>Execution took 45.1s</summary>
+                    <p class="log-raw">Now checking example.com on IP 2606:2800:220:1:248:1893:25c8:1946
+GET https://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+TRACE https://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "TRACE / HTTP/1.1" 405 0
+TRACK https://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "TRACK / HTTP/1.1" 501 357
+CONNECT https://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTPS connection (1): example.com:443
+Exception HTTPSConnectionPool(host='example.com', port=443): Read timed out. (read timeout=10) on https://example.com/, ip=2606:2800:220:1:248:1893:25c8:1946
+Now checking example.com on IP 93.184.216.34
+GET https://example.com/ with IP 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "GET / HTTP/1.1" 200 606
+TRACE https://example.com/ with IP 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "TRACE / HTTP/1.1" 405 0
+TRACK https://example.com/ with IP 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+https://example.com:443 "TRACK / HTTP/1.1" 501 357
+CONNECT https://example.com/ with IP 93.184.216.34
+Starting new HTTPS connection (1): example.com:443
+Exception HTTPSConnectionPool(host='example.com', port=443): Read timed out. (read timeout=10) on https://example.com/, ip=93.184.216.34
+Now checking example.com on IP 2606:2800:220:1:248:1893:25c8:1946
+GET http://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+TRACE http://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "TRACE / HTTP/1.1" 405 0
+TRACK http://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "TRACK / HTTP/1.1" 501 357
+CONNECT http://example.com/ with IP 2606:2800:220:1:248:1893:25c8:1946
+Starting new HTTP connection (1): example.com:80
+Exception HTTPConnectionPool(host='example.com', port=80): Read timed out. (read timeout=10) on http://example.com/, ip=2606:2800:220:1:248:1893:25c8:1946
+Now checking example.com on IP 93.184.216.34
+GET http://example.com/ with IP 93.184.216.34
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "GET / HTTP/1.1" 200 606
+TRACE http://example.com/ with IP 93.184.216.34
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "TRACE / HTTP/1.1" 405 0
+TRACK http://example.com/ with IP 93.184.216.34
+Starting new HTTP connection (1): example.com:80
+http://example.com:80 "TRACK / HTTP/1.1" 501 357
+CONNECT http://example.com/ with IP 93.184.216.34
+Starting new HTTP connection (1): example.com:80
+Exception HTTPConnectionPool(host='example.com', port=80): Read timed out. (read timeout=10) on http://example.com/, ip=93.184.216.34
+</p>
+                </details>
+            
+        </article>
+    </body>
+</html>
