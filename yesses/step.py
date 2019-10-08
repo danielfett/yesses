@@ -12,24 +12,25 @@ log = logging.getLogger('step')
 class Step:
     LOG_FORMATTER = logging.Formatter()
     LOG_LEVEL = logging.DEBUG
-    VERBS = ['find', 'expect']
+    RESERVED = ['find', 'expect', 'name']
     
     def __init__(self, raw, number):
         self.raw = raw
         self.number = number
         self.parse_action()
+        self.parse_name()
         self.parse_find()
         self.log_buffer = StringBuffer()
         self.duration = timedelta(0)
 
     def parse_action(self):
-        """
-        From the raw step description, find the key that describes the
-        action, get the respective class for executing the action, and store
-        the keywords.
+        """From the raw step description, find the key that describes the
+        action, get the respective class for executing the action, and
+        store the keywords.
+
         """
         
-        words = [word for word in self.raw.keys() if word not in self.VERBS]
+        words = [word for word in self.raw.keys() if word not in self.RESERVED]
         if len(words) == 0:
             raise Exception(f"No action found.")
         if len(words) > 1:
@@ -38,6 +39,17 @@ class Step:
         self.action_class = YModule.class_from_string(self.action)
         self.kwargs = self.raw[self.action]
         log.info(f"Step {self.number} = {self.action}")
+        
+    def parse_name(self):
+        """From the raw step description, find the 'name' key and store it as
+        the name for the step. If none exists, use the action as the
+        name.
+
+        """
+        if 'name' in self.raw:
+            self.name = self.raw['name']
+        else:
+            self.name = self.action
 
     def parse_find(self):
         if not 'find' in self.raw:
