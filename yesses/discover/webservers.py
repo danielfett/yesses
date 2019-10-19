@@ -14,6 +14,8 @@ ports); combines a list of IPs with a list of domains to use for the
 Host header in web requests.
 
     """
+
+    PORTS = "80,443"
     
     INPUTS = {
         "ips": {
@@ -29,6 +31,11 @@ Host header in web requests.
             ],
             "description": "Domain names to try on these IPs",
             "unwrap": True,
+        },
+        "ports": {
+            "required_keys": None,
+            "description": "Ports to look for web servers",
+            "default": PORTS
         }
     }
 
@@ -77,25 +84,29 @@ Host header in web requests.
         output_insecure = []
         output_secure = []
         tls_domains = []
+        ports = self.ports.split(",")
         for ip in self.ips:
             for domain in self.domains:
                 for protocol in ('http', 'https'):
-                    with force_ip_connection(domain, ip):
-                        url = f'{protocol}://{domain}/'
-                        try:
-                            result = requests.get(url, timeout=10)
-                        except requests.exceptions.RequestException as e:
-                            log.debug(f"Exception {e} on {url}, ip={ip}")
-                        else:
-                            el = {'url': url, 'domain': domain, 'ip': ip}
-                            if protocol == 'https':
-                                output_secure.append(el)
-                                domain = {'domain': domain}
-                                if not domain in tls_domains:
-                                    tls_domains.append(domain)
+                    for port in ports:
+                        with force_ip_connection(domain, ip):
+                            url = f'{protocol}://{domain}:{port}/'
+                            try:
+                                result = requests.get(url, timeout=10)
+                                if url not in result.url or result.status_code != 200:
+                                    raise requests.exceptions.RequestException()
+                            except requests.exceptions.RequestException as e:
+                                log.debug(f"Exception {e} on {url}, ip={ip}")
                             else:
-                                output_insecure.append(el)
-                            log.info(f"Found webserver {url} on {ip}")
+                                el = {'url': url, 'domain': domain, 'ip': ip}
+                                if protocol == 'https':
+                                    output_secure.append(el)
+                                    dom= {'domain': domain}
+                                    if not dom in tls_domains:
+                                        tls_domains.append(dom)
+                                else:
+                                    output_insecure.append(el)
+                                log.info(f"Found webserver {url} on {ip}")
         self.results['Insecure-Origins'] = output_insecure
         self.results['Secure-Origins'] = output_secure
         self.results['TLS-Domains'] = tls_domains
