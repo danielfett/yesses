@@ -179,3 +179,12 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/emacs,python
+
+# PyCharm
+.idea/
+
+# Project
+*.alerts
+*.resume
+*.state
+*.yml

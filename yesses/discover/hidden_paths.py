@@ -3,7 +3,7 @@ import requests
 import threading
 
 from yesses.module import YModule
-from yesses.utils import force_ip_connection, UrlParser
+from yesses.utils import force_ip_connection, eliminate_duplicated_origins, UrlParser
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -17,6 +17,7 @@ class HiddenPaths(YModule):
     It extracts potential folders from the linked paths and searches in
     this folders with a wordlist for potential hidden files.
     """
+
     THREADS = 4
     PATH_LIST = "assets/apache.lst"
 
@@ -94,10 +95,7 @@ class HiddenPaths(YModule):
         print(self.potential_dirs)
 
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
-        filtered_origins = dict()
-        for origin in self.origins:
-            if origin['url'] not in filtered_origins.keys():
-                filtered_origins[origin['url']] = origin
+        filtered_origins = eliminate_duplicated_origins(self.origins)
 
         for origin in filtered_origins.values():
             parsed_url = UrlParser(origin['url'])
@@ -128,7 +126,8 @@ class HiddenPaths(YModule):
                 r = req_sess.get(tmp_url,
                                  headers={'User-Agent': self.USER_AGENTS[self.RANDOM[self.random_state]]})
                 self.random_state = (self.random_state + 1) % len(self.RANDOM)
-                if r.status_code == 200 and tmp_url not in self.linked_urls:
+                if r.status_code == 200 and tmp_url not in self.linked_urls and \
+                        not ('index' in dir and f"{url}{start}" in self.linked_urls):
                     self.results['Hidden-Paths'].append({'url': tmp_url})
                     if 'text' in r.headers['content-type']:
                         self.results['Hidden-Pages'].append({'url': tmp_url, 'data': r.text})

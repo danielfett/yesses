@@ -6,7 +6,7 @@ import time
 import threading
 
 from yesses.module import YModule
-from yesses.utils import force_ip_connection, UrlParser
+from yesses.utils import force_ip_connection, eliminate_duplicated_origins, UrlParser
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -19,6 +19,7 @@ class LinkedPaths(YModule):
     This module takes urls and collects recursively all links, which are local
     to this url.
     """
+
     THREADS = 40
 
     USER_AGENTS = [
@@ -76,10 +77,8 @@ class LinkedPaths(YModule):
 
     def run(self):
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
-        filtered_origins = dict()
-        for origin in self.origins:
-            if origin['url'] not in filtered_origins.keys():
-                filtered_origins[origin['url']] = origin
+        # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
+        filtered_origins = eliminate_duplicated_origins(self.origins)
 
         for origin in filtered_origins.values():
             with force_ip_connection(origin['domain'], origin['ip']):

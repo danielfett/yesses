@@ -29,6 +29,14 @@ def clean_expression(expr):
     return re.sub(r'''\s+''', ' ', expr).strip()
 
 
+def eliminate_duplicated_origins(origins: list) -> dict:
+    filtered_origins = dict()
+    for origin in origins:
+        if origin['url'] not in filtered_origins.keys():
+            filtered_origins[origin['url']] = origin
+    return filtered_origins
+
+
 class UrlParser:
     STANDARD_PORTS = {'http': 80, 'https': 443}
 
