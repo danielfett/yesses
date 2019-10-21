@@ -29,6 +29,7 @@ class LinkedPaths(YModule):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
 
+    # TODO: replace with randomint
     RANDOM = [3, 0, 4, 0, 2, 2, 0, 3, 3, 1, 3, 4, 3, 3, 0, 1, 0, 3, 0, 4, 1, 1, 4, 1, 2, 0, 3, 1, 3, 0, 1, 0, 4, 1, 0,
               2, 4, 1, 4, 3, 0, 1, 3, 4, 1, 3, 3, 2, 1, 4, 2, 4, 1, 4, 1, 3, 0, 2, 1, 3, 1, 2, 0, 2, 2, 4, 1, 4, 3, 2,
               4, 3, 4, 0, 0, 2, 4, 2, 4, 0]
@@ -65,18 +66,18 @@ class LinkedPaths(YModule):
         }
     }
 
+    # TODO refactor to eliminate the init
     def init(self, url: str):
         self.url = url
         self.urls_visited = []
         self.parsed_url = UrlParser(url)
         # save expression: |mailto:|tel:|skype:|news:
         self.regular_exp = re.compile(
-            f"^https?://([a-zA-Z0-9_.-]*\.|){self.parsed_url.base_domain.replace('.', '[.]')}|"
+            f"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(self.parsed_url.base_domain)}|"
             f"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
-        self.random_state = 0
+        self.random_state = 0 # TODO replace with randomint
 
     def run(self):
-        # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
         filtered_origins = eliminate_duplicated_origins(self.origins)
 
@@ -85,6 +86,7 @@ class LinkedPaths(YModule):
                 self.init(origin['url'])
                 start = time.time()
                 req_sess = requests.Session()
+                # TODO pass all parameters and pack them into an object
                 self.scrap_urls(self.parsed_url, req_sess, 0)
                 log.debug(f"Scraped site in {time.time() - start}s")
 

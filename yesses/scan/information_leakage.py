@@ -15,7 +15,9 @@ class InformationLeakage(YModule):
     REGEX_IDENTIFIER = ["email", "ip", "path"]
     REGEX = ["(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
              "(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
+             # TODO determine whether it is a path by taking a list to analyse the string (e.g. .txt .git)
              "(^|\s)(/([a-zA-Z0-9-_.]+/)[a-zA-Z0-9-_.]*|/?([a-zA-Z0-9-_.]+/)[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)(\s|$)"]
+
 
     INPUTS = {
         "pages": {

@@ -19,7 +19,7 @@ class HiddenPaths(YModule):
     """
 
     THREADS = 4
-    PATH_LIST = "assets/apache.lst"
+    PATH_LIST = "assets/hidden_paths_lists/apache.lst"
 
     USER_AGENTS = [
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
@@ -28,6 +28,7 @@ class HiddenPaths(YModule):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
 
+    # TODO: replace with randomint
     RANDOM = [3, 0, 4, 0, 2, 2, 0, 3, 3, 1, 3, 4, 3, 3, 0, 1, 0, 3, 0, 4, 1, 1, 4, 1, 2, 0, 3, 1, 3, 0, 1, 0, 4, 1, 0,
               2, 4, 1, 4, 3, 0, 1, 3, 4, 1, 3, 3, 2, 1, 4, 2, 4, 1, 4, 1, 3, 0, 2, 1, 3, 1, 2, 0, 2, 2, 4, 1, 4, 3, 2,
               4, 3, 4, 0, 0, 2, 4, 2, 4, 0]
