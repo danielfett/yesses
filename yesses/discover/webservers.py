@@ -32,6 +32,7 @@ Host header in web requests.
             "description": "Domain names to try on these IPs",
             "unwrap": True,
         },
+        # TODO: replace it with a list of strings
         "ports": {
             "required_keys": None,
             "description": "Ports to look for web servers",
