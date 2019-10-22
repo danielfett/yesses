@@ -1,6 +1,9 @@
 import logging
 import requests
 import threading
+from random import randint
+import queue
+import math
 
 from yesses.module import YModule
 from yesses.utils import force_ip_connection, eliminate_duplicated_origins, UrlParser
@@ -28,11 +31,6 @@ class HiddenPaths(YModule):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
 
-    # TODO: replace with randomint
-    RANDOM = [3, 0, 4, 0, 2, 2, 0, 3, 3, 1, 3, 4, 3, 3, 0, 1, 0, 3, 0, 4, 1, 1, 4, 1, 2, 0, 3, 1, 3, 0, 1, 0, 4, 1, 0,
-              2, 4, 1, 4, 3, 0, 1, 3, 4, 1, 3, 3, 2, 1, 4, 2, 4, 1, 4, 1, 3, 0, 2, 1, 3, 1, 2, 0, 2, 2, 4, 1, 4, 3, 2,
-              4, 3, 4, 0, 0, 2, 4, 2, 4, 0]
-
     INPUTS = {
         "origins": {
             "required_keys": [
@@ -46,7 +44,8 @@ class HiddenPaths(YModule):
             "required_keys": [
                 "url"
             ],
-            "description": "Required. Origins to scan for leaky paths",
+            "description": "Existing urls to guess directories to start the search",
+            "default": {}
         },
         "list": {
             "required_keys": None,
@@ -76,74 +75,85 @@ class HiddenPaths(YModule):
         }
     }
 
-    def init(self):
-        self.random_state = 0
-
     def run(self):
-        self.init()
-
         with open(self.list) as file:
-            lines = file.readlines()
-            lines = [line.strip('\n') for line in lines]
+            dir_list = file.readlines()
+            dir_list = [''] + [line.strip('\n') for line in dir_list if not line.startswith('#')]
 
-        if not lines:
+        if not dir_list:
             log.error("Could not open path list")
             return
 
         # find potential directories from linked urls
         self.get_potential_dirs()
         self.linked_urls = [item['url'] for item in self.linked_paths]
-        print(self.potential_dirs)
 
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
         filtered_origins = eliminate_duplicated_origins(self.origins)
 
         for origin in filtered_origins.values():
-            parsed_url = UrlParser(origin['url'])
             with force_ip_connection(origin['domain'], origin['ip']):
+                parsed_url = UrlParser(origin['url'])
 
+                # fill task queue with existing directories if there are any
                 dirs = self.potential_dirs[parsed_url.url_without_path]
+                task_queue = queue.Queue()
 
-                length = max(int(len(dirs) / self.threads), 1)
+                for dir in dirs:
+                    for i in range(self.threads):
+                        task_queue.put((dir, i))
+
                 ths = []
-                for i in range(0, len(dirs), length):
+                self.ready = 0
+                for i in range(self.threads):
                     req_sess = requests.Session()
-                    th = threading.Thread(target=self.check_dirs,
-                                          args=(parsed_url.url_without_path, dirs[i:i + length], lines, req_sess,))
+                    th = threading.Thread(target=self.worker,
+                                          args=(task_queue, dir_list, req_sess,))
                     th.start()
                     ths.append(th)
 
                 for th in ths:
                     th.join()
 
-    def check_dirs(self, url: str, starts: [list], dirs: [list], req_sess: requests.Session):
-        for start in starts:
-            self.check_dir(url, start, dirs, req_sess)
+    def worker(self, task_queue: queue.Queue, dir_list: [str], req_sess: requests.Session):
+        while self.ready != self.threads:
+            try:
+                task = task_queue.get_nowait()
+                self_finised = False
+            except queue.Empty:
+                self_finised = True
+                self.ready += 1
+                continue
 
-    def check_dir(self, url: str, start: str, dirs: [list], req_sess: requests.Session):
-        for dir in [''] + dirs:
-            if not dir.startswith('#'):
-                tmp_url = f"{url}{start}{dir}"
-                r = req_sess.get(tmp_url,
-                                 headers={'User-Agent': self.USER_AGENTS[self.RANDOM[self.random_state]]})
-                self.random_state = (self.random_state + 1) % len(self.RANDOM)
-                if r.status_code == 200 and tmp_url not in self.linked_urls and \
-                        not ('index' in dir and f"{url}{start}" in self.linked_urls):
-                    self.results['Hidden-Paths'].append({'url': tmp_url})
-                    if 'text' in r.headers['content-type']:
-                        self.results['Hidden-Pages'].append({'url': tmp_url, 'data': r.text})
-                    log.debug(tmp_url)
+            if not self_finised:
+                url, i = task
+                length = max(math.ceil(len(dir_list) / self.threads), 1)
+                for dir in dir_list[i * length:(i + 1) * length]:
+                    tmp_url = f"{url}{dir}"
+                    r = req_sess.get(tmp_url, headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
+                    if r.status_code == 200 and tmp_url not in self.linked_urls and \
+                            not ('index' in dir and url in self.linked_urls):
+                        self.results['Hidden-Paths'].append({'url': tmp_url})
+                        log.debug(tmp_url)
+                        if 'text' in r.headers['content-type']:
+                            self.results['Hidden-Pages'].append({'url': tmp_url, 'data': r.text})
 
     def get_potential_dirs(self):
         self.potential_dirs = {}
+
+        for origin in self.origins:
+            parsed_url = UrlParser(origin['url'])
+            tmp = f"{parsed_url.url_without_path}/"
+            self.potential_dirs[parsed_url.url_without_path] = [tmp]
 
         for urld in self.linked_paths:
             url = urld['url']
             parsed_url = UrlParser(url)
             if parsed_url.url_without_path not in self.potential_dirs:
-                self.potential_dirs[parsed_url.url_without_path] = ['/']
+                tmp = f"{parsed_url.url_without_path}/"
+                self.potential_dirs[parsed_url.url_without_path] = [tmp]
             split = parsed_url.path.split('/')
-            tmp = '/'
+            tmp = f"{parsed_url.url_without_path}/"
             for i in range(1, len(split) - 1):
                 tmp = f"{tmp}{split[i]}/"
                 if tmp not in self.potential_dirs[parsed_url.url_without_path]:
