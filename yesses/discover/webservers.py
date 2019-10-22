@@ -1,4 +1,3 @@
-import nmap
 import logging
 from yesses.utils import force_ip_connection
 import requests
@@ -96,10 +95,10 @@ Host header in web requests.
         output_secure = []
         tls_domains = []
         for ip in self.ips:
-            for domain in self.domains:
-                for protocol in ('http', 'https'):
-                    # just check a port if it is open and in the list of passed ports
-                    if ip['port'] in self.ports:
+            # just check a port if it is open and in the list of passed ports
+            if ip['port'] in self.ports:
+                for domain in self.domains:
+                    for protocol in ('http', 'https'):
                         with force_ip_connection(domain, ip['ip']):
                             url = f"{protocol}://{domain}:{ip['port']}/"
                             try:
