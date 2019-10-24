@@ -1,17 +1,33 @@
+from typing import Dict, List
 import logging
 import requests
 from bs4 import BeautifulSoup
 import re
 import time
 import threading
+from random import randint
+import queue
 
 from yesses.module import YModule
-from yesses.utils import force_ip_connection, eliminate_duplicated_origins, UrlParser
+from yesses import utils
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("chardet").setLevel(logging.ERROR)
 log = logging.getLogger('discover/linked_paths')
+
+
+class LinkedPathsSession(utils.ConcurrentSession):
+
+    def __init__(self, origin: Dict, threads: int):
+        super().__init__(threads)
+        start_parsed_url = utils.UrlParser(origin['url'])
+        self.task_queue = queue.Queue()  # type: queue.Queue[utils.UrlParser]
+        self.task_queue.put(start_parsed_url)
+        self.regex = re.compile(
+            f"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(start_parsed_url.base_domain)}|"
+            f"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
+        self.urls_visited = []  # type: List[utils.UrlParser]
 
 
 class LinkedPaths(YModule):
@@ -21,6 +37,7 @@ class LinkedPaths(YModule):
     """
 
     THREADS = 40
+    RECURSION_DEPTH = 5
 
     USER_AGENTS = [
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
@@ -28,11 +45,6 @@ class LinkedPaths(YModule):
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
-
-    # TODO: replace with randomint
-    RANDOM = [3, 0, 4, 0, 2, 2, 0, 3, 3, 1, 3, 4, 3, 3, 0, 1, 0, 3, 0, 4, 1, 1, 4, 1, 2, 0, 3, 1, 3, 0, 1, 0, 4, 1, 0,
-              2, 4, 1, 4, 3, 0, 1, 3, 4, 1, 3, 3, 2, 1, 4, 2, 4, 1, 4, 1, 3, 0, 2, 1, 3, 1, 2, 0, 2, 2, 4, 1, 4, 3, 2,
-              4, 3, 4, 0, 0, 2, 4, 2, 4, 0]
 
     INPUTS = {
         "origins": {
@@ -42,6 +54,12 @@ class LinkedPaths(YModule):
                 "url"
             ],
             "description": "Required. Origins to scan for leaky paths",
+        },
+        "recursion_depth": {
+            "required_keys": None,
+            "description": "Max depth to search for hidden files and directories. "
+                           "Found files can only have recursion_depth + 1 depth",
+            "default": RECURSION_DEPTH,
         },
         "threads": {
             "required_keys": None,
@@ -66,47 +84,57 @@ class LinkedPaths(YModule):
         }
     }
 
-    # TODO refactor to eliminate the init
-    def init(self, url: str):
-        self.url = url
-        self.urls_visited = []
-        self.parsed_url = UrlParser(url)
-        # save expression: |mailto:|tel:|skype:|news:
-        self.regular_exp = re.compile(
-            f"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(self.parsed_url.base_domain)}|"
-            f"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
-        self.random_state = 0 # TODO replace with randomint
-
     def run(self):
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
-        filtered_origins = eliminate_duplicated_origins(self.origins)
+        filtered_origins = utils.eliminate_duplicated_origins(self.origins)
 
         for origin in filtered_origins.values():
-            with force_ip_connection(origin['domain'], origin['ip']):
-                self.init(origin['url'])
+            with utils.force_ip_connection(origin['domain'], origin['ip']):
                 start = time.time()
-                req_sess = requests.Session()
-                # TODO pass all parameters and pack them into an object
-                self.scrap_urls(self.parsed_url, req_sess, 0)
+                sess = LinkedPathsSession(origin, self.threads)
+
+                ths = []
+                for i in range(self.threads):
+                    th = threading.Thread(target=self.worker, args=(sess,))
+                    th.start()
+                    ths.append(th)
+
+                for th in ths:
+                    th.join()
+
                 log.debug(f"Scraped site in {time.time() - start}s")
 
-    def scrap_urls(self, parsed_url: UrlParser, req_sess: requests.Session, level: int):
+    def worker(self, sess: LinkedPathsSession):
+        req_sess = requests.Session()
+        sess.register_thread(threading.current_thread().ident)
+        self_finished = False
+        while not sess.is_ready():
+            try:
+                task = sess.task_queue.get(block=True, timeout=0.3)
+                if self_finished:
+                    sess.unready(threading.current_thread().ident)
+                self_finished = False
+            except queue.Empty:
+                self_finished = True
+                sess.ready(threading.current_thread().ident)
+                continue
+
+            self.scrap_urls(task, req_sess, sess)
+
+    def scrap_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
         # get new page
-        r = req_sess.get(parsed_url.full_url(),
-                         headers={'User-Agent': self.USER_AGENTS[self.RANDOM[self.random_state]],
-                                  'Accept': 'text/*, application/*'})
-        self.random_state = (self.random_state + 1) % len(self.RANDOM)
+        r = req_sess.get(parsed_url.full_url(), headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
         # parse url returned by requests in the case we have been redirected
-        forwarded_parsed_url = UrlParser(r.url)
+        forwarded_parsed_url = utils.UrlParser(r.url)
 
         # Add the url to the visited urls if it doesn't return a error and if it's
         # not in the already visited urls. We have to check this again because
         # we could have been redirected to a page we have already visited.
         # We also have to check again if it's a local page because we could
         # have been redirected to another website.
-        if r.status_code == 200 and forwarded_parsed_url not in self.urls_visited \
-                and re.match(self.regular_exp, forwarded_parsed_url.full_url()):
-            self.urls_visited.append(forwarded_parsed_url)
+        if r.status_code == 200 and forwarded_parsed_url not in sess.urls_visited \
+                and re.match(sess.regex, forwarded_parsed_url.full_url()):
+            sess.urls_visited.append(forwarded_parsed_url)
             self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
             self.results['Linked-Pages'].append({'url': forwarded_parsed_url.full_url(), 'data': r.text})
         else:
@@ -115,43 +143,26 @@ class LinkedPaths(YModule):
         log.debug(forwarded_parsed_url)
 
         # check if this page is parsable by beautiful soup
-        if forwarded_parsed_url.file_ending.lower() not in ['', '.html', '.htm', '.php', '.cgi']:
+        if not utils.request_is_text(r):
             return
 
         soup = BeautifulSoup(r.text, "lxml")
 
         # get all linked pages and css files
         links = [link.get('href') for link in
-                 soup.findAll(['a', 'link'], attrs={'href': self.regular_exp})]  # type: List[str]
+                 soup.findAll(['a', 'link'], attrs={'href': sess.regex})]  # type: List[str]
         # get all JavaScript files
-        links += [script.get('src') for script in soup.findAll('script', attrs={'src': self.regular_exp})]
+        links += [script.get('src') for script in soup.findAll('script', attrs={'src': sess.regex})]
 
-        if level == 0:
-            # open new thread for every link on the front page
-            length = max(int(len(links) / self.threads), 1)
-            ths = []
-            for i in range(0, len(links), length):
-                req_sess = requests.Session()
-                th = threading.Thread(target=self.process_links,
-                                      args=(links[i:i + length], forwarded_parsed_url, req_sess, level,))
-                th.start()
-                ths.append(th)
-
-            for th in ths:
-                th.join()
-        else:
-            # iterate over all files and parse them recursively
-            self.process_links(links, forwarded_parsed_url, req_sess, level)
-
-    def process_links(self, links: list, forwarded_parsed_url: UrlParser, req_sess: requests.Session, level: int):
         for link in links:
-            parsed_link = UrlParser(link)
+            parsed_link = utils.UrlParser(link)
             if parsed_link.netloc == '':
                 parsed_link.url_without_path = forwarded_parsed_url.url_without_path
                 parsed_link.path = self.join_paths(forwarded_parsed_url.path, parsed_link.path)
 
-            if parsed_link not in self.urls_visited:
-                self.scrap_urls(parsed_link, req_sess, level + 1)
+            if parsed_link not in sess.urls_visited and parsed_link.file_ending not in ['.png', '.jpg', '.jpeg'] \
+                    and parsed_link.path_depth <= self.recursion_depth:
+                sess.task_queue.put(parsed_link)
 
     @staticmethod
     def join_paths(path_prefix: str, path: str) -> str:

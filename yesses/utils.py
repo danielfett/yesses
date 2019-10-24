@@ -1,4 +1,6 @@
 import re
+import requests
+import threading
 from urllib.parse import urlparse
 
 from urllib3.util import connection
@@ -35,6 +37,12 @@ def eliminate_duplicated_origins(origins: list) -> dict:
         if origin['url'] not in filtered_origins.keys():
             filtered_origins[origin['url']] = origin
     return filtered_origins
+
+
+def request_is_text(r: requests.Response) -> bool:
+    if re.search(r"(^text/.*|^application/.*|^image/svg\+xml$)", r.headers['content-type']):
+        return True
+    return False
 
 
 class UrlParser:
@@ -90,3 +98,32 @@ class UrlParser:
 
     def __str__(self):
         return self.full_url()
+
+
+class ConcurrentSession:
+
+    def __init__(self, threads):
+        self._threads = threads
+        self._finished = {}
+        self._lock = threading.Lock()
+
+    def register_thread(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = False
+        self._lock.release()
+
+    def ready(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = True
+        self._lock.release()
+
+    def unready(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = False
+        self._lock.release()
+
+    def is_ready(self) -> bool:
+        for value in self._finished.values():
+            if not value:
+                return False
+        return True

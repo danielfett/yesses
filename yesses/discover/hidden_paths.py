@@ -7,7 +7,7 @@ import queue
 import math
 
 from yesses.module import YModule
-from yesses.utils import force_ip_connection, eliminate_duplicated_origins, UrlParser
+from yesses import utils
 
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -15,36 +15,13 @@ logging.getLogger("chardet").setLevel(logging.ERROR)
 log = logging.getLogger('discover/hidden_paths')
 
 
-class HiddenPathsSession:
+class HiddenPathsSession(utils.ConcurrentSession):
 
     def __init__(self, task_queue: queue.Queue, dir_list: List, threads: int):
+        super().__init__(threads)
         self.task_queue = task_queue
-        self.dir_list = dir_list
-        self.pages_found = []
-        self._threads = threads
-        self._finished = {}
-        self._lock = threading.Lock()
-
-    def register_thread(self, ident: int):
-        self._lock.acquire()
-        self._finished[ident] = False
-        self._lock.release()
-
-    def ready(self, ident: int):
-        self._lock.acquire()
-        self._finished[ident] = True
-        self._lock.release()
-
-    def unready(self, ident: int):
-        self._lock.acquire()
-        self._finished[ident] = False
-        self._lock.release()
-
-    def is_ready(self) -> bool:
-        for value in self._finished.values():
-            if not value:
-                return False
-        return True
+        self.dir_list = dir_list  # type: List[str]
+        self.pages_found = []  # type: List[utils.UrlParser]
 
 
 class HiddenPaths(YModule):
@@ -54,8 +31,8 @@ class HiddenPaths(YModule):
     this folders with a wordlist for potential hidden files.
     """
 
-    THREADS = 4
-    RECURSION_DEPTH = 2
+    THREADS = 10
+    RECURSION_DEPTH = 3
     PATH_LIST = "assets/hidden_paths_lists/apache.lst"
 
     USER_AGENTS = [
@@ -135,11 +112,11 @@ class HiddenPaths(YModule):
         self.linked_urls = [item['url'] for item in self.linked_paths]
 
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
-        filtered_origins = eliminate_duplicated_origins(self.origins)
+        filtered_origins = utils.eliminate_duplicated_origins(self.origins)
 
         for origin in filtered_origins.values():
-            with force_ip_connection(origin['domain'], origin['ip']):
-                parsed_url = UrlParser(origin['url'])
+            with utils.force_ip_connection(origin['domain'], origin['ip']):
+                parsed_url = utils.UrlParser(origin['url'])
 
                 # fill task queue with existing directories if there are any
                 dirs = self.potential_dirs[parsed_url.url_without_path]
@@ -162,8 +139,8 @@ class HiddenPaths(YModule):
 
     def worker(self, sess: HiddenPathsSession):
         req_sess = requests.Session()
-        self_finished = False
         sess.register_thread(threading.current_thread().ident)
+        self_finished = False
         while not sess.is_ready():
             try:
                 task = sess.task_queue.get(block=True, timeout=0.3)
@@ -175,40 +152,39 @@ class HiddenPaths(YModule):
                 sess.ready(threading.current_thread().ident)
                 continue
 
-            if not self_finished:
-                url, i = task
-                length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
-                for dir in sess.dir_list[i * length:(i + 1) * length]:
-                    tmp_url = f"{url}{dir}"
-                    r = req_sess.get(tmp_url, headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
-                    if r.status_code == 200 and tmp_url not in self.linked_urls and \
-                            not ('index' in dir and url in self.linked_urls) and r.url not in sess.pages_found:
-                        self.results['Hidden-Paths'].append({'url': tmp_url})
-                        sess.pages_found.append(tmp_url)
-                        log.debug(f"Hidden page found: {tmp_url}")
-                        if 'text' in r.headers['content-type']:
-                            self.results['Hidden-Pages'].append({'url': tmp_url, 'data': r.text})
-                    elif (r.status_code == 403 or r.status_code == 200) \
-                            and r.url.endswith('/') and r.url not in sess.pages_found:
-                        log.debug(f"Directory found: {r.url}")
-                        sess.pages_found.append(r.url)
-                        self.results['Directories'].append({'url': r.url})
-                        parsed_url = UrlParser(r.url)
-                        if parsed_url.path_depth <= self.recursion_depth:
-                            for i in range(self.threads):
-                                sess.task_queue.put((r.url, i))
+            url, i = task
+            length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
+            for dir in sess.dir_list[i * length:(i + 1) * length]:
+                tmp_url = f"{url}{dir}"
+                r = req_sess.get(tmp_url, headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
+                parsed_url = utils.UrlParser(r.url)
+                if r.status_code == 200 and parsed_url.full_url() not in self.linked_urls and \
+                        not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
+                    self.results['Hidden-Paths'].append({'url': parsed_url.full_url()})
+                    sess.pages_found.append(parsed_url)
+                    log.debug(f"Hidden page found: {parsed_url.full_url()}")
+                    if utils.request_is_text(r):
+                        self.results['Hidden-Pages'].append({'url': parsed_url.full_url(), 'data': r.text})
+                elif (r.status_code == 403 or r.status_code == 200) \
+                        and parsed_url.path.endswith('/') and parsed_url not in sess.pages_found:
+                    log.debug(f"Directory found: {parsed_url.full_url()}")
+                    sess.pages_found.append(parsed_url)
+                    self.results['Directories'].append({'url': parsed_url.full_url()})
+                    if parsed_url.path_depth <= self.recursion_depth:
+                        for i in range(self.threads):
+                            sess.task_queue.put((parsed_url.full_url(), i))
 
     def get_potential_dirs(self):
         self.potential_dirs = {}
 
         for origin in self.origins:
-            parsed_url = UrlParser(origin['url'])
+            parsed_url = utils.UrlParser(origin['url'])
             tmp = f"{parsed_url.url_without_path}/"
             self.potential_dirs[parsed_url.url_without_path] = [tmp]
 
         for urld in self.linked_paths:
             url = urld['url']
-            parsed_url = UrlParser(url)
+            parsed_url = utils.UrlParser(url)
             if parsed_url.url_without_path not in self.potential_dirs:
                 tmp = f"{parsed_url.url_without_path}/"
                 self.potential_dirs[parsed_url.url_without_path] = [tmp]
