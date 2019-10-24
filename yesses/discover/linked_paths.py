@@ -93,7 +93,8 @@ class LinkedPaths(YModule):
     def scrap_urls(self, parsed_url: UrlParser, req_sess: requests.Session, level: int):
         # get new page
         r = req_sess.get(parsed_url.full_url(),
-                         headers={'User-Agent': self.USER_AGENTS[self.RANDOM[self.random_state]]})
+                         headers={'User-Agent': self.USER_AGENTS[self.RANDOM[self.random_state]],
+                                  'Accept': 'text/*, application/*'})
         self.random_state = (self.random_state + 1) % len(self.RANDOM)
         # parse url returned by requests in the case we have been redirected
         forwarded_parsed_url = UrlParser(r.url)

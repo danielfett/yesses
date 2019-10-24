@@ -51,6 +51,10 @@ class UrlParser:
         if not tmp_path.startswith('/'):
             tmp_path = f"/{tmp_path}"
 
+        self.path_depth = len(tmp_path.split('/')) - 1
+        if tmp_path.endswith('/'):
+            self.path_depth -= 1
+
         self.path_with_args = tmp_path  # type: str
         if self.parsed.query != '':
             self.path_with_args = f"{tmp_path}?{self.arguments}"

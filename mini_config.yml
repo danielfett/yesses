@@ -5,18 +5,9 @@ data:
       domain: yes.com
 
 run:
-  - discover Linked Paths:
-      origins: use Origins
-    find:
-      - Linked-Paths
-      - Linked-Pages
   - discover Hidden Paths:
       origins: use Origins
-      linked_paths: use Linked-Paths
+      recursion_depth: 3
     find:
       - Hidden-Paths
       - Hidden-Pages
-  - scan Information Leakage:
-      pages: use Linked-Pages and Hidden-Pages
-    find:
-      - Leakages

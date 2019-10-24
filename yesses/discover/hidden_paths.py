@@ -1,3 +1,4 @@
+from typing import List
 import logging
 import requests
 import threading
@@ -14,6 +15,38 @@ logging.getLogger("chardet").setLevel(logging.ERROR)
 log = logging.getLogger('discover/hidden_paths')
 
 
+class HiddenPathsSession:
+
+    def __init__(self, task_queue: queue.Queue, dir_list: List, threads: int):
+        self.task_queue = task_queue
+        self.dir_list = dir_list
+        self.pages_found = []
+        self._threads = threads
+        self._finished = {}
+        self._lock = threading.Lock()
+
+    def register_thread(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = False
+        self._lock.release()
+
+    def ready(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = True
+        self._lock.release()
+
+    def unready(self, ident: int):
+        self._lock.acquire()
+        self._finished[ident] = False
+        self._lock.release()
+
+    def is_ready(self) -> bool:
+        for value in self._finished.values():
+            if not value:
+                return False
+        return True
+
+
 class HiddenPaths(YModule):
     """
     This module takes urls and linked paths from the Linked Paths module.
@@ -22,6 +55,7 @@ class HiddenPaths(YModule):
     """
 
     THREADS = 4
+    RECURSION_DEPTH = 2
     PATH_LIST = "assets/hidden_paths_lists/apache.lst"
 
     USER_AGENTS = [
@@ -52,6 +86,12 @@ class HiddenPaths(YModule):
             "description": "List to scan for leaky paths",
             "default": PATH_LIST,
         },
+        "recursion_depth": {
+            "required_keys": None,
+            "description": "Max depth to search for hidden files and directories. "
+                           "Found files can only have recursion_depth + 1 depth",
+            "default": RECURSION_DEPTH,
+        },
         "threads": {
             "required_keys": None,
             "description": "Number of threads to run search in parallel",
@@ -72,6 +112,12 @@ class HiddenPaths(YModule):
                 "data"
             ],
             "description": "Pages and the content from the page"
+        },
+        "Directories": {
+            "provided_keys": [
+                "url"
+            ],
+            "description": "Directories found on the web servers"
         }
     }
 
@@ -104,39 +150,53 @@ class HiddenPaths(YModule):
                         task_queue.put((dir, i))
 
                 ths = []
-                self.ready = 0
+                sess = HiddenPathsSession(task_queue, dir_list, self.threads)
                 for i in range(self.threads):
-                    req_sess = requests.Session()
                     th = threading.Thread(target=self.worker,
-                                          args=(task_queue, dir_list, req_sess,))
+                                          args=(sess,))
                     th.start()
                     ths.append(th)
 
                 for th in ths:
                     th.join()
 
-    def worker(self, task_queue: queue.Queue, dir_list: [str], req_sess: requests.Session):
-        while self.ready != self.threads:
+    def worker(self, sess: HiddenPathsSession):
+        req_sess = requests.Session()
+        self_finished = False
+        sess.register_thread(threading.current_thread().ident)
+        while not sess.is_ready():
             try:
-                task = task_queue.get_nowait()
-                self_finised = False
+                task = sess.task_queue.get(block=True, timeout=0.3)
+                if self_finished:
+                    sess.unready(threading.current_thread().ident)
+                self_finished = False
             except queue.Empty:
-                self_finised = True
-                self.ready += 1
+                self_finished = True
+                sess.ready(threading.current_thread().ident)
                 continue
 
-            if not self_finised:
+            if not self_finished:
                 url, i = task
-                length = max(math.ceil(len(dir_list) / self.threads), 1)
-                for dir in dir_list[i * length:(i + 1) * length]:
+                length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
+                for dir in sess.dir_list[i * length:(i + 1) * length]:
                     tmp_url = f"{url}{dir}"
                     r = req_sess.get(tmp_url, headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
                     if r.status_code == 200 and tmp_url not in self.linked_urls and \
-                            not ('index' in dir and url in self.linked_urls):
+                            not ('index' in dir and url in self.linked_urls) and r.url not in sess.pages_found:
                         self.results['Hidden-Paths'].append({'url': tmp_url})
-                        log.debug(tmp_url)
+                        sess.pages_found.append(tmp_url)
+                        log.debug(f"Hidden page found: {tmp_url}")
                         if 'text' in r.headers['content-type']:
                             self.results['Hidden-Pages'].append({'url': tmp_url, 'data': r.text})
+                    elif (r.status_code == 403 or r.status_code == 200) \
+                            and r.url.endswith('/') and r.url not in sess.pages_found:
+                        log.debug(f"Directory found: {r.url}")
+                        sess.pages_found.append(r.url)
+                        self.results['Directories'].append({'url': r.url})
+                        parsed_url = UrlParser(r.url)
+                        if parsed_url.path_depth <= self.recursion_depth:
+                            for i in range(self.threads):
+                                sess.task_queue.put((r.url, i))
 
     def get_potential_dirs(self):
         self.potential_dirs = {}
