@@ -1,4 +1,5 @@
 # Source: https://github.com/maurosoria/dirsearch/blob/master/db/dicc.txt
+# License: GPLv2
 .gitignore
 .htaccess
 .htpasswd

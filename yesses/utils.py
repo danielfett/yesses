@@ -1,3 +1,4 @@
+from typing import List
 import re
 import requests
 import threading
@@ -43,6 +44,14 @@ def request_is_text(r: requests.Response) -> bool:
     if re.search(r"(^text/.*|^application/.*|^image/svg\+xml$)", r.headers['content-type']):
         return True
     return False
+
+
+def read_file(list: str) -> List[str]:
+    with open(list) as file:
+        dir_list = file.readlines()
+        dir_list = [line.strip('\n') for line in dir_list if not line.startswith('#')]
+
+    return dir_list
 
 
 class UrlParser:

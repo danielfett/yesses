@@ -1,3 +1,4 @@
+# Source: https://github.com/digination/dirbuster-ng/blob/master/wordlists/vulns/apache.txt
 .htaccess
 .htpasswd
 .meta

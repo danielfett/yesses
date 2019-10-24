@@ -39,12 +39,7 @@ class LinkedPaths(YModule):
     THREADS = 40
     RECURSION_DEPTH = 5
 
-    USER_AGENTS = [
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
-        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
+    USER_AGENTS_LIST = "assets/user-agents.txt"
 
     INPUTS = {
         "origins": {
@@ -85,6 +80,13 @@ class LinkedPaths(YModule):
     }
 
     def run(self):
+        # read user agents list
+        self.user_agents = utils.read_file(self.USER_AGENTS_LIST)
+
+        if not self.user_agents:
+            log.error("Could not open user agent list")
+            return
+
         # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
         filtered_origins = utils.eliminate_duplicated_origins(self.origins)
 
@@ -123,7 +125,8 @@ class LinkedPaths(YModule):
 
     def scrap_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
         # get new page
-        r = req_sess.get(parsed_url.full_url(), headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
+        r = req_sess.get(parsed_url.full_url(),
+                         headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
         # parse url returned by requests in the case we have been redirected
         forwarded_parsed_url = utils.UrlParser(r.url)
 

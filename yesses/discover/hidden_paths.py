@@ -35,12 +35,7 @@ class HiddenPaths(YModule):
     RECURSION_DEPTH = 3
     PATH_LIST = "assets/hidden_paths_lists/apache.lst"
 
-    USER_AGENTS = [
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
-        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:69.0) Gecko/20100101 Firefox/69.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18362"]
+    USER_AGENTS_LIST = "assets/user-agents.txt"
 
     INPUTS = {
         "origins": {
@@ -99,9 +94,16 @@ class HiddenPaths(YModule):
     }
 
     def run(self):
-        with open(self.list) as file:
-            dir_list = file.readlines()
-            dir_list = [''] + [line.strip('\n') for line in dir_list if not line.startswith('#')]
+        # read user agents list
+        self.user_agents = utils.read_file(self.USER_AGENTS_LIST)
+
+        if not self.user_agents:
+            log.error("Could not open user agent list")
+            return
+
+        # read directory list from disk
+        dir_list = utils.read_file(self.list)
+        dir_list = [''] + dir_list
 
         if not dir_list:
             log.error("Could not open path list")
@@ -117,6 +119,12 @@ class HiddenPaths(YModule):
         for origin in filtered_origins.values():
             with utils.force_ip_connection(origin['domain'], origin['ip']):
                 parsed_url = utils.UrlParser(origin['url'])
+
+                # check if the web server replies to a random path which should not exist with a 200 status
+                r = requests.get(f"{parsed_url.url_without_path}/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt",
+                                 headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
+                if r.status_code == 200:
+                    continue
 
                 # fill task queue with existing directories if there are any
                 dirs = self.potential_dirs[parsed_url.url_without_path]
@@ -156,7 +164,8 @@ class HiddenPaths(YModule):
             length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
             for dir in sess.dir_list[i * length:(i + 1) * length]:
                 tmp_url = f"{url}{dir}"
-                r = req_sess.get(tmp_url, headers={'User-Agent': self.USER_AGENTS[randint(0, 4)]})
+                r = req_sess.get(tmp_url,
+                                 headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
                 parsed_url = utils.UrlParser(r.url)
                 if r.status_code == 200 and parsed_url.full_url() not in self.linked_urls and \
                         not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
