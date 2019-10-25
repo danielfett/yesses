@@ -47,12 +47,11 @@ run:
     find:
       - Insecure-Origins
       - Secure-Origins
-      - TLS-Domains
     expect:
       - no new Insecure-Origins, otherwise alert high
 
   - scan TLS Settings:
-      domains: use TLS-Domains
+      domains: use Secure-Origins
       tls_profile: intermediate
     find:
       - TLS-Profile-Mismatch-Domains

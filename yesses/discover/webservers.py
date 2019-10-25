@@ -118,7 +118,7 @@ are not necessarily a sign of a problem.
                     for protocol in ('http', 'https'):
                         with force_ip_connection(domain, ip['ip']):
                             url = f"{protocol}://{domain}:{ip['port']}/"
-                            el = {'url': url, 'domain': domain, 'ip': ip, 'port': port}
+                            el = {'url': url, 'domain': domain, 'ip': ip, 'port': ip['port']}
                             try:
                                 result = requests.get(url, timeout=10)
                             except requests.exceptions.SSLError as e:
@@ -132,8 +132,6 @@ are not necessarily a sign of a problem.
                                 if protocol == 'https':
                                     output_secure.append(el)
                                     dom = {'domain': domain}
-                                    if not dom in tls_domains:
-                                        tls_domains.append(dom)
                                 else:
                                     output_insecure.append(el)
                                 log.info(f"Found webserver {url} on {ip['ip']}")
