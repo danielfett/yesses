@@ -2,7 +2,7 @@ import yaml
 from pathlib import Path
 from .findingslist import FindingsList
 from .alertslist import AlertsList
-from .step import Step
+from .step import Step, StepOutput, GlobalFindingsStepInput
 from .output import Output
 
 class Config:
@@ -23,6 +23,8 @@ class Config:
                 self.steps.append(Step(raw, number))
             except Exception as e:
                 raise Exception(f"Unable to initialize step no. {number}.")
+
+        self.validate()
 
         self.outputs = list(
             Output(self, raw) for raw in self.data.get('output', [])
@@ -55,3 +57,33 @@ class Config:
 
     def save_persist(self):
         self.findingslist.save_persist()
+
+    def validate(self):
+        provided_keys_in_global_findingslist = {}
+        for name, data in self.initial_data.items():
+            if not type(data) is list and type(data[0]) is dict:
+                provided_keys = None
+            else:
+                provided_keys = data[0].keys()
+
+            provided_keys_in_global_findingslist[name] = provided_keys
+
+        for step in self.steps:
+            try:
+                # First, validate the inputs
+                for name, input in step.inputs.items():
+                    input.check_has_keys(provided_keys_in_global_findingslist)
+
+                # Finds are already validated when creating the steps
+                # Validate expects
+                step.validate_expect(provided_keys_in_global_findingslist)
+            
+                for output in step.outputs:
+                    provided_keys_in_global_findingslist[output.alias] = output.provided_keys
+            except Exception as e:
+                raise Exception(f"Error validating step {step}.")
+                    
+
+        
+
+            

@@ -13,6 +13,12 @@ class Webservers(YModule):
 ports); combines a list of IPs with a list of domains to use for the
 Host header in web requests.
 
+Note that since this modules combines arbitrary IPs with a list of
+domains, many non-existing or wrongly configured virtual servers may
+be encountered. This can cause a high number of errors, in particular
+TLS errors where the wrong certificate is encountered. These errors
+are not necessarily a sign of a problem.
+
     """
     
     INPUTS = {
@@ -49,12 +55,24 @@ Host header in web requests.
             ],
             "description": "as above, but for HTTPS"
         },
-        "TLS-Domains": {
+        "TLS-Error-Domains": {
             "provided_keys": [
-                "domain"
+                "domain",
+                "url",
+                "ip",
+                "error",
             ],
-            "description": "List of domains with HTTPS servers"
-        }
+            "description": "List of domains where an error during the TLS connection was encountered (e.g., wrong certificate)"
+        },
+        "Other-Error-Domains": {
+            "provided_keys": [
+                "domain",
+                "url",
+                "ip",
+                "error",
+            ],
+            "description": "List of domains where any other error occured"
+        },
     }
 
     EXAMPLES = [
@@ -69,36 +87,39 @@ Host header in web requests.
     find:
       - Insecure-Origins
       - Secure-Origins
-      - TLS-Domains
 """)
     ]
 
     def run(self):
         output_insecure = []
         output_secure = []
-        tls_domains = []
+        other_error_domains = []
+        tls_error_domains = []
         for ip in self.ips:
             for domain in self.domains:
                 for protocol in ('http', 'https'):
                     with force_ip_connection(domain, ip):
                         url = f'{protocol}://{domain}/'
+                        el = {'url': url, 'domain': domain, 'ip': ip}
+                        
                         try:
                             result = requests.get(url, timeout=10)
+                        except requests.exceptions.SSLError as e:
+                            el['error'] = str(e)
+                            tls_error_domains.append(el)
                         except requests.exceptions.RequestException as e:
-                            log.debug(f"Exception {e} on {url}, ip={ip}")
+                            el['error'] = str(e)
+                            other_error_domains.append(el)
                         else:
-                            el = {'url': url, 'domain': domain, 'ip': ip}
                             if protocol == 'https':
                                 output_secure.append(el)
-                                domain = {'domain': domain}
-                                if not domain in tls_domains:
-                                    tls_domains.append(domain)
                             else:
                                 output_insecure.append(el)
                             log.info(f"Found webserver {url} on {ip}")
         self.results['Insecure-Origins'] = output_insecure
         self.results['Secure-Origins'] = output_secure
-        self.results['TLS-Domains'] = tls_domains
+        self.results['TLS-Error-Domains'] = tls_error_domains
+        self.results['Other-Error-Domains'] = other_error_domains
 
 
 if __name__ == "__main__":

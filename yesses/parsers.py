@@ -80,7 +80,9 @@ class ExpectParser(Parser):
                     violated_rule=rule,
                     findings={'missing items': missing_items},
                     step=step
-                )    
+                )
+        expect_fn.required_fields = [list1, list2]
+        expect_fn.rule = rule
         return expect_fn
 
     @classmethod
@@ -104,5 +106,7 @@ class ExpectParser(Parser):
                     violated_rule=rule,
                     findings={},
                     step=step
-                )   
+                )
+        expect_fn.required_fields = [subject]
+        expect_fn.rule = rule
         return expect_fn

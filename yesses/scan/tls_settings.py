@@ -92,7 +92,15 @@ compare it to the Mozilla TLS configuration profiles.
                     'error': scanner.server_error,
                 })
             return
-        tls_results = scanner.run()
+        try:
+            tls_results = scanner.run()
+        except Exception as e:
+            self.results['TLS-Other-Error-Domains'].append({
+                'domain': domain,
+                'error': str(e),
+            })
+            return
+        
         if tls_results.all_ok:
             self.results['TLS-Okay-Domains'].append({
                 'domain': domain

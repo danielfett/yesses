@@ -218,7 +218,7 @@
                 {% endif %}
                 <h4><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h4>
                 <details>
-                    <summary class="step-explain">In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.action }}</b></summary>
+                    <summary class="step-explain">In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.name }}</b></summary>
                     <p class="step-raw">{{- alert.step -}}</p>
                 </details>
 
@@ -236,7 +236,7 @@
             {% endfor %}
             <h2>Steps</h2>
             {% for step in steps %}
-                <h3 id="step-{{ step.number }}">Step #{{ step.number }}: {{step.action}}</h3>
+                <h3 id="step-{{ step.number }}">Step #{{ step.number }}: {{step.name}}</h3>
                 <details>
                     <summary>{{ step.inputs|count }} input variables</summary>
                     <p class="log-raw">{{- step.get_inputs() -}}</p>
@@ -246,6 +246,11 @@
                     <summary>Execution took {{ '%.1f' % step.duration.total_seconds()}}s</summary>
                     <p class="log-raw">{{- step.get_log() -}}</p>
                 </details>
+                
+                <details>
+                    <summary>{{ step.outputs|count }} output variables</summary>
+                    <p class="log-raw">{{- step.get_outputs() -}}</p>
+                </details>                                            
             {% endfor %}
         </article>
     </body>
