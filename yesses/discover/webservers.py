@@ -7,9 +7,8 @@ log = logging.getLogger('scan/webservers')
 
 
 class Webservers(YModule):
-    """Scans an IP range for web servers (on standard HTTP and HTTPs
-ports); combines a list of IPs with a list of domains to use for the
-Host header in web requests.
+    """Scans an IP range for web servers; combines a list of IPs with a
+    list of domains to use for the Host header in web requests.
 
     """
 
@@ -21,7 +20,7 @@ Host header in web requests.
                 "ip",
                 "port"
             ],
-            "description": "IPs and ports to scan (e.g. from the Ports module: Host-Ports)",
+            "description": "IPs and ports to scan (e.g., from the Ports module: Host-Ports)",
         },
         "domains": {
             "required_keys": [
