@@ -103,10 +103,6 @@ Host header in web requests.
                             url = f"{protocol}://{domain}:{ip['port']}/"
                             try:
                                 result = requests.get(url, timeout=10)
-                                # Don't add it as a web server if it just redirects the url
-                                # or doesn't respond with 200
-                                if url not in result.url or result.status_code != 200:
-                                    raise requests.exceptions.RequestException()
                             except requests.exceptions.RequestException as e:
                                 log.debug(f"Exception {e} on {url}, ip={ip['ip']}")
                             else:
