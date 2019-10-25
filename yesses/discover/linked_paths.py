@@ -87,8 +87,7 @@ class LinkedPaths(YModule):
             log.error("Could not open user agent list")
             return
 
-        # delete duplicated origins (same domain can have a IPv4 and IPv6 address)
-        filtered_origins = utils.eliminate_duplicated_origins(self.origins)
+        filtered_origins = utils.filter_origins(self.origins)
 
         for origin in filtered_origins.values():
             with utils.force_ip_connection(origin['domain'], origin['ip']):
