@@ -32,11 +32,25 @@ def clean_expression(expr):
     return re.sub(r'''\s+''', ' ', expr).strip()
 
 
-def eliminate_duplicated_origins(origins: list) -> dict:
+def filter_origins(origins: list) -> dict:
+    """
+    Removes duplicated origins. First some origins are reachable through IPv4 and IPv6
+    and second some web servers just redirect to another origin.
+    :param origins:
+    :return: origins without any duplication
+    """
     filtered_origins = dict()
     for origin in origins:
-        if origin['url'] not in filtered_origins.keys():
-            filtered_origins[origin['url']] = origin
+        parsed_url = UrlParser(origin['url'])
+        with force_ip_connection(origin['domain'], origin['ip']):
+            r = requests.get(parsed_url.url_without_path)
+            forwareded_parsed_url = UrlParser(r.url)
+            if forwareded_parsed_url.url_without_path not in filtered_origins.keys() \
+                    and int(r.status_code / 100) != 4 and int(r.status_code / 100) != 5:
+                url = f"{forwareded_parsed_url.url_without_path}/"
+                filtered_origins[forwareded_parsed_url.url_without_path] = {'url': url,
+                                                                            'domain': forwareded_parsed_url.domain,
+                                                                            'ip': origin['ip']}
     return filtered_origins
 
 
@@ -68,10 +82,12 @@ class UrlParser:
         if not tmp_path.startswith('/'):
             tmp_path = f"/{tmp_path}"
 
+        # calculate the depth of the path
         self.path_depth = len(tmp_path.split('/')) - 1
         if tmp_path.endswith('/'):
             self.path_depth -= 1
 
+        # concatenate the path with the GET parameters
         self.path_with_args = tmp_path  # type: str
         if self.parsed.query != '':
             self.path_with_args = f"{tmp_path}?{self.arguments}"
@@ -98,6 +114,9 @@ class UrlParser:
             self.url_without_path = f"{self.url_without_path}:{self.STANDARD_PORTS.get(self.scheme, 80)}"
 
         self.url_without_path = f"{self.scheme}://{self.url_without_path}"
+
+        # retrieve domain name
+        self.domain = self.netloc.split(':')[0]
 
     def full_url(self):
         return f"{self.url_without_path}{self.path_with_args}"
