@@ -7,4 +7,7 @@ jinja2
 prettytable
 slackclient
 git+https://github.com/danielfett/tlsprofiler
+bs4
+lxml
+comment_parser
 
