@@ -73,6 +73,7 @@ class LinkedPaths(YModule):
         "Linked-Pages": {
             "provided_keys": [
                 "url",
+                "header",
                 "data"
             ],
             "description": "Pages and the content from the page"
@@ -138,7 +139,7 @@ class LinkedPaths(YModule):
                 and re.match(sess.regex, forwarded_parsed_url.full_url()):
             sess.urls_visited.append(forwarded_parsed_url)
             self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
-            self.results['Linked-Pages'].append({'url': forwarded_parsed_url.full_url(), 'data': r.text})
+            self.results['Linked-Pages'].append({'url': forwarded_parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
         else:
             return
 

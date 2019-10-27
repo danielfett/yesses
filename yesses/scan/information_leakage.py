@@ -1,7 +1,7 @@
 from typing import List
 import re
 import logging
-from bs4 import BeautifulSoup, Comment, ResultSet, Tag
+from bs4 import BeautifulSoup
 from comment_parser import comment_parser
 
 from yesses.module import YModule, YExample
@@ -22,7 +22,8 @@ class InformationLeakageSession:
 class InformationLeakage(YModule):
     """
     Scan HTML, JavaScript and CSS files for information leakages. This is done by search with
-    regular expressions for email and ip addresses and strings that looks like paths.
+    regular expressions for email and ip addresses and strings that looks like paths in the
+    visible text of a HTML side or in HTML, JavaScript and CSS comments.
     For paths there is also a list of common directories to determine whether a path
     is a real path or not. Furthermore there is a list with common file endings to check
     if a path ends with a file name or a string is a file name. All the regex expressions
@@ -31,10 +32,10 @@ class InformationLeakage(YModule):
     """
 
     REGEX_IDENTIFIER = ["email", "ip", "path", "file"]
-    REGEX = [r"[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+",
-             r"([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
-             r"/([a-zA-Z0-9-_.]+/)*[a-zA-Z0-9-_.]+/?",
-             r"/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+"]
+    REGEX = [r"(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
+             r"(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
+             r"(^|\s)/([a-zA-Z0-9-_.]+/)*[a-zA-Z0-9-_.]+/?(\s|$)",
+             r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)"]
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
     FILE_ENDINGS_LIST = "assets/information_leakage/common-file-endings.txt"
@@ -78,9 +79,9 @@ class InformationLeakage(YModule):
             - url: page0
               data: "<!-- test@example.com /var/home/bla --><html>\n\n<head><script src='ajkldfjalk'></script></head>\n\n <body>\n\n<!-- This is a comment --><h1>Title</h1>\n\n<!-- secret.txt \n\n/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>\n\n<style> test@example.com </style>\n\n</body>"
             - url: page1
-              data: "<html><script>// This is a js comment 192.168.170.128\n\nfunction {return 'Hello World';}\n\n</script><body></body><script>// Comment two \n\n console.log('test')/* Comment over\n\n several lines\n\n*/</script></html>"
+              data: "<html><script>// This is a js comment 192.168.170.128\n\nfunction {return 'Hello World';}\n\n</script><body></body><script>// Comment two with email@example.com \n\n console.log('test')/* Comment over\n\n several lines\n\n*/</script></html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
             - url: page2
-              data: "/*! modernizr 3.6.0 (Custom Build) | MIT *\n\n* https://modernizr.com/download/?-svgclippaths-setclasses !*/ \n\n!function(e,n,s){function o(e) // Comment three\n\n{var n=f.className,s=Modernizr._con /* Last \n\n multi \n\n line \n\n comment */ flakjdlfjldjfl"
+              data: "/*! modernizr 3.6.0 (Custom Build) | MIT *\n\n* https://modernizr.com/download/?-svgclippaths-setclasses !*/ \n\n!function(e,n,s){function o(e) // Comment three\n\n{var n=f.className,s=Modernizr._con /* Last \n\n multi \n\n line \n\n comment */ flakjdlfjldjfl\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
         find:
           - Leakages
     """)
@@ -104,7 +105,7 @@ class InformationLeakage(YModule):
 
             sess = InformationLeakageSession(soup, page, dir_list, file_endings_list)
 
-            # search in JavaScript comments for information leakage
+            # search in CSS or JavaScript comments for information leakage
             self.check_js_css_comments(sess)
 
             # search in the visible text for information leakages
@@ -119,40 +120,38 @@ class InformationLeakage(YModule):
             for script in sess.soup(["script", "style"]):
                 script.extract()
             text = sess.soup.get_text()
-            self.search_string(text, "visible_text", sess)
+            self.search_string(text, "visible_text", [1, 2, 3], sess)
 
     def check_html_comments(self, sess: InformationLeakageSession):
-        html = sess.soup.find_all('html')
-        if html:
-            comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
-            # comments = sess.soup.find_all(string=lambda text: isinstance(text, Comment))
-            for comment in comments:
-                self.search_string(comment._text, "comment", sess)
+        # If there aren't many lines it is likely that we deal with a minified
+        # js or css document. There shouldn't be any comments left and '//' in URLs
+        # will be interpreted as comments which is wrong.
+        if sess.page['data'].count('\n') <= 10:
+            return
+
+        comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
+        for comment in comments:
+            self.search_string(comment._text, "html_comment", list(range(4)), sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
-        js_text = sess.soup.find_all('script')  # type: List[ResultSet]
-        html = sess.soup.find_all('html')
-        data = ''
-        if html and js_text:
-            for tag in js_text:  # type: Tag
-                data += tag.get_text() + '\n'
-        elif not html:
-            data = sess.page['data']
+        # If there aren't many lines it is likely that we deal with a minified
+        # js or css document. There shouldn't be any comments left and '//' in URLs
+        # will be interpreted as comments which is wrong.
+        if sess.page['data'].count('\n') <= 10:
+            return
 
-        data = sess.page['data']
-
-        comments = comment_parser.extract_comments_from_str(data, "application/javascript")
+        comments = comment_parser.extract_comments_from_str(sess.page['data'], "application/javascript")
         for comment in comments:
-            self.search_string(comment._text, "css_js_comment", sess)
+            self.search_string(comment._text, "css_js_comment", list(range(4)), sess)
 
-    def search_string(self, text: str, found: str, sess: InformationLeakageSession):
-        for j, regex in enumerate(self.REGEX):
-            matches = re.finditer(regex, text)
+    def search_string(self, text: str, found: str, regex_list: List[int], sess: InformationLeakageSession):
+        for j in regex_list:
+            matches = re.finditer(self.REGEX[j], text)
             for match in matches:
                 if (j != 2 and j != 3) or self.check_file_or_path(match.group(0), sess.dir_list,
                                                                   sess.file_endings_list):
                     log.debug(
-                        f"URL: {sess.page['url']} Finding: {self.REGEX_IDENTIFIER[j]} => {match.group(0)}")
+                        f"URL: {sess.page['url']} Found: {found} Finding: {self.REGEX_IDENTIFIER[j]} => {match.group(0)}")
                     self.results['Leakages'].append(
                         {'url': sess.page['url'], 'type': self.REGEX_IDENTIFIER[j],
                          'found': found, 'finding': match.group(0)})
