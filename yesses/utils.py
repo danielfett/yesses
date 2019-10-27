@@ -55,7 +55,7 @@ def filter_origins(origins: list) -> dict:
 
 
 def request_is_text(r: requests.Response) -> bool:
-    if re.search(r"(^text/.*|^application/.*|^image/svg\+xml$)", r.headers['content-type']):
+    if re.search(r"(^text/.*|^image/svg\+xml$)", r.headers['content-type']):
         return True
     return False
 

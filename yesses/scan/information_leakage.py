@@ -31,11 +31,12 @@ class InformationLeakage(YModule):
     which have a whitespace before or after.
     """
 
-    REGEX_IDENTIFIER = ["email", "ip", "path", "file"]
+    REGEX_IDENTIFIER = ["email", "ip", "path", "file", "server-info"]
     REGEX = [r"(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
              r"(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
              r"(^|\s)/([a-zA-Z0-9-_.]+/)*[a-zA-Z0-9-_.]+/?(\s|$)",
-             r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)"]
+             r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)",
+             r"(^|\s)[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$)"]
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
     FILE_ENDINGS_LIST = "assets/information_leakage/common-file-endings.txt"
@@ -120,7 +121,7 @@ class InformationLeakage(YModule):
             for script in sess.soup(["script", "style"]):
                 script.extract()
             text = sess.soup.get_text()
-            self.search_string(text, "visible_text", [1, 2, 3], sess)
+            self.search_string(text, "visible_text", [1, 2, 3, 4], sess)
 
     def check_html_comments(self, sess: InformationLeakageSession):
         # If there aren't many lines it is likely that we deal with a minified
@@ -131,7 +132,7 @@ class InformationLeakage(YModule):
 
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
         for comment in comments:
-            self.search_string(comment._text, "html_comment", list(range(4)), sess)
+            self.search_string(comment._text, "html_comment", list(range(5)), sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
         # If there aren't many lines it is likely that we deal with a minified
@@ -142,7 +143,7 @@ class InformationLeakage(YModule):
 
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "application/javascript")
         for comment in comments:
-            self.search_string(comment._text, "css_js_comment", list(range(4)), sess)
+            self.search_string(comment._text, "css_js_comment", list(range(5)), sess)
 
     def search_string(self, text: str, found: str, regex_list: List[int], sess: InformationLeakageSession):
         for j in regex_list:
