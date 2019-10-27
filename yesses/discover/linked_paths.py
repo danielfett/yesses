@@ -163,7 +163,7 @@ class LinkedPaths(YModule):
                 parsed_link.url_without_path = forwarded_parsed_url.url_without_path
                 parsed_link.path = self.join_paths(forwarded_parsed_url.path, parsed_link.path)
 
-            if parsed_link not in sess.urls_visited and parsed_link.file_ending not in ['.png', '.jpg', '.jpeg'] \
+            if parsed_link not in sess.urls_visited and parsed_link.file_ending not in ['.png', '.jpg', '.jpeg', '.pdf'] \
                     and parsed_link.path_depth <= self.recursion_depth:
                 sess.task_queue.put(parsed_link)
 

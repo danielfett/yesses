@@ -16,7 +16,11 @@ run:
     find:
       - Hidden-Paths
       - Hidden-Pages
+  - discover Error Paths:
+      origins: use Origins
+    find:
+      - Error-Pages
   - scan Information Leakage:
-      pages: use Linked-Pages and Hidden-Pages
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
     find:
       - Leakages
