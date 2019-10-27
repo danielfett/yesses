@@ -14,9 +14,9 @@ run:
       origins: use Origins
       linked_paths: use Linked-Paths
     find:
-      - Hidden-Paths
-      - Hidden-Pages
-  - scan Information Leakage:
+    - Hidden-Paths
+    - Hidden-Pages
+  - scan Header Leakage:
       pages: use Linked-Pages and Hidden-Pages
     find:
       - Leakages
