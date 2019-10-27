@@ -81,6 +81,7 @@ class HiddenPaths(YModule):
         "Hidden-Pages": {
             "provided_keys": [
                 "url",
+                "header",
                 "data"
             ],
             "description": "Pages and the content from the page"
@@ -172,7 +173,7 @@ class HiddenPaths(YModule):
                     sess.pages_found.append(parsed_url)
                     log.debug(f"Hidden page found: {parsed_url.full_url()}")
                     if utils.request_is_text(r):
-                        self.results['Hidden-Pages'].append({'url': parsed_url.full_url(), 'data': r.text})
+                        self.results['Hidden-Pages'].append({'url': parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
                 elif (r.status_code == 403 or r.status_code == 200) \
                         and parsed_url.path.endswith('/') and parsed_url not in sess.pages_found:
                     log.debug(f"Directory found: {parsed_url.full_url()}")
