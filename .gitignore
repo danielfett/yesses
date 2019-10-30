@@ -187,4 +187,3 @@ dmypy.json
 *.alerts
 *.resume
 *.state
-*.yml
