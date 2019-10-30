@@ -35,15 +35,13 @@ class HeaderLeakage(YModule):
 
     def run(self):
         for page in self.pages:
-            header = dict(page['header'])
-            if "Server" in header and re.match("^[a-zA-Z_-]+/.*", header['Server']):
-                log.debug(f"Found potential leakage: {header['Server']}")
-                self.results['Leakages'].append({'url': page['url'], 'header': f"Server: {header['Server']}"})
-            if "X-Powered-By" in header:
-                log.debug(f"Found potential leakage: {header['X-Powered-By']}")
-                self.results['Leakages'].append(
-                    {'url': page['url'], 'header': f"X-Powered-By: {header['X-Powered-By']}"})
-            if "X-AspNet-Version" in header:
-                log.debug(f"Found potential leakage: {header['X-AspNet-Version']}")
-                self.results['Leakages'].append(
-                    {'url': page['url'], 'header': f"X-AspNet-Version: {header['X-AspNet-Version']}"})
+            for header_attr in page['header']:
+                if re.match("^server: [a-zA-Z_-]+/.*", header_attr, re.IGNORECASE):
+                    log.debug(f"Found potential leakage: {header_attr}")
+                    self.results['Leakages'].append({'url': page['url'], 'header': header_attr})
+                if re.match(r"x-powered-by: .*", header_attr, re.IGNORECASE):
+                    log.debug(f"Found potential leakage: {header_attr}")
+                    self.results['Leakages'].append({'url': page['url'], 'header': header_attr})
+                if re.match(r"x-aspnet-version: .*", header_attr, re.IGNORECASE):
+                    log.debug(f"Found potential leakage: {header_attr}")
+                    self.results['Leakages'].append({'url': page['url'], 'header': header_attr})
