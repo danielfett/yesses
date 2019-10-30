@@ -1,0 +1,27 @@
+version: '3.7'
+services:
+  apache2:
+    build:
+      dockerfile: Dockerfile
+      context: ./apache2/
+    networks:
+      my-net:
+        aliases:
+          - apache2.dev.intranet
+        ipv4_address: 172.16.0.3
+  test_container:
+    build:
+      dockerfile: ./tests/Dockerfile
+      context: ../
+    networks:
+      my-net:
+        ipv4_address: 172.16.0.2
+    depends_on:
+      - apache2
+networks:
+  my-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.0.0/24"
+
