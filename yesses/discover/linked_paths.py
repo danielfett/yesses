@@ -139,7 +139,9 @@ class LinkedPaths(YModule):
                 and re.match(sess.regex, forwarded_parsed_url.full_url()):
             sess.urls_visited.append(forwarded_parsed_url)
             self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
-            self.results['Linked-Pages'].append({'url': forwarded_parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
+            header_list = utils.convert_header(r)
+            self.results['Linked-Pages'].append(
+                {'url': forwarded_parsed_url.full_url(), 'header': header_list, 'data': r.text})
         else:
             return
 

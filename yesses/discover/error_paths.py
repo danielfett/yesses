@@ -53,5 +53,6 @@ class ErrorPaths(YModule):
                                  headers={'User-Agent': user_agents[randint(0, len(user_agents) - 1)]})
                 parsed_url = utils.UrlParser(r.url)
 
+                header_list = utils.convert_header(r)
                 self.results['Error-Pages'].append(
-                    {'url': parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
+                    {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
