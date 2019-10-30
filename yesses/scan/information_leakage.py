@@ -124,23 +124,11 @@ class InformationLeakage(YModule):
             self.search_string(text, "visible_text", [1, 2, 3, 4], sess)
 
     def check_html_comments(self, sess: InformationLeakageSession):
-        # If there aren't many lines it is likely that we deal with a minified
-        # js or css document. There shouldn't be any comments left and '//' in URLs
-        # will be interpreted as comments which is wrong.
-        if sess.page['data'].count('\n') <= 10:
-            return
-
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
         for comment in comments:
             self.search_string(comment._text, "html_comment", list(range(5)), sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
-        # If there aren't many lines it is likely that we deal with a minified
-        # js or css document. There shouldn't be any comments left and '//' in URLs
-        # will be interpreted as comments which is wrong.
-        if sess.page['data'].count('\n') <= 10:
-            return
-
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "application/javascript")
         for comment in comments:
             self.search_string(comment._text, "css_js_comment", list(range(5)), sess)

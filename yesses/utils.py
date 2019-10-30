@@ -64,8 +64,14 @@ def read_file(list: str) -> List[str]:
     with open(list) as file:
         dir_list = file.readlines()
         dir_list = [line.strip('\n') for line in dir_list if not line.startswith('#')]
-
     return dir_list
+
+
+def convert_header(r: requests.Response) -> List[str]:
+    response = []
+    for key, value in r.headers.items():
+        response.append(f"{key}: {value}")
+    return response
 
 
 class UrlParser:
