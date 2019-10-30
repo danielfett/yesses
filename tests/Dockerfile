@@ -8,4 +8,4 @@ RUN pip install requests && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "python", "/usr/src/yesses/run.py" ]
+CMD  PYTHONPATH=./ pytest tests/

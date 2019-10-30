@@ -1,5 +1,6 @@
+import requests
+
 from yesses.module import YTest
-from yesses.scan.information_leakage import InformationLeakage
 
 
 def test_information_leakage():
@@ -16,10 +17,18 @@ def test_information_leakage():
           - Leakages
     """
     expected = {'Leakages': [{'url': 'page0', 'type': 'ip', 'found': 'visible_text', 'finding': ' 192.168.2.196 '},
-                {'url': 'page0', 'type': 'path', 'found': 'visible_text', 'finding': ' /home/user/secret/key.pub '},
-                {'url': 'page0', 'type': 'path', 'found': 'visible_text', 'finding': ' /usr/share/docs/ajdlkf/adjfl\n'},
-                {'url': 'page1', 'type': 'ip', 'found': 'css_js_comment', 'finding': ' 192.168.170.128'},
-                {'url': 'page1', 'type': 'email', 'found': 'css_js_comment', 'finding': ' email@example.com'}]}
+                             {'url': 'page0', 'type': 'path', 'found': 'visible_text',
+                              'finding': ' /home/user/secret/key.pub '},
+                             {'url': 'page0', 'type': 'path', 'found': 'visible_text',
+                              'finding': ' /usr/share/docs/ajdlkf/adjfl\n'},
+                             {'url': 'page1', 'type': 'ip', 'found': 'css_js_comment', 'finding': ' 192.168.170.128'},
+                             {'url': 'page1', 'type': 'email', 'found': 'css_js_comment',
+                              'finding': ' email@example.com'}]}
     test = YTest(inputs)
     result = test.run()
     assert result == expected
+
+
+def test_apache2_server():
+    r = requests.get("http://apache2.dev.intranet")
+    assert r.status_code == 200
