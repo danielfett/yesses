@@ -31,11 +31,12 @@ class InformationLeakage(YModule):
     which have a whitespace before or after.
     """
 
-    REGEX_IDENTIFIER = ["email", "ip", "path", "file"]
+    REGEX_IDENTIFIER = ["email", "ip", "path", "file", "server-info"]
     REGEX = [r"(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
              r"(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
              r"(^|\s)/([a-zA-Z0-9-_.]+/)*[a-zA-Z0-9-_.]+/?(\s|$)",
-             r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)"]
+             r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)",
+             r"(^|\s)[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$)"]
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
     FILE_ENDINGS_LIST = "assets/information_leakage/common-file-endings.txt"
@@ -120,41 +121,30 @@ class InformationLeakage(YModule):
             for script in sess.soup(["script", "style"]):
                 script.extract()
             text = sess.soup.get_text()
-            self.search_string(text, "visible_text", [1, 2, 3], sess)
+            self.search_string(text, "visible_text", [1, 2, 3, 4], sess)
 
     def check_html_comments(self, sess: InformationLeakageSession):
-        # If there aren't many lines it is likely that we deal with a minified
-        # js or css document. There shouldn't be any comments left and '//' in URLs
-        # will be interpreted as comments which is wrong.
-        if sess.page['data'].count('\n') <= 10:
-            return
-
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
         for comment in comments:
-            self.search_string(comment._text, "html_comment", list(range(4)), sess)
+            self.search_string(comment._text, "html_comment", list(range(5)), sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
-        # If there aren't many lines it is likely that we deal with a minified
-        # js or css document. There shouldn't be any comments left and '//' in URLs
-        # will be interpreted as comments which is wrong.
-        if sess.page['data'].count('\n') <= 10:
-            return
-
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "application/javascript")
         for comment in comments:
-            self.search_string(comment._text, "css_js_comment", list(range(4)), sess)
+            self.search_string(comment._text, "css_js_comment", list(range(5)), sess)
 
     def search_string(self, text: str, found: str, regex_list: List[int], sess: InformationLeakageSession):
         for j in regex_list:
             matches = re.finditer(self.REGEX[j], text)
             for match in matches:
-                if (j != 2 and j != 3) or self.check_file_or_path(match.group(0), sess.dir_list,
+                finding = match.group(0).strip()
+                if (j != 2 and j != 3) or self.check_file_or_path(finding, sess.dir_list,
                                                                   sess.file_endings_list):
                     log.debug(
-                        f"URL: {sess.page['url']} Found: {found} Finding: {self.REGEX_IDENTIFIER[j]} => {match.group(0)}")
+                        f"URL: {sess.page['url']} Found: {found} Finding: {self.REGEX_IDENTIFIER[j]} => {finding}")
                     self.results['Leakages'].append(
                         {'url': sess.page['url'], 'type': self.REGEX_IDENTIFIER[j],
-                         'found': found, 'finding': match.group(0)})
+                         'found': found, 'finding': finding})
 
     def check_file_or_path(self, potential_path: str, dir_list: List[str], file_endings_list: List[str]) -> bool:
         if potential_path.split('.')[-1] in file_endings_list:

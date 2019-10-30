@@ -55,7 +55,7 @@ def filter_origins(origins: list) -> dict:
 
 
 def request_is_text(r: requests.Response) -> bool:
-    if re.search(r"(^text/.*|^application/.*|^image/svg\+xml$)", r.headers['content-type']):
+    if re.search(r"(^text/.*|^image/svg\+xml$)", r.headers['content-type']):
         return True
     return False
 
@@ -64,8 +64,14 @@ def read_file(list: str) -> List[str]:
     with open(list) as file:
         dir_list = file.readlines()
         dir_list = [line.strip('\n') for line in dir_list if not line.startswith('#')]
-
     return dir_list
+
+
+def convert_header(r: requests.Response) -> List[str]:
+    response = []
+    for key, value in r.headers.items():
+        response.append(f"{key}: {value}")
+    return response
 
 
 class UrlParser:
