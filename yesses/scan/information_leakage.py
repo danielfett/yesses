@@ -149,13 +149,14 @@ class InformationLeakage(YModule):
         for j in regex_list:
             matches = re.finditer(self.REGEX[j], text)
             for match in matches:
-                if (j != 2 and j != 3) or self.check_file_or_path(match.group(0), sess.dir_list,
+                finding = match.group(0).strip()
+                if (j != 2 and j != 3) or self.check_file_or_path(finding, sess.dir_list,
                                                                   sess.file_endings_list):
                     log.debug(
-                        f"URL: {sess.page['url']} Found: {found} Finding: {self.REGEX_IDENTIFIER[j]} => {match.group(0)}")
+                        f"URL: {sess.page['url']} Found: {found} Finding: {self.REGEX_IDENTIFIER[j]} => {finding}")
                     self.results['Leakages'].append(
                         {'url': sess.page['url'], 'type': self.REGEX_IDENTIFIER[j],
-                         'found': found, 'finding': match.group(0)})
+                         'found': found, 'finding': finding})
 
     def check_file_or_path(self, potential_path: str, dir_list: List[str], file_endings_list: List[str]) -> bool:
         if potential_path.split('.')[-1] in file_endings_list:
