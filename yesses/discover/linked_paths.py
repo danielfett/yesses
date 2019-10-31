@@ -107,21 +107,21 @@ class LinkedPaths(YModule):
                 log.debug(f"Scraped site in {time.time() - start}s")
 
     def worker(self, sess: LinkedPathsSession):
-        req_sess = requests.Session()
-        sess.register_thread(threading.current_thread().ident)
-        self_finished = False
-        while not sess.is_ready():
-            try:
-                task = sess.task_queue.get(block=True, timeout=0.3)
-                if self_finished:
-                    sess.unready(threading.current_thread().ident)
-                self_finished = False
-            except queue.Empty:
-                self_finished = True
-                sess.ready(threading.current_thread().ident)
-                continue
+        with requests.Session() as req_sess:
+            sess.register_thread(threading.current_thread().ident)
+            self_finished = False
+            while not sess.is_ready():
+                try:
+                    task = sess.task_queue.get(block=True, timeout=0.3)
+                    if self_finished:
+                        sess.unready(threading.current_thread().ident)
+                    self_finished = False
+                except queue.Empty:
+                    self_finished = True
+                    sess.ready(threading.current_thread().ident)
+                    continue
 
-            self.scrap_urls(task, req_sess, sess)
+                self.scrap_urls(task, req_sess, sess)
 
     def scrap_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
         # get new page
@@ -139,7 +139,9 @@ class LinkedPaths(YModule):
                 and re.match(sess.regex, forwarded_parsed_url.full_url()):
             sess.urls_visited.append(forwarded_parsed_url)
             self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
-            self.results['Linked-Pages'].append({'url': forwarded_parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
+            header_list = utils.convert_header(r)
+            self.results['Linked-Pages'].append(
+                {'url': forwarded_parsed_url.full_url(), 'header': header_list, 'data': r.text})
         else:
             return
 

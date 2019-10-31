@@ -22,6 +22,7 @@ class HiddenPathsSession(utils.ConcurrentSession):
         self.task_queue = task_queue
         self.dir_list = dir_list  # type: List[str]
         self.pages_found = []  # type: List[utils.UrlParser]
+        self.dirs_found = []  # type: List[utils.UrlParser]
 
 
 class HiddenPaths(YModule):
@@ -146,42 +147,47 @@ class HiddenPaths(YModule):
                     th.join()
 
     def worker(self, sess: HiddenPathsSession):
-        req_sess = requests.Session()
-        sess.register_thread(threading.current_thread().ident)
-        self_finished = False
-        while not sess.is_ready():
-            try:
-                task = sess.task_queue.get(block=True, timeout=0.3)
-                if self_finished:
-                    sess.unready(threading.current_thread().ident)
-                self_finished = False
-            except queue.Empty:
-                self_finished = True
-                sess.ready(threading.current_thread().ident)
-                continue
+        with requests.Session() as req_sess:
+            sess.register_thread(threading.current_thread().ident)
+            self_finished = False
+            while not sess.is_ready():
+                try:
+                    task = sess.task_queue.get(block=True, timeout=0.3)
+                    if self_finished:
+                        sess.unready(threading.current_thread().ident)
+                    self_finished = False
+                except queue.Empty:
+                    self_finished = True
+                    sess.ready(threading.current_thread().ident)
+                    continue
 
-            url, i = task
-            length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
-            for dir in sess.dir_list[i * length:(i + 1) * length]:
-                tmp_url = f"{url}{dir}"
-                r = req_sess.get(tmp_url,
-                                 headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
-                parsed_url = utils.UrlParser(r.url)
-                if r.status_code == 200 and parsed_url.full_url() not in self.linked_urls and \
-                        not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
-                    self.results['Hidden-Paths'].append({'url': parsed_url.full_url()})
-                    sess.pages_found.append(parsed_url)
-                    log.debug(f"Hidden page found: {parsed_url.full_url()}")
-                    if utils.request_is_text(r):
-                        self.results['Hidden-Pages'].append({'url': parsed_url.full_url(), 'header': r.headers.items(), 'data': r.text})
-                elif (r.status_code == 403 or r.status_code == 200) \
-                        and parsed_url.path.endswith('/') and parsed_url not in sess.pages_found:
-                    log.debug(f"Directory found: {parsed_url.full_url()}")
-                    sess.pages_found.append(parsed_url)
-                    self.results['Directories'].append({'url': parsed_url.full_url()})
-                    if parsed_url.path_depth <= self.recursion_depth:
-                        for i in range(self.threads):
-                            sess.task_queue.put((parsed_url.full_url(), i))
+                self.process_task(task, req_sess, sess)
+
+    def process_task(self, task, req_sess: requests.Session, sess: HiddenPathsSession):
+        url, i = task
+        length = max(math.ceil(len(sess.dir_list) / self.threads), 1)
+        for dir in sess.dir_list[i * length:(i + 1) * length]:
+            tmp_url = f"{url}{dir}"
+            r = req_sess.get(tmp_url,
+                             headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
+            parsed_url = utils.UrlParser(r.url)
+            if r.status_code == 200 and parsed_url.full_url() not in self.linked_urls and \
+                    not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
+                self.results['Hidden-Paths'].append({'url': parsed_url.full_url()})
+                sess.pages_found.append(parsed_url)
+                log.debug(f"Hidden page found: {parsed_url.full_url()}")
+                if utils.request_is_text(r):
+                    header_list = utils.convert_header(r)
+                    self.results['Hidden-Pages'].append(
+                        {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
+            if (r.status_code == 403 or r.status_code == 200) \
+                    and parsed_url.path.endswith('/') and parsed_url not in sess.dirs_found:
+                log.debug(f"Directory found: {parsed_url.full_url()}")
+                sess.dirs_found.append(parsed_url)
+                self.results['Directories'].append({'url': parsed_url.full_url()})
+                if parsed_url.path_depth <= self.recursion_depth:
+                    for i in range(self.threads):
+                        sess.task_queue.put((parsed_url.full_url(), i))
 
     def get_potential_dirs(self):
         self.potential_dirs = {}
