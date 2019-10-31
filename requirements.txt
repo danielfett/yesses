@@ -11,5 +11,4 @@ pyparsing
 bs4
 lxml
 comment_parser
-pytest
 

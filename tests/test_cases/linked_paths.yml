@@ -8,15 +8,6 @@ data:
     - url: http://apache2.dev.intranet:80/index.html
     - url: http://apache2.dev.intranet:80/download.php
     - url: http://apache2.dev.intranet:80/site.html
-  Expected-Pages:
-    - url: http://apache2.dev.intranet:80/
-      data: <html>\n\n\n\n<body>\n\n<h1>Hello World</h1>\n\n\n\n<a href="site.html">Second site</a>\n\n\n\n<a href="download.php">Download</a>\n\n</body>\n\n</html>
-    - url: http://apache2.dev.intranet:80/index.html
-      data: <html>\n\n\n\n<body>\n\n<h1>Hello World</h1>\n\n\n\n<a href="site.html">Second site</a>\n\n\n\n<a href="download.php">Download</a>\n\n</body>\n\n</html>
-    - url: http://apache2.dev.intranet:80/download.html
-      data: <html>\n\n\n\n<body>\n\n<h1>Download</h1>\n\n<a href="index.html">Back</a>\n\n</body>\n\n</html>
-    - url: http://apache2.dev.intranet:80/site.html
-      data: <html>\n\n\n\n<body>\n\n<h1>Second site</h1>\n\n<a href="index.html">Back</a>\n\n\n\n<a href="assets/test.html">Test</a>\n\n</body>\n\n</html>
 
 run:
   - discover Linked Paths:

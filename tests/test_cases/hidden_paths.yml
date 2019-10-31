@@ -4,14 +4,27 @@ data:
       ip: 172.16.0.3
       domain: apache2.dev.intranet
   Expected-Paths:
+    - url: http://apache2.dev.intranet:80/
+    - url: http://apache2.dev.intranet:80/index.html
     - url: http://apache2.dev.intranet:80/status/server-info
     - url: http://apache2.dev.intranet:80/status/
+    - url: http://apache2.dev.intranet:80/manual/
+    - url: http://apache2.dev.intranet:80/manual/logs/
+    - url: http://apache2.dev.intranet:80/manual/logs/httpd/
+    - url: http://apache2.dev.intranet:80/manual/logs/robots.txt
+    - url: http://apache2.dev.intranet:80/manual/logs/httpd/status/
   Expected-Directories:
+    - url: http://apache2.dev.intranet:80/
     - url: http://apache2.dev.intranet:80/status/
+    - url: http://apache2.dev.intranet:80/manual/
+    - url: http://apache2.dev.intranet:80/manual/logs/
+    - url: http://apache2.dev.intranet:80/manual/logs/httpd/
+    - url: http://apache2.dev.intranet:80/manual/logs/httpd/status/
 
 run:
   - discover Hidden Paths:
       origins: use Origins
+      recursion_depth: 3
     find:
       - Hidden-Paths
       - Hidden-Pages
