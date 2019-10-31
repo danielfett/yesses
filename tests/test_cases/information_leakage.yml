@@ -20,6 +20,18 @@ data:
       type: email
       found: css_js_comment
       finding: email@example.com
+    - url: page0
+      type: email
+      found: html_comment
+      finding: test@example.com
+    - url: page0
+      type: path
+      found: html_comment
+      finding: /var/home/bla
+    - url: page0
+      type: file
+      found: html_comment
+      finding: secret.txt
 
   Pages:
     - url: page0

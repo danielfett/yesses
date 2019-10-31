@@ -8,4 +8,4 @@ RUN pip install requests && pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD  PYTHONPATH=./ pytest tests/
+CMD  PYTHONPATH=./ python -m unittest tests.run_tests

@@ -1,0 +1,24 @@
+data:
+  Origins:
+    - url: http://apache2.dev.intranet/
+      ip: 172.16.0.3
+      domain: apache2.dev.intranet
+  Expected-Paths:
+    - url: http://apache2.dev.intranet:80/status/server-info
+    - url: http://apache2.dev.intranet:80/status/
+  Expected-Directories:
+    - url: http://apache2.dev.intranet:80/status/
+
+run:
+  - discover Hidden Paths:
+      origins: use Origins
+    find:
+      - Hidden-Paths
+      - Hidden-Pages
+      - Directories
+    expect:
+      - all Expected-Directories in Directories, otherwise alert high
+      - all Directories in Expected-Directories, otherwise alert high
+      - all Expected-Paths in Hidden-Paths, otherwise alert high
+      - all Hidden-Paths in Expected-Paths, otherwise alert high
+
