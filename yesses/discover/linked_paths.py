@@ -25,8 +25,8 @@ class LinkedPathsSession(utils.ConcurrentSession):
         self.task_queue = queue.Queue()  # type: queue.Queue[utils.UrlParser]
         self.task_queue.put(start_parsed_url)
         self.regex = re.compile(
-            f"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(start_parsed_url.base_domain)}|"
-            f"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
+            rf"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(start_parsed_url.base_domain)}|"
+            rf"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
         self.urls_visited = []  # type: List[utils.UrlParser]
 
 
