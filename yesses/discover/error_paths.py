@@ -48,11 +48,12 @@ class ErrorPaths(YModule):
             with utils.force_ip_connection(origin['domain'], origin['ip']):
                 parsed_url = utils.UrlParser(origin['url'])
 
-                # get page with 404 not found error
-                r = requests.get(f"{parsed_url.url_without_path}/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt",
-                                 headers={'User-Agent': user_agents[randint(0, len(user_agents) - 1)]})
-                parsed_url = utils.UrlParser(r.url)
+                with requests.Session() as req_sess:
+                    # get page with 404 not found error
+                    r = req_sess.get(f"{parsed_url.url_without_path}/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt",
+                                     headers={'User-Agent': user_agents[randint(0, len(user_agents) - 1)]})
+                    parsed_url = utils.UrlParser(r.url)
 
-                header_list = utils.convert_header(r)
-                self.results['Error-Pages'].append(
-                    {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
+                    header_list = utils.convert_header(r)
+                    self.results['Error-Pages'].append(
+                        {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
