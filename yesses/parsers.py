@@ -36,11 +36,13 @@ class ExpectParser(Parser):
     DEFAULT_EXPR = QUANTIFIER('quantifier') - Optional(Keyword("new")("new")) - Parser.FINDINGS_IDENTIFIER("subject")
 
     IN_EXPR = QUANTIFIER_WITH_ALL('quantifier') - Parser.FINDINGS_IDENTIFIER("list1") - Keyword('in')('in') - Parser.FINDINGS_IDENTIFIER("list2")
+
+    EQUALS_EXPR = Parser.FINDINGS_IDENTIFIER("list1") - Optional(Keyword("not")("quantifier")) - Keyword('equals')('equals') - Parser.FINDINGS_IDENTIFIER("list2")
     
     ALERT_SUBEXPR = Optional(",")  - Keyword("otherwise") - Keyword("alert") - OneOrMore(Word(alphas))("alert_action_args")
     
 
-    FULL_EXPR = (DEFAULT_EXPR("default_expr") ^ IN_EXPR("in_expr")) - ALERT_SUBEXPR
+    FULL_EXPR = (DEFAULT_EXPR("default_expr") ^ IN_EXPR("in_expr") ^ EQUALS_EXPR("equals_expr")) - ALERT_SUBEXPR
 
     @classmethod
     def parse_expect(cls, expect_rules):
@@ -48,16 +50,40 @@ class ExpectParser(Parser):
         for rule in expect_rules:
             parsed = cls.parse(rule)
             alert_severity = Alert.Severity.parse(' '.join(parsed.alert_action_args))
-            if parsed.get('in', False):
+            if parsed.get('in_expr', False):
                 expect_fns.append(cls.get_function_in_expr(rule, parsed.quantifier, parsed.list1, parsed.list2, alert_severity))
+            elif parsed.get('equals_expr', False):
+                expect_fns.append(cls.get_function_equals_expr(rule, parsed.list1, parsed.list2, alert_severity))
             else:
                 expect_fns.append(cls.get_function_default_expr(rule, parsed.quantifier, parsed.new, parsed.subject, alert_severity))
         return expect_fns
 
     @classmethod
+    def get_function_equals_expr(cls, rule, list1, list2, severity):
+        def expect_fn(step):
+            _, extra1, equals = step.findings.get_common_and_missing_items(list1, list2)
+            if (quantifier != 'no') == equals:
+                findings = {}
+                if len(extra1):
+                    findings[f'extra items in {list1}'] = extra1
+                
+                _, extra2, _ = step.findings.get_common_and_missing_items(list2, list1)
+                if len(extra2):
+                    findings[f'extra items in {list2}'] = extra2
+                    
+                yield Alert(
+                    severity=severity,
+                    violated_rule=rule,
+                    findings=findings,
+                    step=step
+                )    
+        return expect_fn
+        
+
+    @classmethod
     def get_function_in_expr(cls, rule, quantifier, list1, list2, severity):
         def expect_fn(step):
-            common_items, missing_items = step.findings.get_common_and_missing_items(list1, list2)
+            common_items, missing_items, _ = step.findings.get_common_and_missing_items(list1, list2)
             
             if quantifier == 'no' and common_items:
                 yield Alert(
