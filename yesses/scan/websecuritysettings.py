@@ -282,7 +282,10 @@ Cookies are only considered "secure" if they have the following properties:
         try:
             actual_ip = response.raw._connection.sock.socket.getsockname()[0]
         except AttributeError:
-            actual_ip = response.raw._connection.sock.getsockname()[0]
+            try:
+                actual_ip = response.raw._connection.sock.getsockname()[0]
+            except:
+                actual_ip = None
             
         self.check_disallowed_headers(actual_ip, response)
         self.check_missing_headers(actual_ip, response)
