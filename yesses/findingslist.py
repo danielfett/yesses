@@ -73,7 +73,7 @@ class FindingsList:
     def get_common_and_missing_items(self, key1, key2):
         """Return items that are in findings with key1 and with key2; and
         items that are in findings with key1 but not in those with
-        key2.
+        key2; and a boolean indicating if the lists are the same.
 
         """
         common_attrs = self.find_common_attributes(key1, key2)
@@ -81,7 +81,9 @@ class FindingsList:
         items2 = self.get(key2, common_attrs)
         common_items = [item for item in items1 if item in items2]
         missing_items = [item for item in items1 if item not in items2]
-        return common_items, missing_items
+        equals = len(common_items) == len(items1) == len(items2):
+            
+        return common_items, missing_items, equals
 
     def get_added_items(self, key):
         """Return items that appear in the current findings list with the

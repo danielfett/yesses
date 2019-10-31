@@ -178,6 +178,7 @@ following forms:
 
  1. (no|some) [new] FINDINGS, otherwise alert (informative|medium|high|very high)
  1. (no|some|all) FINDINGS1 in FINDINGS2, otherwise alert (informative|medium|high|very high)
+ 1. FINDINGS1 [not] equals FINDINGS2, otherwise alert (informative|medium|high|very high)
 
 The first form checks if findings exist (or do not exist). With the
 `new` keyword, it checks if, compared to the last run, additional
@@ -189,6 +190,9 @@ The second form checks if there is some, no, or a complete overlap
 between the lists FINDINGS1 and FINDINGS2. Note that, if the entries
 in these list contain different set of keys, only keys common to both
 lists are matched.
+
+The third form checks if the lists FINDINGS1 and FINDINGS2 contain the
+same elements (in any order) and no extra elements.
 
 ### `output` ###
 
