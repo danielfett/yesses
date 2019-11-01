@@ -8,6 +8,7 @@ data:
     - url: http://apache2.dev.intranet:80/index.html
     - url: http://apache2.dev.intranet:80/download.php
     - url: http://apache2.dev.intranet:80/site.html
+    - url: http://apache2.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
 
 run:
   - discover Linked Paths:

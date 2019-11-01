@@ -13,12 +13,15 @@ class RunTests(unittest.TestCase):
             runner = Runner(config_file, False)
             runner.run(None, None)
             self.assertEqual(runner.config.alertslist.alerts, [])
-
+    
     def test_information_leakage(self):
         self.run_test_case('information_leakage.yml')
 
     def test_hidden_paths(self):
         self.run_test_case('hidden_paths.yml')
+
+    def test_apache2_full(self):
+        self.run_test_case('apache2_full.yml')
 
     def test_linked_paths(self):
         self.run_test_case('linked_paths.yml')
