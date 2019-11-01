@@ -34,7 +34,7 @@ class InformationLeakage(YModule):
     REGEX_IDENTIFIER = ["email", "ip", "path", "file", "server-info"]
     REGEX = [r"(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
              r"(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
-             r"(^|\s)/([a-zA-Z0-9-_.]+/)*[a-zA-Z0-9-_.]+/?(\s|$)",
+             r"(^|\s)/?([a-zA-Z0-9-_.]+/)+[a-zA-Z0-9-_.]+/?(\s|$)",
              r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)",
              r"(^|\s)[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$)"]
 
@@ -153,6 +153,10 @@ class InformationLeakage(YModule):
         i = 0
         split = potential_path.split('/')
         split = [s for s in split if s]
+
+        if len(split) > 3:
+            return True
+
         for part in split:
             if part in dir_list:
                 i += 1
