@@ -1,0 +1,89 @@
+# This test tests if the linked_paths, hidden_paths, error_paths
+# and information_leakage module are working correctly together.
+# In addition to the hidden_paths test this tests also checks
+# if potential folders find by the linked_paths module are
+# correctly processed by the hidden_paths module.
+# Furthermore it tests the information_leakage module
+# with real pages which where scraped by the other modules.
+data:
+  Origins:
+    - url: http://nginx.dev.intranet/
+      ip: 172.16.0.3
+      domain: nginx.dev.intranet
+  Expected-Paths:
+    - url: http://nginx.dev.intranet:80/
+    - url: http://nginx.dev.intranet:80/index.html
+    - url: http://nginx.dev.intranet:80/download.html
+    - url: http://nginx.dev.intranet:80/site.html
+    - url: http://nginx.dev.intranet:80/hdir/photos.html
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
+  Expected-Hidden-Paths:
+    - url: http://nginx.dev.intranet:80/status/server-info
+    - url: http://nginx.dev.intranet:80/manual/logs/robots.txt
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/error
+  Expected-Directories:
+    - url: http://nginx.dev.intranet:80/
+    - url: http://nginx.dev.intranet:80/status/
+    - url: http://nginx.dev.intranet:80/manual/
+    - url: http://nginx.dev.intranet:80/manual/logs/
+    - url: http://nginx.dev.intranet:80/manual/logs/httpd/
+    - url: http://nginx.dev.intranet:80/manual/logs/httpd/status/
+    - url: http://nginx.dev.intranet:80/hdir/
+    - url: http://nginx.dev.intranet:80/hdir/hdir/
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/
+  Expected-Leakages:
+    - url: http://nginx.dev.intranet:80/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt
+      type: server-info
+      found: visible_text
+      finding: nginx/1.10.3
+    - url: http://nginx.dev.intranet:80/hdir/photos.html
+      type: ip
+      found: visible_text
+      finding: 89.122.34.165
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
+      type: ip
+      found: css_js_comment
+      finding: 192.168.1.123
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
+      type: path
+      found: css_js_comment
+      finding: /var/www/html/secret.txt
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
+      type: email
+      found: css_js_comment
+      finding: webmaster@example.com
+
+run:
+  - discover Linked Paths:
+      origins: use Origins
+    find:
+      - Linked-Paths
+      - Linked-Pages
+    expect:
+      - all Expected-Paths in Linked-Paths, otherwise alert high
+      - all Linked-Paths in Expected-Paths, otherwise alert high
+  - discover Hidden Paths:
+      origins: use Origins
+      linked_paths: use Linked-Paths
+      recursion_depth: 3
+    find:
+      - Hidden-Paths
+      - Hidden-Pages
+      - Directories
+    expect:
+      - all Expected-Directories in Directories, otherwise alert high
+      - all Directories in Expected-Directories, otherwise alert high
+      - all Expected-Hidden-Paths in Hidden-Paths, otherwise alert high
+      - all Hidden-Paths in Expected-Hidden-Paths, otherwise alert high
+  - discover Error Paths:
+      origins: use Origins
+    find:
+      - Error-Pages
+  - scan Information Leakage:
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
+    find:
+      - Leakages
+    expect:
+      - all Expected-Leakages in Leakages, otherwise alert high
+      - all Leakages in Expected-Leakages, otherwise alert high

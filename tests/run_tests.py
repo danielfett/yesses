@@ -20,8 +20,8 @@ class RunTests(unittest.TestCase):
     def test_hidden_paths(self):
         self.run_test_case('hidden_paths.yml')
 
-    def test_apache2_full(self):
-        self.run_test_case('apache2_full.yml')
+    def test_nginx_full(self):
+        self.run_test_case('nginx_full.yml')
 
     def test_linked_paths(self):
         self.run_test_case('linked_paths.yml')

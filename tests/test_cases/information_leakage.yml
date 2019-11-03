@@ -1,3 +1,8 @@
+# This test tests the information_leakage module with
+# dummy strings. It checks if the module recognizes
+# the pattern of emails, ip addresses, paths, files
+# and server-info in the visible text of a website,
+# in html comments or in javascript/css comments.
 data:
   Expected-Leakages:
     - url: page0
@@ -32,10 +37,18 @@ data:
       type: file
       found: html_comment
       finding: secret.txt
+    - url: page0
+      type: server-info
+      found: html_comment
+      finding: apache/2.4 (unix)
+    - url: page0
+      type: path
+      found: html_comment
+      finding: apache/2.4
 
   Pages:
     - url: page0
-      data: "<!-- test@example.com /var/home/bla --><html>\n\n<head><script src='ajkldfjalk'></script></head>\n\n <body>\n\n<!-- This is a comment --><h1>Title</h1>\n\n<!-- secret.txt \n\n/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>\n\n<style> test@example.com </style>\n\n</body>"
+      data: "<!-- test@example.com /var/home/bla --><html>\n\n<head><script src='ajkldfjalk'></script></head>\n\n <body>\n\n<!-- This is a comment apache/2.4 (unix) --><h1>Title</h1>\n\n<!-- secret.txt \n\n/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>\n\n<style> test@example.com </style>\n\n</body>"
     - url: page1
       data: "<html><script>// This is a js comment 192.168.170.128\n\nfunction {return 'Hello World';}\n\n</script><body></body><script>// Comment two with email@example.com \n\n console.log('test')/* Comment over\n\n several lines\n\n*/</script></html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
     - url: page2

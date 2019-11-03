@@ -1,14 +1,19 @@
+# This test tests the linked_paths module.
+# It checks whether all links where detected
+# and whether the scraper follows links to
+# other websites which is not intended.
 data:
   Origins:
-    - url: http://apache2.dev.intranet/
+    - url: http://nginx.dev.intranet/
       ip: 172.16.0.3
-      domain: apache2.dev.intranet
+      domain: nginx.dev.intranet
   Expected-Paths:
-    - url: http://apache2.dev.intranet:80/
-    - url: http://apache2.dev.intranet:80/index.html
-    - url: http://apache2.dev.intranet:80/download.php
-    - url: http://apache2.dev.intranet:80/site.html
-    - url: http://apache2.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
+    - url: http://nginx.dev.intranet:80/
+    - url: http://nginx.dev.intranet:80/index.html
+    - url: http://nginx.dev.intranet:80/download.html
+    - url: http://nginx.dev.intranet:80/site.html
+    - url: http://nginx.dev.intranet:80/hdir/photos.html
+    - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
 
 run:
   - discover Linked Paths:

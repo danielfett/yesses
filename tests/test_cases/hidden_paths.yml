@@ -1,25 +1,24 @@
+# This test tests the hidden_paths module.
+# It tests whether all hidden files and
+# directories where found and if it only
+# searches in the specified depth.
 data:
   Origins:
-    - url: http://apache2.dev.intranet/
+    - url: http://nginx.dev.intranet/
       ip: 172.16.0.3
-      domain: apache2.dev.intranet
+      domain: nginx.dev.intranet
   Expected-Paths:
-    - url: http://apache2.dev.intranet:80/
-    - url: http://apache2.dev.intranet:80/index.html
-    - url: http://apache2.dev.intranet:80/status/server-info
-    - url: http://apache2.dev.intranet:80/status/
-    - url: http://apache2.dev.intranet:80/manual/
-    - url: http://apache2.dev.intranet:80/manual/logs/
-    - url: http://apache2.dev.intranet:80/manual/logs/httpd/
-    - url: http://apache2.dev.intranet:80/manual/logs/robots.txt
-    - url: http://apache2.dev.intranet:80/manual/logs/httpd/status/
+    - url: http://nginx.dev.intranet:80/
+    - url: http://nginx.dev.intranet:80/index.html
+    - url: http://nginx.dev.intranet:80/status/server-info
+    - url: http://nginx.dev.intranet:80/manual/logs/robots.txt
   Expected-Directories:
-    - url: http://apache2.dev.intranet:80/
-    - url: http://apache2.dev.intranet:80/status/
-    - url: http://apache2.dev.intranet:80/manual/
-    - url: http://apache2.dev.intranet:80/manual/logs/
-    - url: http://apache2.dev.intranet:80/manual/logs/httpd/
-    - url: http://apache2.dev.intranet:80/manual/logs/httpd/status/
+    - url: http://nginx.dev.intranet:80/
+    - url: http://nginx.dev.intranet:80/status/
+    - url: http://nginx.dev.intranet:80/manual/
+    - url: http://nginx.dev.intranet:80/manual/logs/
+    - url: http://nginx.dev.intranet:80/manual/logs/httpd/
+    - url: http://nginx.dev.intranet:80/manual/logs/httpd/status/
 
 run:
   - discover Hidden Paths:

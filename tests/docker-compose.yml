@@ -1,14 +1,23 @@
 version: '3.7'
 services:
-  apache2:
+  nginx:
     build:
       dockerfile: Dockerfile
-      context: ./apache2/
+      context: ./nginx/
     networks:
       my-net:
         aliases:
-          - apache2.dev.intranet
+          - nginx.dev.intranet
         ipv4_address: 172.16.0.3
+  laravel:
+    build:
+      dockerfile: Dockerfile
+      context: ./laravel/
+    networks:
+      my-net:
+        aliases:
+          - laravel.dev.intranet
+        ipv4_address: 172.16.0.4
   test_container:
     build:
       dockerfile: ./tests/Dockerfile
@@ -17,7 +26,8 @@ services:
       my-net:
         ipv4_address: 172.16.0.2
     depends_on:
-      - apache2
+      - nginx
+      - laravel
 networks:
   my-net:
     ipam:
