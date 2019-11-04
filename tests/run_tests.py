@@ -4,9 +4,7 @@ import unittest
 from yesses.runner import Runner
 
 
-class RunTests(unittest.TestCase):
-    # Don't change this file. It is automatically created
-    # by create_run_tests.py.
+class RunTestsBase(unittest.TestCase):
 
     def run_test_case(self, test_case: str):
         with open(f"tests/test_cases/{test_case}", "r") as config_file:
@@ -14,24 +12,32 @@ class RunTests(unittest.TestCase):
             runner.run(None, None)
             self.assertEqual(runner.config.alertslist.alerts, [])
 
-    def test_information_leakage(self):
-        self.run_test_case('information_leakage.yml')
-
-    def test_hidden_paths(self):
-        self.run_test_case('hidden_paths.yml')
-
-    def test_nginx_full(self):
-        self.run_test_case('nginx_full.yml')
-
-    def test_linked_paths(self):
-        self.run_test_case('linked_paths.yml')
-
     def tearDown(self) -> None:
         for file in os.listdir("tests/test_cases/"):
             if not file.endswith(".yml"):
                 os.remove(f"tests/test_cases/{file}")
 
 
-if __name__ == "__main__":
+def run():
+    test_cases = {}
+    for f in os.listdir("tests/test_cases/"):  # type: str
+        parts = f.split('.')
+        test_cases[f"test_{parts[0]}"] = lambda s: s.run_test_case(f)
+
+    RunTests = type(
+        'RunTests',
+        (RunTestsBase,),
+        test_cases
+    )
+
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(RunTests)
     unittest.TextTestRunner().run(suite)
+
+
+def start_environment() -> int:
+    # TODO start environment
+    return 0
+
+
+if __name__ == "__main__":
+    run()

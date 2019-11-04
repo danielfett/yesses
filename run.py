@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from yesses import Runner, all_modules, Config
 from datetime import datetime
+import tests
 
 log = logging.getLogger('run')
 
@@ -53,9 +54,14 @@ if __name__ == "__main__":
     parser.add_argument('--repeat', type=int, metavar='N', help='Repeat last N steps of run (for debugging). Will inhibit warnings of duplicate output variables.', default=None)
     parser.add_argument('--fresh', '-f', action='store_true', help='Do not use existing state files. Usage of this required when datastructures in this application changed.', default=False)
     parser.add_argument('--test', action='store_true', help='Run a self-test. This executes the examples contained in all modules.')
+    parser.add_argument('--unittests', action='store_true', help='Run all tests which are defined in /tests/test_cases.')
     parser.add_argument('--generate-readme', action='store_true', help=f'Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results.')
 
     args = parser.parse_args()
+
+    if args.unittests:
+        status = tests.run_tests.start_environment()
+        sys.exit(status)
 
     log_handler = logging.StreamHandler(sys.stdout)
     log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
