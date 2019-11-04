@@ -204,6 +204,7 @@ following forms:
 
  1. (no|some) [new] FINDINGS, otherwise alert (informative|medium|high|very high)
  1. (no|some|all) FINDINGS1 in FINDINGS2, otherwise alert (informative|medium|high|very high)
+ 1. FINDINGS1 [not] equals FINDINGS2, otherwise alert (informative|medium|high|very high)
 
 The first form checks if findings exist (or do not exist). With the
 `new` keyword, it checks if, compared to the last run, additional
@@ -215,6 +216,9 @@ The second form checks if there is some, no, or a complete overlap
 between the lists FINDINGS1 and FINDINGS2. Note that, if the entries
 in these list contain different set of keys, only keys common to both
 lists are matched.
+
+The third form checks if the lists FINDINGS1 and FINDINGS2 contain the
+same elements (in any order) and no extra elements.
 
 ### `output` ###
 
@@ -365,26 +369,26 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support "TLSv1"
   - must not support "TLSv1.1"
-  - must not support "DHE-RSA-AES256-SHA"
-  - must not support "ECDHE-RSA-DES-CBC3-SHA"
-  - must not support "DES-CBC3-SHA"
-  - must not support "DHE-RSA-AES256-SHA256"
-  - must not support "ECDHE-RSA-AES256-SHA"
-  - must not support "DHE-RSA-DES-CBC3-SHA"
-  - must not support "ECDHE-RSA-AES128-SHA"
-  - must not support "AES256-SHA"
-  - must not support "AES256-GCM-SHA384"
-  - must not support "AES128-GCM-SHA256"
-  - must not support "DHE-RSA-AES128-SHA256"
-  - must not support "ECDHE-RSA-AES256-SHA384"
+  - must not support "TLSv1"
   - must not support "AES128-SHA"
-  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "ECDHE-RSA-AES256-SHA384"
   - must not support "AES128-SHA256"
-  - must not support "EDH-RSA-DES-CBC3-SHA"
+  - must not support "ECDHE-RSA-DES-CBC3-SHA"
+  - must not support "AES256-SHA"
   - must not support "AES256-SHA256"
+  - must not support "ECDHE-RSA-AES128-SHA"
+  - must not support "DES-CBC3-SHA"
+  - must not support "AES256-GCM-SHA384"
+  - must not support "DHE-RSA-AES128-SHA"
+  - must not support "DHE-RSA-AES256-SHA256"
   - must not support "ECDHE-RSA-AES128-SHA256"
+  - must not support "AES128-GCM-SHA256"
+  - must not support "DHE-RSA-DES-CBC3-SHA"
+  - must not support "DHE-RSA-AES128-SHA256"
+  - must not support "ECDHE-RSA-AES256-SHA"
+  - must not support "DHE-RSA-AES256-SHA"
+  - must not support "EDH-RSA-DES-CBC3-SHA"
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
 ```
@@ -686,8 +690,8 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 2606:2800:220:1:248:1893:25c8:1946
 - ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
 ```
 
 
@@ -723,8 +727,9 @@ IPs:
 
 
 ## `discover TLSCertificates` ##
-Queries Certificate Transparency logs (using https://crt.sh) for
-existing TLS certificates for given domains and their subdomains.
+Queries Certificate Transparency logs (using
+https://sslmate.com/certspotter) for existing TLS certificates for
+given domains and their subdomains.
 
 Note: The output may contain wildcards, e.g., '*.example.com'.
 
@@ -746,29 +751,16 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- certificate_id: https://crt.sh/?id=24560621
-  certificate_url: https://crt.sh/?id=24560621
-- certificate_id: https://crt.sh/?id=24564717
-  certificate_url: https://crt.sh/?id=24564717
-- certificate_id: https://crt.sh/?id=984858191
-  certificate_url: https://crt.sh/?id=984858191
-- certificate_id: https://crt.sh/?id=10557607
-  certificate_url: https://crt.sh/?id=10557607
-- certificate_id: https://crt.sh/?id=5857507
-  certificate_url: https://crt.sh/?id=5857507
-- certificate_id: https://crt.sh/?id=987119772
-  certificate_url: https://crt.sh/?id=987119772
-- certificate_id: https://crt.sh/?id=24560643
-  certificate_url: https://crt.sh/?id=24560643
-- certificate_id: https://crt.sh/?id=24558997
-  certificate_url: https://crt.sh/?id=24558997
+- pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: m.example.com
-- domain: support.example.com
-- domain: dev.example.com
-- domain: products.example.com
-- domain: '*.example.com'
 - domain: www.example.com
+- domain: example.net
+- domain: www.example.org
+- domain: example.com
+- domain: www.example.net
+- domain: example.edu
+- domain: www.example.edu
+- domain: example.org
 ```
 
 
@@ -790,14 +782,13 @@ TLS-Names:
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `TLS-Names` | DNS names found in certificates (may include wildcards, such as `*.example.com`). | `domain` |
-| `TLS-Certificates` | Unique identifiers for found TLS certificates; also links to more information about the certificates. `certificate_id` and `certificate_url` have the same content in this module, as the URI is also used to uniquely identify the certificate. | `certificate_id`, `certificate_url` |
+| `TLS-Certificates` | The hex-encoded SHA-256 fingerprint of the certificate's public key. | `pubkey` |
 
 
 
 ## `discover Webservers` ##
-Scans an IP range for web servers (on standard HTTP and HTTPs
-ports); combines a list of IPs with a list of domains to use for the
-Host header in web requests.
+Scans an IP range for web servers; combines a list of IPs with a
+    list of domains to use for the Host header in web requests.
 
     
 
@@ -810,10 +801,19 @@ Configuration:
   - discover Webservers:
       ips: 
         - ip: '93.184.216.34'
+          port: 80
+        - ip: '93.184.216.34'
+          port: 443
         - ip: '2606:2800:220:1:248:1893:25c8:1946'
+          port: 80
+        - ip: '2606:2800:220:1:248:1893:25c8:1946'
+          port: 443
       domains:
         - domain: example.com
         - domain: dev.example.com
+      ports:
+        - port: 80
+        - port: 443
     find:
       - Insecure-Origins
       - Secure-Origins
@@ -824,23 +824,23 @@ Findings returned:
 Insecure-Origins:
 - domain: example.com
   ip: 93.184.216.34
-  url: http://example.com/
+  url: http://example.com:80/
 - domain: dev.example.com
   ip: 93.184.216.34
-  url: http://dev.example.com/
+  url: http://dev.example.com:80/
 - domain: example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
-  url: http://example.com/
+  url: http://example.com:80/
 - domain: dev.example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
-  url: http://dev.example.com/
+  url: http://dev.example.com:80/
 Secure-Origins:
 - domain: example.com
   ip: 93.184.216.34
-  url: https://example.com/
+  url: https://example.com:443/
 - domain: example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
-  url: https://example.com/
+  url: https://example.com:443/
 TLS-Domains:
 - domain: example.com
 ```
@@ -853,11 +853,19 @@ TLS-Domains:
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `ips` (required) | IP range to scan (e.g., `use HTTP-IPs and HTTPS-IPs`) | `ip` |
+| `ips` (required) | IPs and ports to scan (e.g., from the Ports module: Host-Ports) | `ip`, `port` |
 | `domains` (required) | Domain names to try on these IPs | `domain` |
+| `ports`  | Ports to look for web servers | `port` |
 
 
 
+
+
+#### Default for `ports` ####
+```YAML
+- port: 80
+- port: 443
+```
 
 
 
@@ -887,7 +895,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-10-07-174140.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-11-04-091030.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
