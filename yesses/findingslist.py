@@ -19,14 +19,31 @@ class FindingsList:
         self.previous_findings = self.persist.data
         self.ignore_existing = False
 
-    def get(self, key, attributes=None):
+    def get(self, key, attributes=None, unique=True):
+        """Return entries from the findings list.
+
+        attributes -- If given, return each entry only with the given attributes.
+        unique -- If True, return only unique elements. 
+
+        Note that even if only unique entries are added to the list,
+        using the attributes argument may lead to duplicate entries,
+        since it removes keys from each element that can be used to
+        distinguish the elements.
+
+        """
         if not key in self.current_findings:
             raise Exception(f"Unknown findings key: {key}; existing keys are: {', '.join(self.current_findings.keys())}")
         out = self.current_findings[key]
         if attributes is not None:
-            return [
+            out = [
                 {k:el[k] for k in attributes} for el in out
             ]
+        if unique:
+            uni_out = []
+            for x in out:
+                if x not in uni_out:
+                    uni_out.append(x)
+            out = uni_out
         return out
 
     def set(self, key, value):
@@ -81,7 +98,7 @@ class FindingsList:
         items2 = self.get(key2, common_attrs)
         common_items = [item for item in items1 if item in items2]
         missing_items = [item for item in items1 if item not in items2]
-        equals = len(common_items) == len(items1) == len(items2):
+        equals = len(common_items) == len(items1) == len(items2)
             
         return common_items, missing_items, equals
 
