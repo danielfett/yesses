@@ -13,7 +13,7 @@ class RunTests(unittest.TestCase):
             runner = Runner(config_file, False)
             runner.run(None, None)
             self.assertEqual(runner.config.alertslist.alerts, [])
-    
+
     def test_information_leakage(self):
         self.run_test_case('information_leakage.yml')
 
@@ -30,3 +30,8 @@ class RunTests(unittest.TestCase):
         for file in os.listdir("tests/test_cases/"):
             if not file.endswith(".yml"):
                 os.remove(f"tests/test_cases/{file}")
+
+
+if __name__ == "__main__":
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(RunTests)
+    unittest.TextTestRunner().run(suite)

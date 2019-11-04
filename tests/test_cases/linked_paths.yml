@@ -1,7 +1,8 @@
-# This test tests the linked_paths module.
-# It checks whether all links where detected
-# and whether the scraper follows links to
-# other websites which is not intended.
+description: >
+  This test tests the linked_paths module.
+  It checks whether all links where detected
+  and whether the scraper follows links to
+  other websites which is not intended.
 data:
   Origins:
     - url: http://nginx.dev.intranet/
@@ -22,5 +23,4 @@ run:
       - Linked-Paths
       - Linked-Pages
     expect:
-      - all Expected-Paths in Linked-Paths, otherwise alert high
-      - all Linked-Paths in Expected-Paths, otherwise alert high
+      - Expected-Paths equals Linked-Paths, otherwise alert high

@@ -1,10 +1,11 @@
-# This test tests if the linked_paths, hidden_paths, error_paths
-# and information_leakage module are working correctly together.
-# In addition to the hidden_paths test this tests also checks
-# if potential folders find by the linked_paths module are
-# correctly processed by the hidden_paths module.
-# Furthermore it tests the information_leakage module
-# with real pages which where scraped by the other modules.
+description: >
+  This test tests if the linked_paths, hidden_paths, error_paths
+  and information_leakage module are working correctly together.
+  In addition to the hidden_paths test this tests also checks
+  if potential folders find by the linked_paths module are
+  correctly processed by the hidden_paths module.
+  Furthermore it tests the information_leakage module
+  with real pages which where scraped by the other modules.
 data:
   Origins:
     - url: http://nginx.dev.intranet/
@@ -85,5 +86,4 @@ run:
     find:
       - Leakages
     expect:
-      - all Expected-Leakages in Leakages, otherwise alert high
-      - all Leakages in Expected-Leakages, otherwise alert high
+      - Expected-Leakages equals Leakages, otherwise alert high
