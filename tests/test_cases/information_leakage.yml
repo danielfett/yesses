@@ -89,7 +89,8 @@ data:
       data: |
         /*! modernizr 3.6.0 (Custom Build) | MIT *
         * https://modernizr.com/download/?-svgclippaths-setclasses !*/
-        !function(e,n,s){function o(e) // Comment three\n\n{var n=f.className,s=Modernizr._con
+        !function(e,n,s){function o(e) // Comment three
+        {var n=f.className,s=Modernizr._con
         /* Last
           multi
           line

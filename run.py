@@ -60,8 +60,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.unittests:
-        status = tests.run_tests.start_environment()
-        sys.exit(status)
+        return_status = tests.run_tests.start_environment()
+        sys.exit(return_status)
 
     log_handler = logging.StreamHandler(sys.stdout)
     log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))

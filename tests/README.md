@@ -5,5 +5,5 @@
 
 # Run tests
 
-Simply call ```tests/execute_tests.sh``` from the
+Simply call ```python3 run.py --unittests``` from the
 root directory of the project.

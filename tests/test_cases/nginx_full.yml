@@ -62,8 +62,7 @@ run:
       - Linked-Paths
       - Linked-Pages
     expect:
-      - all Expected-Paths in Linked-Paths, otherwise alert high
-      - all Linked-Paths in Expected-Paths, otherwise alert high
+      - Expected-Paths equals Linked-Paths, otherwise alert high
   - discover Hidden Paths:
       origins: use Origins
       linked_paths: use Linked-Paths
@@ -73,10 +72,8 @@ run:
       - Hidden-Pages
       - Directories
     expect:
-      - all Expected-Directories in Directories, otherwise alert high
-      - all Directories in Expected-Directories, otherwise alert high
-      - all Expected-Hidden-Paths in Hidden-Paths, otherwise alert high
-      - all Hidden-Paths in Expected-Hidden-Paths, otherwise alert high
+      - Expected-Directories equals Directories, otherwise alert high
+      - Expected-Hidden-Paths equals Hidden-Paths, otherwise alert high
   - discover Error Paths:
       origins: use Origins
     find:
