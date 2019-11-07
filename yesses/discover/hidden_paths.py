@@ -171,20 +171,26 @@ class HiddenPaths(YModule):
             r = req_sess.get(tmp_url,
                              headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
             parsed_url = utils.UrlParser(r.url)
-            if r.status_code != 404 and parsed_url.full_url() not in self.linked_urls and \
-                    not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
+
+            # process pages
+            if r.status_code != 404 and \
+                    parsed_url.full_url() not in self.linked_urls and \
+                    not parsed_url.path.endswith('/') and \
+                    not ('index' in dir and url in self.linked_urls) and \
+                    parsed_url not in sess.pages_found:
                 self.results['Hidden-Paths'].append({'url': parsed_url.full_url()})
                 sess.pages_found.append(parsed_url)
                 log.debug(f"Hidden page found: {parsed_url.full_url()}")
-                if utils.request_is_text(r):
-                    header_list = utils.convert_header(r)
-                    self.results['Hidden-Pages'].append(
-                        {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
+                self.add_hidden_pages(parsed_url, r)
+
+            # process directories
             if (r.status_code == 403 or r.status_code == 200) \
-                    and parsed_url.path.endswith('/') and parsed_url not in sess.dirs_found:
+                    and parsed_url.path.endswith('/') and \
+                    parsed_url not in sess.dirs_found:
                 log.debug(f"Directory found: {parsed_url.full_url()}")
                 sess.dirs_found.append(parsed_url)
                 self.results['Directories'].append({'url': parsed_url.full_url()})
+                self.add_hidden_pages(parsed_url, r)
                 if parsed_url.path_depth <= self.recursion_depth:
                     for i in range(self.threads):
                         sess.task_queue.put((parsed_url.full_url(), i))
@@ -209,3 +215,9 @@ class HiddenPaths(YModule):
                 tmp = f"{tmp}{split[i]}/"
                 if tmp not in self.potential_dirs[parsed_url.url_without_path]:
                     self.potential_dirs[parsed_url.url_without_path].append(tmp)
+
+    def add_hidden_pages(self, parsed_url: utils.UrlParser, r: requests.Response):
+        if utils.request_is_text(r):
+            header_list = utils.convert_header(r)
+            self.results['Hidden-Pages'].append(
+                {'url': parsed_url.full_url(), 'header': header_list, 'data': r.text})
