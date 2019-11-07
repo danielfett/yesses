@@ -79,6 +79,11 @@
                 </div>
             @endif
 
+            <!--
+                admin@larave.dev.intranet
+                Server:10.10.10.145
+            -->
+
             <div class="content">
                 <div class="title m-b-md">
                     Laravel
@@ -94,6 +99,10 @@
                     <a href="https://forge.laravel.com">Forge</a>
                     <a href="https://vapor.laravel.com">Vapor</a>
                     <a href="https://github.com/laravel/laravel">GitHub</a>
+                </div>
+
+                <div style="margin-top: 50px">
+                    Laravel version: 6.4.1
                 </div>
             </div>
         </div>

@@ -1,0 +1,36 @@
+data:
+  Domain-Seeds:
+    - domain: nginx.dev.intranet
+    - domain: laravel.dev.intranet
+  Expected-IPs:
+    - ip: 172.16.0.3
+    - ip: 172.16.0.4
+  Expected-DNS-Entries:
+    - ip: 172.16.0.3
+      domain: nginx.dev.intranet
+    - ip: 172.16.0.4
+      domain: laravel.dev.intranet
+  More-DNS-Entries:
+    - ip: 172.16.0.3
+      domain: nginx.dev.intranet
+    - ip: 172.16.0.4
+      domain: laravel.dev.intranet
+    - ip: 172.16.0.165
+      domain: laravel.dev.intranet
+  Less-DNS-Entries:
+    - ip: 172.16.0.4
+      domain: laravel.dev.intranet
+
+run:
+  - discover Domains and IPs:
+      seeds: use Domain-Seeds
+    find:
+      - IPs
+      - Domains
+      - DNS-Entries
+    expect:
+      - Domains equals Expected-DNS-Entries, otherwise alert high
+      - IPs equals Expected-IPs, otherwise alert high
+      - Expected-DNS-Entries equals DNS-Entries, otherwise alert high
+      - More-DNS-Entries not equals DNS-Entries, otherwise alert high
+      - Less-DNS-Entries not equals DNS-Entries, otherwise alert high

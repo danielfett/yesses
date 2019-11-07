@@ -50,33 +50,43 @@ data:
       type: server-info
       found: visible_text
       finding: nginx/1.10.3
+    - url: page1
+      type: version-info
+      found: visible_text
+      finding: "Version: 1.11.0"
 
   Pages:
     - url: page0
       data: |
         <html>
-        <!-- test@example.com /var/home/bla -->
+        <!--test@example.com /var/home/bla -->
         <head>
           <script src='ajkldfjalk'></script>
-        </head>\n\n <body>
-        <!-- This is a comment apache/2.4 (unix) -->
-        <h1>Title</h1>
-        <!-- secret.txt \n\n/1x23/ex234-->
-        <p>Text with path /home/user/secret/key.pub</p>
-        <a href='/docs/'>Website</a>
-        <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>
-        <style> test@example.com </style>\n\n</body>
+        </head>
+          <body>
+            <!-- This is a comment apache/2.4 (unix) -->
+            <h1>Title</h1>
+            <!-- secret.txt \n\n/1x23/ex234-->
+            <p>Text with path /home/user/secret/key.pub</p>
+            <a href='/docs/'>Website</a>
+            <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>
+            <style> admin@example.com </style>
+          </body>
+        </html>
     - url: page1
       data: |
         <html>
         <script>
           // This is a js comment 192.168.170.128
-          function {
+          function name {
             return 'Hello World';
           }
         </script>
         <body>
           <p>403 Forbidden nginx/1.10.3</p>
+          <footer>
+            <p>Gitea Version: 1.11.0+dev-180-gd5b1e6bc5</p>
+          </footer>
         </body>
         <script>
           // Comment two with email@example.com

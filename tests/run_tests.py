@@ -35,6 +35,8 @@ def run():
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(RunTests)
     test_runner = unittest.TextTestRunner().run(suite)
+    if len(test_runner.errors) > 0:
+        sys.exit(-1)
     sys.exit(len(test_runner.failures))  # Returns the number of failed tests as status code
 
 

@@ -9,7 +9,6 @@ data:
       ip: 172.16.0.3
       domain: nginx.dev.intranet
   Expected-Paths:
-    - url: http://nginx.dev.intranet:80/
     - url: http://nginx.dev.intranet:80/index.html
     - url: http://nginx.dev.intranet:80/status/server-info
     - url: http://nginx.dev.intranet:80/manual/logs/robots.txt

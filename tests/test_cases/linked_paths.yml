@@ -13,6 +13,7 @@ data:
     - url: http://nginx.dev.intranet:80/index.html
     - url: http://nginx.dev.intranet:80/download.html
     - url: http://nginx.dev.intranet:80/site.html
+    - url: http://nginx.dev.intranet:80/assets/test.html
     - url: http://nginx.dev.intranet:80/hdir/photos.html
     - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/file.js
 
