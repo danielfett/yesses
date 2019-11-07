@@ -171,7 +171,7 @@ class HiddenPaths(YModule):
             r = req_sess.get(tmp_url,
                              headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
             parsed_url = utils.UrlParser(r.url)
-            if r.status_code == 200 and parsed_url.full_url() not in self.linked_urls and \
+            if r.status_code != 404 and parsed_url.full_url() not in self.linked_urls and \
                     not ('index' in dir and url in self.linked_urls) and parsed_url not in sess.pages_found:
                 self.results['Hidden-Paths'].append({'url': parsed_url.full_url()})
                 sess.pages_found.append(parsed_url)

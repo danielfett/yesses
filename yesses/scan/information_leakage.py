@@ -31,12 +31,13 @@ class InformationLeakage(YModule):
     which have a whitespace before or after.
     """
 
-    REGEX_IDENTIFIER = ["email", "ip", "path", "file", "server-info"]
+    REGEX_IDENTIFIER = ["email", "ip", "path", "file", "server-info", "version-info"]
     REGEX = [r"(^|\s)[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$)",
-             r"(^|\s)([0-9]{1,3}\.){3}[0-9]{1,3}(\s|$)",
+             r"([0-9]{1,3}\.){3}[0-9]{1,3}",
              r"(^|\s)/?([a-zA-Z0-9-_.]+/)+[a-zA-Z0-9-_.]+/?(\s|$)",
              r"(^|\s)/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$)",
-             r"(^|\s)[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$)"]
+             r"(^|\s)[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$)",
+             r"(^|\s)[a-zA-Z0-9-_.]*[Vv]ersion:?\s([0-9]+\.)+[0-9]+"]
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
     FILE_ENDINGS_LIST = "assets/information_leakage/common-file-endings.txt"
@@ -80,7 +81,7 @@ class InformationLeakage(YModule):
             - url: page0
               data: "<!-- test@example.com /var/home/bla --><html>\n\n<head><script src='ajkldfjalk'></script></head>\n\n <body>\n\n<!-- This is a comment --><h1>Title</h1>\n\n<!-- secret.txt \n\n/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>\n\n<style> test@example.com </style>\n\n</body>"
             - url: page1
-              data: "<html><script>// This is a js comment 192.168.170.128\n\nfunction {return 'Hello World';}\n\n</script><body></body><script>// Comment two with email@example.com \n\n console.log('test')/* Comment over\n\n several lines\n\n*/</script></html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+              data: "<html><script>// This is a js comment192.168.170.128\n\nfunction {return 'Hello World';}\n\n</script><body><p>bla Gitea Version: 1.11.0+dev-180-gd5b1e6bc5</p></body><script>// Comment two with email@example.com \n\n console.log('test')/* Comment over\n\n several lines\n\n*/</script></html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
             - url: page2
               data: "/*! modernizr 3.6.0 (Custom Build) | MIT *\n\n* https://modernizr.com/download/?-svgclippaths-setclasses !*/ \n\n!function(e,n,s){function o(e) // Comment three\n\n{var n=f.className,s=Modernizr._con /* Last \n\n multi \n\n line \n\n comment */ flakjdlfjldjfl\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
         find:
@@ -121,17 +122,17 @@ class InformationLeakage(YModule):
             for script in sess.soup(["script", "style"]):
                 script.extract()
             text = sess.soup.get_text()
-            self.search_string(text, "visible_text", [1, 2, 3, 4], sess)
+            self.search_string(text, "visible_text", [1, 2, 3, 4, 5], sess)
 
     def check_html_comments(self, sess: InformationLeakageSession):
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "text/html")
         for comment in comments:
-            self.search_string(comment._text, "html_comment", list(range(5)), sess)
+            self.search_string(comment._text, "html_comment", list(range(len(self.REGEX))), sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
         comments = comment_parser.extract_comments_from_str(sess.page['data'], "application/javascript")
         for comment in comments:
-            self.search_string(comment._text, "css_js_comment", list(range(5)), sess)
+            self.search_string(comment._text, "css_js_comment", list(range(len(self.REGEX))), sess)
 
     def search_string(self, text: str, found: str, regex_list: List[int], sess: InformationLeakageSession):
         for j in regex_list:
