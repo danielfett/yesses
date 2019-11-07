@@ -45,8 +45,7 @@ def filter_origins(origins: list) -> dict:
         with force_ip_connection(origin['domain'], origin['ip']):
             r = requests.get(parsed_url.url_without_path)
             forwareded_parsed_url = UrlParser(r.url)
-            if forwareded_parsed_url.url_without_path not in filtered_origins.keys() \
-                    and int(r.status_code / 100) != 4 and int(r.status_code / 100) != 5:
+            if forwareded_parsed_url.url_without_path not in filtered_origins.keys():
                 url = f"{forwareded_parsed_url.url_without_path}/"
                 filtered_origins[forwareded_parsed_url.url_without_path] = {'url': url,
                                                                             'domain': forwareded_parsed_url.domain,

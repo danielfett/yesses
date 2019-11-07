@@ -130,12 +130,11 @@ class LinkedPaths(YModule):
         # parse url returned by requests in the case we have been redirected
         forwarded_parsed_url = utils.UrlParser(r.url)
 
-        # Add the url to the visited urls if it doesn't return a error and if it's
-        # not in the already visited urls. We have to check this again because
-        # we could have been redirected to a page we have already visited.
-        # We also have to check again if it's a local page because we could
-        # have been redirected to another website.
-        if r.status_code == 200 and forwarded_parsed_url not in sess.urls_visited \
+        # Add the url if it's not in the already visited urls. We have to check
+        # this again because we could have been redirected to a page we have
+        # already visited. We also have to check again if it's a local page
+        # because we could have been redirected to another website.
+        if forwarded_parsed_url not in sess.urls_visited \
                 and re.match(sess.regex, forwarded_parsed_url.full_url()):
             sess.urls_visited.append(forwarded_parsed_url)
             self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
