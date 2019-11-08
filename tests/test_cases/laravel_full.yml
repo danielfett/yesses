@@ -54,6 +54,27 @@ data:
       type: server-info
       found: visible_text
       finding: Apache/2.4.38 (Debian)
+  Expected-Header-Leakages:
+    - url: http://laravel.dev.intranet:80/
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/
+      header: "X-Powered-By: PHP/7.2.24"
+    - url: http://laravel.dev.intranet:80/test
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/test
+      header: "X-Powered-By: PHP/7.2.24"
+    - url: http://laravel.dev.intranet:80/robots.txt
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/.htaccess
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/.htpasswd
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/server-status
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt
+      header: "Server: Apache/2.4.38 (Debian)"
+    - url: http://laravel.dev.intranet:80/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt
+      header: "X-Powered-By: PHP/7.2.24"
 
 run:
   - discover Linked Paths:
@@ -81,3 +102,9 @@ run:
       - Leakages
     expect:
       - Expected-Leakages equals Leakages, otherwise alert high
+  - scan Header Leakage:
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
+    find:
+      - Leakages as Header-Leakages
+    expect:
+      - Expected-Header-Leakages equals Header-Leakages, otherwise alert high

@@ -1,0 +1,83 @@
+data:
+  Pages:
+    - url: page0
+      header:
+        - "Server: Apache/2.2.14 (Win32)"
+        - "X-Powered-By: PHP 7.1.22"
+    - url: page1
+      header:
+        - "Server: Apache/2.4"
+        - "X-Powered-By: ASP.NET"
+        - "X-AspNet-Version: 2.0.50727"
+    - url: page2
+      header:
+        - "Server: Apache/2.2.16"
+    - url: page3
+      header:
+        - "Server: Apache/2.4.1 (Unix)"
+    - url: page4
+      header:
+        - "Server: nginx/1.8.0"
+    - url: page5
+      header:
+        - "Server: nginx/1.12.2"
+        - "X-Powered-By: PHP 7.0.2"
+    - url: page6
+      header:
+        - "Server: Microsoft-HTTPAPI/2.0"
+    - url: page7
+      header:
+        - "Server: Microsoft-IIS/7.50"
+    - url: page8
+      header:
+        - "Server: Apache/2.4.38 (Raspbian)"
+    - url: page9
+      header:
+        - "Server: nginx"
+    - url: page10
+      header:
+        - "Server: apache"
+    - url: page11
+      header:
+        - "Server: gws"
+    - url: page12
+      header:
+        - "Server: Microsoft-HTTPAPI"
+    - url: page13
+      header:
+        - "Server: Microsoft-IIS"
+  Expected-Leakages:
+    - url: page0
+      header: "Server: Apache/2.2.14 (Win32)"
+    - url: page0
+      header: "X-Powered-By: PHP 7.1.22"
+    - url: page1
+      header: "Server: Apache/2.4"
+    - url: page1
+      header: "X-Powered-By: ASP.NET"
+    - url: page1
+      header: "X-AspNet-Version: 2.0.50727"
+    - url: page2
+      header: "Server: Apache/2.2.16"
+    - url: page3
+      header: "Server: Apache/2.4.1 (Unix)"
+    - url: page4
+      header: "Server: nginx/1.8.0"
+    - url: page5
+      header: "Server: nginx/1.12.2"
+    - url: page5
+      header: "X-Powered-By: PHP 7.0.2"
+    - url: page6
+      header: "Server: Microsoft-HTTPAPI/2.0"
+    - url: page7
+      header: "Server: Microsoft-IIS/7.50"
+    - url: page8
+      header: "Server: Apache/2.4.38 (Raspbian)"
+
+run:
+  - scan Header Leakage:
+      pages: use Pages
+    find:
+      - Leakages
+    expect:
+      - Expected-Leakages equals Leakages, otherwise alert high
