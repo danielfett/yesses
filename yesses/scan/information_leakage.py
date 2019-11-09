@@ -35,7 +35,7 @@ class InformationLeakage(YModule):
              "ip": r"([0-9]{1,3}\.){3}[0-9]{1,3}",
              "path": r"(^|\s|\()/?([a-zA-Z0-9-_.]+/)+[a-zA-Z0-9-_.]+/?(\s|$|\))",
              "file": r"(^|\s|\()/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$|\))",
-             "server-info": r"(^|\s|\()[a-zA-Z_-]+/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$|\))",
+             "server-info": r"(^|\s|\()[a-zA-Z_-]{3,}/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$|\))",
              "version-info": r"(^|\s|\()[a-zA-Z0-9-_.]*[Vv]ersion:?\s([0-9]+\.)+[0-9]+(\s|$|\))"}
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
@@ -147,8 +147,7 @@ class InformationLeakage(YModule):
 
         for script in sess.soup(["script", "style"]):
             script.extract()
-        text = sess.soup.get_text()
-        self.search_comments(sess.soup.get_text(), "html_comment", "text/html", sess)
+        self.search_comments(sess.soup.prettify(), "html_comment", "text/html", sess)
 
     def check_js_css_comments(self, sess: InformationLeakageSession):
         html = sess.soup.find_all('html')
