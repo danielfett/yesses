@@ -36,7 +36,7 @@ class InformationLeakage(YModule):
              "path": r"(^|\s|\()/?([a-zA-Z0-9-_.]+/)+[a-zA-Z0-9-_.]+/?(\s|$|\))",
              "file": r"(^|\s|\()/?[a-zA-Z0-9-_]+\.[a-zA-Z0-9]+(\s|$|\))",
              "server-info": r"(^|\s|\()[a-zA-Z_-]{3,}/[0-9\.]+(\s\([a-zA-Z_-]+\))?(\s|$|\))",
-             "version-info": r"(^|\s|\()[a-zA-Z0-9-_.]*[Vv]ersion:?\s([0-9]+\.)+[0-9]+(\s|$|\))"}
+             "version-info": r"(^|\s|\()[a-zA-Z0-9-_.]*[Vv]ersion:?\s([0-9]+\.)+[0-9]+"}
 
     DIR_LIST = "assets/information_leakage/common-directories.txt"
     FILE_ENDINGS_LIST = "assets/information_leakage/common-file-endings.txt"
