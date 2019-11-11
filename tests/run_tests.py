@@ -25,7 +25,9 @@ def run():
     for f in os.listdir("tests/test_cases/"):  # type: str
         if f.endswith('.yml'):
             parts = f.split('.')
-            test_cases[f"test_{parts[0]}"] = lambda s, test_case=f: s.run_test_case(test_case)
+            def run_test_case(self, test=f):
+                self.run_test_case(test)
+            test_cases[f"test_{parts[0]}"] = run_test_case
 
     RunTests = type(
         'RunTests',
