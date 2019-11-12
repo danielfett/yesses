@@ -26,27 +26,6 @@ class YExample:
                 self.alerts = runner.config.alertslist.alerts
 
 
-class YTest:
-    def __init__(self, raw):
-        self.raw = raw[1:] if raw.startswith(
-            "\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
-        self.output = None
-        self.alerts = []
-
-    def run(self):
-        from yesses import Runner
-        from tempfile import TemporaryDirectory
-        from pathlib import Path
-        with TemporaryDirectory(prefix='yesses-test') as td:
-            tempdir = Path(td)
-            configfile = tempdir / Path("config.yml")
-            configfile.write_text("run:\n" + self.raw)
-            with open(configfile, 'r') as f:
-                runner = Runner(f, fresh=True)
-                runner.run()
-                return runner.config.findingslist.current_findings
-
-
 class YModule:
     def __init__(self, step, **kwargs):
         self.step = step

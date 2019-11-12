@@ -25,9 +25,12 @@ def run():
     for f in os.listdir("tests/test_cases/"):  # type: str
         if f.endswith('.yml'):
             parts = f.split('.')
+            name = parts[0].replace('-', '_')
+
             def run_test_case(self, test=f):
                 self.run_test_case(test)
-            test_cases[f"test_{parts[0]}"] = run_test_case
+
+            test_cases[f"test_{name}"] = run_test_case
 
     RunTests = type(
         'RunTests',
