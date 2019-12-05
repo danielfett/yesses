@@ -10,7 +10,11 @@ log = logging.getLogger('discover/error_paths')
 
 class ErrorPaths(YModule):
     """
-    Collect error pages to scan them for information leakages.
+    This module tries to provoke errors and saves the error pages in an array.
+    The error pages can then be used as the inputs for the information leakage
+    module and the header leakage module to search them for too much information.
+    Currently, this module only calls a non-existing page to
+    get a 404 not found error page.
     """
     USER_AGENTS_LIST = "assets/user-agents.txt"
 
@@ -50,8 +54,9 @@ class ErrorPaths(YModule):
 
                 with requests.Session() as req_sess:
                     # get page with 404 not found error
-                    r = req_sess.get(f"{parsed_url.url_without_path}/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt",
-                                     headers={'User-Agent': user_agents[randint(0, len(user_agents) - 1)]})
+                    r = req_sess.get(
+                        f"{parsed_url.origin}/yesses-scanner-nonexisting-url/opdvsltqfnlcelh/ddsleo/glcgrfmr.html",
+                        headers={'User-Agent': user_agents[randint(0, len(user_agents) - 1)]})
                     parsed_url = utils.UrlParser(r.url)
 
                     header_list = utils.convert_header(r)

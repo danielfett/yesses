@@ -32,8 +32,8 @@ class LinkedPathsSession(utils.ConcurrentSession):
 
 class LinkedPaths(YModule):
     """
-    This module takes urls and collects recursively all links, which are local
-    to this url.
+    This module takes URLs and collects recursively all links, which are local
+    to this URL.
     """
 
     THREADS = 40
@@ -121,9 +121,9 @@ class LinkedPaths(YModule):
                     sess.ready(threading.current_thread().ident)
                     continue
 
-                self.scrap_urls(task, req_sess, sess)
+                self.scrape_urls(task, req_sess, sess)
 
-    def scrap_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
+    def scrape_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
         # get new page
         r = req_sess.get(parsed_url.full_url(),
                          headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
@@ -161,7 +161,7 @@ class LinkedPaths(YModule):
         for link in links:
             parsed_link = utils.UrlParser(link)
             if parsed_link.netloc == '':
-                parsed_link.url_without_path = forwarded_parsed_url.url_without_path
+                parsed_link.origin = forwarded_parsed_url.origin
                 parsed_link.path = self.join_paths(forwarded_parsed_url.path, parsed_link.path)
 
             if parsed_link not in sess.urls_visited and parsed_link.file_ending not in ['.png', '.jpg', '.jpeg', '.pdf'] \

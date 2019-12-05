@@ -8,8 +8,8 @@ log = logging.getLogger('scan/header_leakage')
 
 class HeaderLeakage(YModule):
     """
-    This module searches for to much information in the http header.
-    It checks if the 'Server' attribute contains to much information
+    This module searches for too much information in the HTTP header.
+    It checks if the 'Server' attribute contains too much information
     and if the 'X-Powered-By' and/or the 'X-AspNet-Version' attribute
     is set.
     """

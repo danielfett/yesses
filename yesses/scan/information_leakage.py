@@ -22,13 +22,13 @@ class InformationLeakageSession:
 class InformationLeakage(YModule):
     """
     Scan HTML, JavaScript and CSS files for information leakages. This is done by search with
-    regular expressions for email and ip addresses and strings that looks like paths in the
-    visible text of a HTML side or in HTML, JavaScript and CSS comments.
-    For paths there is also a list of common directories to determine whether a path
-    is a real path or not. Furthermore there is a list with common file endings to check
+    regular expressions for email and IP addresses and strings that look like paths in the
+    visible text of a HTML site or in HTML, JavaScript and CSS comments.
+    For paths, there is also a list of common directories to determine whether a path
+    is a real path or not. Furthermore, there is a list with common file endings to check
     if a path ends with a file name or a string is a file name. All the regex expressions
-    are searching only for strings which are either at the beginning or end of a line or
-    which have a whitespace before or after.
+    are searching only for strings that are either at the beginning or end of a line or
+    which have whitespace before or after.
     """
 
     REGEX = {"email": r"(^|\s|\()[a-zA-Z0-9-._]+@[a-zA-Z0-9-_]+\.[a-zA-Z0-9-]+(\s|$|\))",

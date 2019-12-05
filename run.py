@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 from yesses import Runner, all_modules, Config
 from datetime import datetime
-import tests
 
 log = logging.getLogger('run')
 
@@ -43,7 +42,6 @@ def generate_readme(usage):
     README_OUTFILE.write_text(output)
 
 
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
@@ -60,6 +58,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.unittests:
+        import tests
         return_status = tests.run_tests.start_environment()
         sys.exit(return_status)
 
@@ -68,7 +67,7 @@ if __name__ == "__main__":
     log_handler.setLevel(logging.DEBUG if args.verbose else logging.INFO)
     logging.getLogger().addHandler(log_handler)
     logging.getLogger().setLevel(logging.DEBUG)
-    
+
     if args.generate_readme:
         generate_readme(parser.format_help())
     elif args.test:
@@ -78,5 +77,3 @@ if __name__ == "__main__":
             parser.error("configfile missing.")
         runner = Runner(args.configfile, args.fresh)
         runner.run(args.resume, args.repeat)
-        
-    

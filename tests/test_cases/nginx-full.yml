@@ -35,7 +35,7 @@ data:
     - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/
     - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/
   Expected-Leakages:
-    - url: http://nginx.dev.intranet:80/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt
+    - url: http://nginx.dev.intranet:80/yesses-scanner-nonexisting-url/opdvsltqfnlcelh/ddsleo/glcgrfmr.html
       type: server-info
       found: visible_text
       finding: nginx/1.10.3
@@ -134,7 +134,7 @@ data:
       header: "Server: nginx/1.10.3"
     - url: http://nginx.dev.intranet:80/hdir/hdir/hdir/hdir/
       header: "Server: nginx/1.10.3"
-    - url: http://nginx.dev.intranet:80/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt
+    - url: http://nginx.dev.intranet:80/yesses-scanner-nonexisting-url/opdvsltqfnlcelh/ddsleo/glcgrfmr.html
       header: "Server: nginx/1.10.3"
 
 run:

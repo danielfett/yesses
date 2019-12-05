@@ -43,13 +43,13 @@ def filter_origins(origins: list) -> dict:
     for origin in origins:
         parsed_url = UrlParser(origin['url'])
         with force_ip_connection(origin['domain'], origin['ip']):
-            r = requests.get(parsed_url.url_without_path)
-            forwareded_parsed_url = UrlParser(r.url)
-            if forwareded_parsed_url.url_without_path not in filtered_origins.keys():
-                url = f"{forwareded_parsed_url.url_without_path}/"
-                filtered_origins[forwareded_parsed_url.url_without_path] = {'url': url,
-                                                                            'domain': forwareded_parsed_url.domain,
-                                                                            'ip': origin['ip']}
+            r = requests.get(parsed_url.origin)
+            forwarded_parsed_url = UrlParser(r.url)
+            if forwarded_parsed_url.origin not in filtered_origins.keys():
+                url = f"{forwarded_parsed_url.origin}/"
+                filtered_origins[forwarded_parsed_url.origin] = {'url': url,
+                                                                 'domain': forwarded_parsed_url.domain,
+                                                                 'ip': origin['ip']}
     return filtered_origins
 
 
@@ -114,19 +114,19 @@ class UrlParser:
             self.base_domain = '.'.join(split[1:])
 
         # the url with the protocol and port (if no port is specified use a standard port)
-        self.url_without_path = self.parsed.netloc
+        self.origin = self.parsed.netloc
         if self.scheme == '':
             self.scheme = 'http'
         if len(tmp) == 1:
-            self.url_without_path = f"{self.url_without_path}:{self.STANDARD_PORTS.get(self.scheme, 80)}"
+            self.origin = f"{self.origin}:{self.STANDARD_PORTS.get(self.scheme, 80)}"
 
-        self.url_without_path = f"{self.scheme}://{self.url_without_path}"
+        self.origin = f"{self.scheme}://{self.origin}"
 
         # retrieve domain name
         self.domain = self.netloc.split(':')[0]
 
     def full_url(self):
-        return f"{self.url_without_path}{self.path_with_args}"
+        return f"{self.origin}{self.path_with_args}"
 
     def __eq__(self, other):
         return self.full_url() == other

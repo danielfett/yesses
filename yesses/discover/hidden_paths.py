@@ -27,9 +27,9 @@ class HiddenPathsSession(utils.ConcurrentSession):
 
 class HiddenPaths(YModule):
     """
-    This module takes urls and linked paths from the Linked Paths module.
+    This module takes URLs and linked paths from the Linked Paths module.
     It extracts potential folders from the linked paths and searches in
-    this folders with a wordlist for potential hidden files.
+    these folders with a wordlist for potential hidden files.
     """
 
     THREADS = 10
@@ -122,13 +122,14 @@ class HiddenPaths(YModule):
                 parsed_url = utils.UrlParser(origin['url'])
 
                 # check if the web server replies to a random path which should not exist with a 200 status
-                r = requests.get(f"{parsed_url.url_without_path}/fvwwvaoqgf/opdvsltqfnlcelh/ddsleo/glcgrfmr.odt",
-                                 headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
+                r = requests.get(
+                    f"{parsed_url.origin}/yesses-scanner-nonexisting-url/opdvsltqfnlcelh/ddsleo/glcgrfmr.html",
+                    headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
                 if r.status_code == 200:
                     continue
 
                 # fill task queue with existing directories if there are any
-                dirs = self.potential_dirs[parsed_url.url_without_path]
+                dirs = self.potential_dirs[parsed_url.origin]
                 task_queue = queue.Queue()
 
                 for dir in dirs:
@@ -200,21 +201,21 @@ class HiddenPaths(YModule):
 
         for origin in self.origins:
             parsed_url = utils.UrlParser(origin['url'])
-            tmp = f"{parsed_url.url_without_path}/"
-            self.potential_dirs[parsed_url.url_without_path] = [tmp]
+            tmp = f"{parsed_url.origin}/"
+            self.potential_dirs[parsed_url.origin] = [tmp]
 
         for urld in self.linked_paths:
             url = urld['url']
             parsed_url = utils.UrlParser(url)
-            if parsed_url.url_without_path not in self.potential_dirs:
-                tmp = f"{parsed_url.url_without_path}/"
-                self.potential_dirs[parsed_url.url_without_path] = [tmp]
+            if parsed_url.origin not in self.potential_dirs:
+                tmp = f"{parsed_url.origin}/"
+                self.potential_dirs[parsed_url.origin] = [tmp]
             split = parsed_url.path.split('/')
-            tmp = f"{parsed_url.url_without_path}/"
+            tmp = f"{parsed_url.origin}/"
             for i in range(1, len(split) - 1):
                 tmp = f"{tmp}{split[i]}/"
-                if tmp not in self.potential_dirs[parsed_url.url_without_path]:
-                    self.potential_dirs[parsed_url.url_without_path].append(tmp)
+                if tmp not in self.potential_dirs[parsed_url.origin]:
+                    self.potential_dirs[parsed_url.origin].append(tmp)
 
     def add_hidden_pages(self, parsed_url: utils.UrlParser, r: requests.Response):
         if utils.request_is_text(r):
