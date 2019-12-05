@@ -20,7 +20,11 @@ run:
       origins: use Origins
     find:
       - Error-Pages
-  - scan Header Leakage:
+  - scan Information Leakage:
       pages: use Linked-Pages and Hidden-Pages and Error-Pages
     find:
       - Leakages
+  - scan Header Leakage:
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
+    find:
+      - Leakages as Header-Leakage
