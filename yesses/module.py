@@ -2,10 +2,12 @@ from importlib import import_module
 import fnmatch
 import re
 
+
 class YExample:
     def __init__(self, name, raw):
         self.name = name
-        self.raw = raw[1:] if raw.startswith("\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
+        self.raw = raw[1:] if raw.startswith(
+            "\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
         self.output = None
         self.alerts = []
 
@@ -37,7 +39,7 @@ class YModule:
             self.__unwrap_field(field, properties, kwargs)
             setattr(self, field, kwargs[field])
 
-    def __check_required_field(self, field, properties, kwargs):        
+    def __check_required_field(self, field, properties, kwargs):
         if field in kwargs:
             return
         if 'default' in properties:
@@ -59,12 +61,12 @@ class YModule:
                 except KeyError:
                     raise Exception(f"In field '{field}': Missing key '{key}' on input element '{el}' in {self.step}.")
 
-    def __unwrap_field(self, field, properties, kwargs):        
+    def __unwrap_field(self, field, properties, kwargs):
         if not properties.get('unwrap', False):
             return
-        assert(len(properties['required_keys']) == 1)
+        assert (len(properties['required_keys']) == 1)
         kwargs[field] = list(el.get(properties['required_keys'][0]) for el in kwargs[field])
-                    
+
     def __create_result_dict(self):
         self.results = {}
         for field, properties in self.OUTPUTS.items():
@@ -86,7 +88,8 @@ class YModule:
             if fnmatch.fnmatchcase(result_key, output_field):
                 return output_field, properties
             
-        raise Exception(f"Unknown output field found: {result_key}, does not match any of {', '.join(cls.OUTPUTS.keys())}")
+        raise Exception(
+            f"Unknown output field found: {result_key}, does not match any of {', '.join(cls.OUTPUTS.keys())}")
         
                 
     def __check_output_types(self):
@@ -101,7 +104,8 @@ class YModule:
                     try:
                         el[key]
                     except KeyError:
-                        raise Exception(f"In field {result_field}: Missing key '{key}' on output element '{el}' in {self.step}.")
+                        raise Exception(
+                            f"In field {result_field}: Missing key '{key}' on output element '{el}' in {self.step}.")
 
         if set(output_fields_found) != set(self.OUTPUTS.keys()):
             missing = set(self.OUTPUTS.keys()) - set(output_fields_found)
@@ -134,4 +138,3 @@ class YModule:
         self.run()
         self.__check_output_types()
         return self.results
-    

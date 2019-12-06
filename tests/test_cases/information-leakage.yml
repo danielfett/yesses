@@ -1,0 +1,118 @@
+description: >
+  This test tests the information_leakage module with
+  dummy strings. It checks if the module recognizes
+  the pattern of emails, ip addresses, paths, files
+  and server-info in the visible text of a website,
+  in html comments or in javascript/css comments.
+data:
+  Expected-Leakages:
+    - url: page0
+      type: ip
+      found: visible_text
+      finding: 192.168.2.196
+    - url: page0
+      type: path
+      found: visible_text
+      finding: /home/user/secret/key.pub
+    - url: page0
+      type: path
+      found: visible_text
+      finding: /usr/share/docs/ajdlkf/adjfl
+    - url: page1
+      type: ip
+      found: css_js_comment
+      finding: 192.168.170.128
+    - url: page1
+      type: email
+      found: css_js_comment
+      finding: email@example.com
+    - url: page0
+      type: email
+      found: html_comment
+      finding: test@example.com
+    - url: page0
+      type: path
+      found: html_comment
+      finding: /var/home/bla
+    - url: page0
+      type: file
+      found: html_comment
+      finding: secret.txt
+    - url: page0
+      type: server-info
+      found: html_comment
+      finding: apache/2.4 (unix)
+    - url: page0
+      type: path
+      found: html_comment
+      finding: apache/2.4
+    - url: page1
+      type: server-info
+      found: visible_text
+      finding: nginx/1.10.3
+    - url: page1
+      type: version-info
+      found: visible_text
+      finding: "Version: 1.11.0"
+
+  Pages:
+    - url: page0
+      data: |
+        <html>
+        <!--test@example.com /var/home/bla -->
+        <head>
+          <script src='ajkldfjalk'></script>
+        </head>
+          <body>
+            <!-- This is a comment apache/2.4 (unix) -->
+            <h1>Title</h1>
+            <!-- secret.txt \n\n/1x23/ex234-->
+            <p>Text with path /home/user/secret/key.pub</p>
+            <a href='/docs/'>Website</a>
+            <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>
+            <style> admin@example.com </style>
+          </body>
+        </html>
+    - url: page1
+      data: |
+        <html>
+        <script>
+          // This is a js comment 192.168.170.128
+          function name {
+            return 'Hello World';
+          }
+        </script>
+        <body>
+          <p>403 Forbidden nginx/1.10.3</p>
+          <footer>
+            <p>Gitea Version: 1.11.0+dev-180-gd5b1e6bc5</p>
+          </footer>
+        </body>
+        <script>
+          // Comment two with email@example.com
+          console.log('test')
+          /* Comment over
+            several lines
+          */
+          </script></html>
+    - url: page2
+      data: |
+        /*! modernizr 3.6.0 (Custom Build) | MIT *
+        * https://modernizr.com/download/?-svgclippaths-setclasses !*/
+        !function(e,n,s){function o(e) // Comment three
+        {var n=f.className,s=Modernizr._con
+        /* Last
+          multi
+          line
+          comment
+        */
+        flakjdlfjldjfl
+
+run:
+  - scan Information Leakage:
+      pages: use Pages
+    find:
+      - Leakages
+    expect:
+      - Expected-Leakages equals Leakages, otherwise alert high
+

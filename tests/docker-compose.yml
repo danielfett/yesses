@@ -1,0 +1,37 @@
+version: '3.6'
+services:
+  nginx:
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx/
+    networks:
+      my-net:
+        aliases:
+          - nginx.dev.intranet
+        ipv4_address: 172.16.0.3
+  laravel:
+    build:
+      dockerfile: Dockerfile
+      context: ./laravel/
+    networks:
+      my-net:
+        aliases:
+          - laravel.dev.intranet
+        ipv4_address: 172.16.0.4
+  test_container:
+    build:
+      dockerfile: ./tests/Dockerfile
+      context: ../
+    networks:
+      my-net:
+        ipv4_address: 172.16.0.2
+    depends_on:
+      - nginx
+      - laravel
+networks:
+  my-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.0.0/24"
+

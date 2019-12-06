@@ -200,6 +200,7 @@ following forms:
 
  1. (no|some) [new] FINDINGS, otherwise alert (informative|medium|high|very high)
  1. (no|some|all) FINDINGS1 in FINDINGS2, otherwise alert (informative|medium|high|very high)
+ 1. FINDINGS1 [not] equals FINDINGS2, otherwise alert (informative|medium|high|very high)
 
 The first form checks if findings exist (or do not exist). With the
 `new` keyword, it checks if, compared to the last run, additional
@@ -211,6 +212,9 @@ The second form checks if there is some, no, or a complete overlap
 between the lists FINDINGS1 and FINDINGS2. Note that, if the entries
 in these list contain different set of keys, only keys common to both
 lists are matched.
+
+The third form checks if the lists FINDINGS1 and FINDINGS2 contain the
+same elements (in any order) and no extra elements.
 
 ### `output` ###
 
@@ -361,7 +365,6 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support "TLSv1"
   - must not support "TLSv1.1"
   - must not support "ECDHE-RSA-AES128-SHA"
   - must not support "ECDHE-RSA-AES256-SHA"
@@ -745,14 +748,14 @@ Findings returned:
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: example.org
-- domain: example.com
-- domain: www.example.edu
-- domain: www.example.org
-- domain: example.net
-- domain: example.edu
-- domain: www.example.net
 - domain: www.example.com
+- domain: example.net
+- domain: www.example.org
+- domain: example.com
+- domain: www.example.net
+- domain: example.edu
+- domain: www.example.edu
+- domain: example.org
 ```
 
 
@@ -838,6 +841,8 @@ Secure-Origins:
 - domain: example.com
   ip: 2606:2800:220:1:248:1893:25c8:1946
   url: https://example.com:443/
+TLS-Domains:
+- domain: example.com
 ```
 
 
@@ -891,7 +896,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-10-25-154208.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2019-11-04-091030.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.

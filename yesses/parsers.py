@@ -1,6 +1,7 @@
 from pyparsing import Word, alphas, Keyword, Optional, Or, ParseException, Group, Suppress, ZeroOrMore, Combine, OneOrMore
 
 from .alerts import Alert
+from .comparison_functions import get_function_equals_expr, get_function_in_expr, get_function_default_expr
 
 class Parser:
     FINDINGS_IDENTIFIER = Word(alphas+"-")
@@ -33,14 +34,19 @@ class ExpectParser(Parser):
     QUANTIFIER = Keyword('no') ^ Keyword('some')
     QUANTIFIER_WITH_ALL = QUANTIFIER ^ Keyword('all')
 
+    # "(no|some) [new] FINDINGS"
     DEFAULT_EXPR = QUANTIFIER('quantifier') - Optional(Keyword("new")("new")) - Parser.FINDINGS_IDENTIFIER("subject")
 
+    # "(no|some|all) FINDINGS1 in FINDINGS2"
     IN_EXPR = QUANTIFIER_WITH_ALL('quantifier') - Parser.FINDINGS_IDENTIFIER("list1") - Keyword('in')('in') - Parser.FINDINGS_IDENTIFIER("list2")
-    
+
+    # "FINDINGS1 [not] equals FINDINGS2"
+    EQUALS_EXPR = Parser.FINDINGS_IDENTIFIER("list1") - Optional(Keyword("not")("quantifier")) - Keyword('equals')('equals') - Parser.FINDINGS_IDENTIFIER("list2")
+
+    # ", otherwise alert (informative|medium|high|very high)"
     ALERT_SUBEXPR = Optional(",")  - Keyword("otherwise") - Keyword("alert") - OneOrMore(Word(alphas))("alert_action_args")
     
-
-    FULL_EXPR = (DEFAULT_EXPR("default_expr") ^ IN_EXPR("in_expr")) - ALERT_SUBEXPR
+    FULL_EXPR = (DEFAULT_EXPR("default_expr") ^ IN_EXPR("in_expr") ^ EQUALS_EXPR("equals_expr")) - ALERT_SUBEXPR
 
     @classmethod
     def parse_expect(cls, expect_rules):
@@ -48,10 +54,7 @@ class ExpectParser(Parser):
         for rule in expect_rules:
             parsed = cls.parse(rule)
             alert_severity = Alert.Severity.parse(' '.join(parsed.alert_action_args))
-            if parsed.get('in', False):
-                expect_fns.append(cls.get_function_in_expr(rule, parsed.quantifier, parsed.list1, parsed.list2, alert_severity))
-            else:
-                expect_fns.append(cls.get_function_default_expr(rule, parsed.quantifier, parsed.new, parsed.subject, alert_severity))
+            expect_fns.append(cls.dispatch(rule, parsed, alert_severity))
         return expect_fns
 
     @classmethod
@@ -86,27 +89,15 @@ class ExpectParser(Parser):
         return expect_fn
 
     @classmethod
-    def get_function_default_expr(cls, rule, quantifier, new, subject, severity):
-        def expect_fn(step):
-            if new:
-                items = step.findings.get_added_items(subject)
-            else:
-                items = step.findings.get(subject)
+    def dispatch(cls, rule, parsed, alert_severity):
+        """Select the appropriate function to return the comparison function
+        by looking at the parsing results.
 
-            if quantifier == 'no' and items:
-                yield Alert(
-                    severity=severity,
-                    violated_rule=rule,
-                    findings={'extra items': items},
-                    step=step
-                )
-            elif quantifier == 'some' and not items:
-                yield Alert(
-                    severity=severity,
-                    violated_rule=rule,
-                    findings={},
-                    step=step
-                )
-        expect_fn.required_fields = [subject]
-        expect_fn.rule = rule
-        return expect_fn
+        """
+
+        if parsed.get('in_expr', False):
+            return get_function_in_expr(rule, parsed.quantifier, parsed.list1, parsed.list2, alert_severity)
+        elif parsed.get('equals_expr', False):
+            return get_function_equals_expr(rule, parsed.quantifier, parsed.list1, parsed.list2, alert_severity)
+        else:
+            return get_function_default_expr(rule, parsed.quantifier, parsed.new, parsed.subject, alert_severity)

@@ -1,0 +1,30 @@
+data:
+  Origins:
+    - url: https://yes.com/
+      ip: 51.4.194.141
+      domain: yes.com
+
+run:
+  - discover Linked Paths:
+      origins: use Origins
+    find:
+      - Linked-Paths
+      - Linked-Pages
+  - discover Hidden Paths:
+      origins: use Origins
+      linked_paths: use Linked-Paths
+    find:
+    - Hidden-Paths
+    - Hidden-Pages
+  - discover Error Paths:
+      origins: use Origins
+    find:
+      - Error-Pages
+  - scan Information Leakage:
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
+    find:
+      - Leakages
+  - scan Header Leakage:
+      pages: use Linked-Pages and Hidden-Pages and Error-Pages
+    find:
+      - Leakages as Header-Leakage
