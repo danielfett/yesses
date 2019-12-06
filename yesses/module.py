@@ -2,10 +2,12 @@ from importlib import import_module
 import fnmatch
 import re
 
+
 class YExample:
     def __init__(self, name, raw):
         self.name = name
-        self.raw = raw[1:] if raw.startswith("\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
+        self.raw = raw[1:] if raw.startswith(
+            "\n") else raw  # cosmetic cleanup, most examples will be multiline and start with a newline
         self.output = None
         self.alerts = []
 
@@ -30,14 +32,14 @@ class YModule:
         self.__input_validation(kwargs)
         self.__create_result_dict()
 
-    def __input_validation(self, kwargs):        
+    def __input_validation(self, kwargs):
         for field, properties in self.INPUTS.items():
             self.__check_required_field(field, properties, kwargs)
             self.__check_required_keys(field, properties, kwargs)
             self.__unwrap_field(field, properties, kwargs)
             setattr(self, field, kwargs[field])
 
-    def __check_required_field(self, field, properties, kwargs):        
+    def __check_required_field(self, field, properties, kwargs):
         if field in kwargs:
             return
         if 'default' in properties:
@@ -59,12 +61,12 @@ class YModule:
                 except KeyError:
                     raise Exception(f"In field '{field}': Missing key '{key}' on input element '{el}' in {self.step}.")
 
-    def __unwrap_field(self, field, properties, kwargs):        
+    def __unwrap_field(self, field, properties, kwargs):
         if not properties.get('unwrap', False):
             return
-        assert(len(properties['required_keys']) == 1)
+        assert (len(properties['required_keys']) == 1)
         kwargs[field] = list(el.get(properties['required_keys'][0]) for el in kwargs[field])
-                    
+
     def __create_result_dict(self):
         self.results = {}
         for field, properties in self.OUTPUTS.items():
@@ -74,7 +76,7 @@ class YModule:
 
     def __find_matching_output_field(self, result_key):
         """First tries to match the non-wildcard keys, then the wildcard keys."""
-        
+
         for output_field, properties in self.OUTPUTS.items():
             if '*' in output_field or '?' in output_field:
                 continue
@@ -84,10 +86,10 @@ class YModule:
         for output_field, properties in self.OUTPUTS.items():
             if fnmatch.fnmatchcase(result_key, output_field):
                 return output_field, properties
-            
-        raise Exception(f"Superfluous output field found: {result_field}, does not match any of {', '.join(self.OUTPUTS.keys())}")
-        
-                
+
+        raise Exception(
+            f"Superfluous output field found: {result_field}, does not match any of {', '.join(self.OUTPUTS.keys())}")
+
     def __check_output_types(self):
         output_fields_found = []
         for result_field, findings in self.results.items():
@@ -100,7 +102,8 @@ class YModule:
                     try:
                         el[key]
                     except KeyError:
-                        raise Exception(f"In field {result_field}: Missing key '{key}' on output element '{el}' in {self.step}.")
+                        raise Exception(
+                            f"In field {result_field}: Missing key '{key}' on output element '{el}' in {self.step}.")
 
         if set(output_fields_found) != set(self.OUTPUTS.keys()):
             missing = set(self.OUTPUTS.keys()) - set(output_fields_found)
@@ -133,4 +136,3 @@ class YModule:
         self.run()
         self.__check_output_types()
         return self.results
-    

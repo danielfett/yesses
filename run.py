@@ -42,7 +42,6 @@ def generate_readme(usage):
     README_OUTFILE.write_text(output)
 
 
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(
@@ -53,16 +52,22 @@ if __name__ == "__main__":
     parser.add_argument('--repeat', type=int, metavar='N', help='Repeat last N steps of run (for debugging). Will inhibit warnings of duplicate output variables.', default=None)
     parser.add_argument('--fresh', '-f', action='store_true', help='Do not use existing state files. Usage of this required when datastructures in this application changed.', default=False)
     parser.add_argument('--test', action='store_true', help='Run a self-test. This executes the examples contained in all modules.')
+    parser.add_argument('--unittests', action='store_true', help='Run all tests which are defined in /tests/test_cases.')
     parser.add_argument('--generate-readme', action='store_true', help=f'Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results.')
 
     args = parser.parse_args()
+
+    if args.unittests:
+        import tests
+        return_status = tests.run_tests.start_environment()
+        sys.exit(return_status)
 
     log_handler = logging.StreamHandler(sys.stdout)
     log_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     log_handler.setLevel(logging.DEBUG if args.verbose else logging.INFO)
     logging.getLogger().addHandler(log_handler)
     logging.getLogger().setLevel(logging.DEBUG)
-    
+
     if args.generate_readme:
         generate_readme(parser.format_help())
     elif args.test:
@@ -72,5 +77,3 @@ if __name__ == "__main__":
             parser.error("configfile missing.")
         runner = Runner(args.configfile, args.fresh)
         runner.run(args.resume, args.repeat)
-        
-    
