@@ -29,7 +29,7 @@ def force_ip_connection(domain, ip):
 
 
 def clean_expression(expr):
-    return re.sub(r'''\s+''', ' ', expr).strip()
+    return re.sub(r"""\s+""", " ", expr).strip()
 
 
 def filter_origins(origins: list) -> dict:
@@ -41,22 +41,24 @@ def filter_origins(origins: list) -> dict:
     """
     filtered_origins = dict()
     for origin in origins:
-        parsed_url = UrlParser(origin['url'])
-        with force_ip_connection(origin['domain'], origin['ip']):
+        parsed_url = UrlParser(origin["url"])
+        with force_ip_connection(origin["domain"], origin["ip"]):
             r = requests.get(parsed_url.origin)
             forwarded_parsed_url = UrlParser(r.url)
             if forwarded_parsed_url.origin not in filtered_origins.keys():
                 url = f"{forwarded_parsed_url.origin}/"
-                filtered_origins[forwarded_parsed_url.origin] = {'url': url,
-                                                                 'domain': forwarded_parsed_url.domain,
-                                                                 'ip': origin['ip']}
+                filtered_origins[forwarded_parsed_url.origin] = {
+                    "url": url,
+                    "domain": forwarded_parsed_url.domain,
+                    "ip": origin["ip"],
+                }
     return filtered_origins
 
 
 def request_is_text(r: requests.Response) -> bool:
-    if 'content-type' not in r.headers:
+    if "content-type" not in r.headers:
         return False
-    if re.search(r"(^text/.*|^image/svg\+xml$)", r.headers['content-type']):
+    if re.search(r"(^text/.*|^image/svg\+xml$)", r.headers["content-type"]):
         return True
     return False
 
@@ -64,7 +66,7 @@ def request_is_text(r: requests.Response) -> bool:
 def read_file(list: str) -> List[str]:
     with open(list) as file:
         dir_list = file.readlines()
-        dir_list = [line.strip('\n') for line in dir_list if not line.startswith('#')]
+        dir_list = [line.strip("\n") for line in dir_list if not line.startswith("#")]
     return dir_list
 
 
@@ -76,7 +78,7 @@ def convert_header(r: requests.Response) -> List[str]:
 
 
 class UrlParser:
-    STANDARD_PORTS = {'http': 80, 'https': 443}
+    STANDARD_PORTS = {"http": 80, "https": 443}
 
     def __init__(self, url: str):
         self.parsed = urlparse(url)  # type: ParseResult
@@ -86,44 +88,44 @@ class UrlParser:
         self.scheme = self.parsed.scheme  # type: str
 
         tmp_path = self.path
-        if not tmp_path.startswith('/'):
+        if not tmp_path.startswith("/"):
             tmp_path = f"/{tmp_path}"
 
         # calculate the depth of the path
-        self.path_depth = len(tmp_path.split('/')) - 1
-        if tmp_path.endswith('/'):
+        self.path_depth = len(tmp_path.split("/")) - 1
+        if tmp_path.endswith("/"):
             self.path_depth -= 1
 
         # concatenate the path with the GET parameters
         self.path_with_args = tmp_path  # type: str
-        if self.parsed.query != '':
+        if self.parsed.query != "":
             self.path_with_args = f"{tmp_path}?{self.arguments}"
 
         # cut the file ending from the path
-        index = self.parsed.path.rfind('.')
+        index = self.parsed.path.rfind(".")
         if index != -1:
             self.file_ending = self.parsed.path[index:]
         else:
-            self.file_ending = ''
+            self.file_ending = ""
 
         # retrieve the base domain (domain which was passed without the port and 'www.' prefix)
-        tmp = self.parsed.netloc.split(':')
+        tmp = self.parsed.netloc.split(":")
         self.base_domain = tmp[0]
-        split = self.base_domain.split('.')
+        split = self.base_domain.split(".")
         if split[0] == "www":
-            self.base_domain = '.'.join(split[1:])
+            self.base_domain = ".".join(split[1:])
 
         # the url with the protocol and port (if no port is specified use a standard port)
         self.origin = self.parsed.netloc
-        if self.scheme == '':
-            self.scheme = 'http'
+        if self.scheme == "":
+            self.scheme = "http"
         if len(tmp) == 1:
             self.origin = f"{self.origin}:{self.STANDARD_PORTS.get(self.scheme, 80)}"
 
         self.origin = f"{self.scheme}://{self.origin}"
 
         # retrieve domain name
-        self.domain = self.netloc.split(':')[0]
+        self.domain = self.netloc.split(":")[0]
 
     def full_url(self):
         return f"{self.origin}{self.path_with_args}"
@@ -136,7 +138,6 @@ class UrlParser:
 
 
 class ConcurrentSession:
-
     def __init__(self, threads):
         self._threads = threads
         self._finished = {}

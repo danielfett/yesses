@@ -1,10 +1,12 @@
 import collections
 
+
 class Domain:
     domain: str
 
     def __str__(self):
         return self.domain
+
 
 class URL:
     url: str
@@ -12,13 +14,13 @@ class URL:
     def __str__(self):
         return self.url
 
+
 class IP:
     ip: str
 
     def __str__(self):
         return self.ip
 
-        
 
 class Error:
     error: str
@@ -26,11 +28,13 @@ class Error:
     def __str__(self):
         return self.error
 
+
 class Errors:
     errors: list
 
     def __str__(self):
-        return ', '.join(self.errors)
+        return ", ".join(self.errors)
+
 
 class YType(collections.Mapping):
     def __init__(self, **kwargs):
@@ -45,6 +49,6 @@ class YType(collections.Mapping):
 
     def __len__(self, *args):
         return self.__dict__.__len__(*args)
-            
+
     def items(self):
         return self.__dict__.items()
