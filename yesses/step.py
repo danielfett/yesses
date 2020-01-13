@@ -7,13 +7,14 @@ from datetime import datetime, timedelta
 from io import StringIO as StringBuffer
 from .parsers import FindParser, ExpectParser
 
-log = logging.getLogger('step')
+log = logging.getLogger("step")
+
 
 class Step:
     LOG_FORMATTER = logging.Formatter()
     LOG_LEVEL = logging.DEBUG
-    RESERVED = ['find', 'expect', 'name']
-    
+    RESERVED = ["find", "expect", "name"]
+
     def __init__(self, raw, number):
         self.raw = raw
         self.number = number
@@ -29,7 +30,7 @@ class Step:
         store the keywords.
 
         """
-        
+
         words = [word for word in self.raw.keys() if word not in self.RESERVED]
         if len(words) == 0:
             raise Exception(f"No action found.")
@@ -39,22 +40,22 @@ class Step:
         self.action_class = YModule.class_from_string(self.action)
         self.kwargs = self.raw[self.action]
         log.info(f"Step {self.number} = {self.action}")
-        
+
     def parse_name(self):
         """From the raw step description, find the 'name' key and store it as
         the name for the step. If none exists, use the action as the
         name.
 
         """
-        if 'name' in self.raw:
-            self.name = self.raw['name']
+        if "name" in self.raw:
+            self.name = self.raw["name"]
         else:
             self.name = self.action
 
     def parse_find(self):
-        if not 'find' in self.raw:
+        if not "find" in self.raw:
             raise Exception(f"Missing keyword 'find'.")
-        self.find_mapping = FindParser.parse_find_mapping(self.raw['find']) 
+        self.find_mapping = FindParser.parse_find_mapping(self.raw["find"])
 
     def get_log(self):
         return self.log_buffer.getvalue()
@@ -63,7 +64,7 @@ class Step:
         self.findings = findings
         kwargs_modified = {}
         for name, value in self.kwargs.items():
-            name = name.replace(' ', '_')
+            name = name.replace(" ", "_")
             try:
                 kwargs_modified[name] = findings.get_from_use_expression(value)
             except FindingsList.NotAUseExpression:
@@ -73,7 +74,9 @@ class Step:
 
     def execute(self):
         temp_findings = self.call_class_from_action()
-        log.info(f"{self.action} took {self.duration.total_seconds()}s and produced {len(self.get_log())} bytes of output.")
+        log.info(
+            f"{self.action} took {self.duration.total_seconds()}s and produced {len(self.get_log())} bytes of output."
+        )
 
         # Merge temporary findings into permanent findings
         # using alias table created in init
@@ -88,20 +91,19 @@ class Step:
         # need to be stored somewhere so that they do not get picked
         # up by the yaml serializer (they are not serializable, and
         # there is no need to serialize them).
-        expect_functions = ExpectParser.parse_expect(self.raw.get('expect', []))
+        expect_functions = ExpectParser.parse_expect(self.raw.get("expect", []))
         for fn in expect_functions:
             yield from fn(self)
 
     def call_class_from_action(self):
         try:
             with self.capture_log():
-                obj = self.action_class(
-                    self,
-                    **self.inputs
-                )
-            
+                obj = self.action_class(self, **self.inputs)
+
         except TypeError as e:
-            raise Exception(f'Unable to initialize action "{self.action}": {str(e)}\n\n{self.get_definition()}') 
+            raise Exception(
+                f'Unable to initialize action "{self.action}": {str(e)}\n\n{self.get_definition()}'
+            )
 
         with self.capture_log():
             return obj.run_module()
@@ -119,8 +121,7 @@ class Step:
         finally:
             end = datetime.now()
             logger.removeHandler(log_handler)
-            self.duration += (end - start)
-
+            self.duration += end - start
 
     def has_verb(self, verb_name):
         return verb_name in self.raw
@@ -130,10 +131,9 @@ class Step:
 
     def __str__(self):
         return f"Step #{self.number}: {self.action}"
-    
+
     def get_definition(self):
         return yaml.safe_dump(self.raw)
 
     def get_inputs(self):
         return yaml.safe_dump(self.inputs)
-

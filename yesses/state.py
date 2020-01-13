@@ -2,6 +2,7 @@ import yaml
 from pathlib import Path
 import yesses.scan.tls_settings
 
+
 class State:
     def __init__(self, filename, fresh):
         self.statefilepath = Path(filename)
@@ -17,8 +18,5 @@ class State:
             self.data = yaml.full_load(text)
 
     def save(self):
-        with self.statefilepath.open('w') as f:
+        with self.statefilepath.open("w") as f:
             f.write(yaml.dump(self.data))
-            
-
-        
