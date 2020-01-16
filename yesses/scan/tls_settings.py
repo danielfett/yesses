@@ -2,6 +2,7 @@ from tlsprofiler import TLSProfiler
 from yesses.module import YModule, YExample
 import requests
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 log = logging.getLogger("scan/tlssettings")
 
@@ -22,6 +23,11 @@ compare it to the Mozilla TLS configuration profiles.
             "required_keys": None,
             "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `new`).",
             "default": "intermediate",
+        },
+        "parallel_requests": {
+            "required_keys": None,
+            "description": "Number of parallel TLS scan commands to run.",
+            "default": 10,
         },
     }
 
@@ -69,8 +75,8 @@ compare it to the Mozilla TLS configuration profiles.
     ]
 
     def run(self):
-        for domain in self.domains:
-            self.scan_domain(domain)
+        with ThreadPoolExecutor(max_workers=self.parallel_requests) as executor:
+            executor.map(self.scan_domain, self.domains)
 
     def scan_domain(self, domain):
         scanner = TLSProfiler(domain, self.tls_profile)
