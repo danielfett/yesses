@@ -20,7 +20,7 @@ compare it to the Mozilla TLS configuration profiles.
         },
         "tls_profile": {
             "required_keys": None,
-            "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `new`).",
+            "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `modern`).",
             "default": "intermediate",
         },
     }

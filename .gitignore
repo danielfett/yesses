@@ -187,3 +187,6 @@ dmypy.json
 *.alerts
 *.resume
 *.state
+
+# Test configuration
+test.yml
