@@ -1,0 +1,48 @@
+description: >
+  This test tests the TLS Settings module. It compares the
+  TLS configuration of the nginx test server with intermediate
+  Mozilla TLS profile.
+data:
+  Domains:
+    - domain: nginx.dev.intranet
+  Expected-TLS-Validation-Fail-Domains:
+    - domain: nginx.dev.intranet
+      errors:
+        - 'validation not successful: unable to get local issuer certificate (trust store Android)'
+        - 'validation not successful: unable to get local issuer certificate (trust store Apple)'
+        - 'validation not successful: unable to get local issuer certificate (trust store Java)'
+        - 'validation not successful: unable to get local issuer certificate (trust store Mozilla)'
+        - 'validation not successful: unable to get local issuer certificate (trust store Windows)'
+        - 'Not enought SCTs in certificate, only found 0.'
+  Expected-TLS-Profile-Mismatch-Domains:
+    - domain: nginx.dev.intranet
+      errors:
+        - 'client must choose the cipher suite, not the server (Protocol TLSv1.3)'
+        - 'OCSP stapling must be supported'
+  Expected-TLS-Certificate-Warnings-Domains:
+    - domain: nginx.dev.intranet
+      errors:
+        - 'Certificate expires in 12 days'
+  Expected-TLS-Vulnerability-Domains: []
+  Expected-TLS-Okay-Domains: []
+  Expected-TLS-Other-Error-Domains: []
+
+run:
+  - scan TLS Settings:
+      domains: use Domains
+      tls_profile: intermediate
+      ca_file: tests/certificates/ecdsa_ca_cert.pem
+    find:
+     - TLS-Profile-Mismatch-Domains
+     - TLS-Validation-Fail-Domains
+     - TLS-Certificate-Warnings-Domains
+     - TLS-Vulnerability-Domains
+     - TLS-Okay-Domains
+     - TLS-Other-Error-Domains
+    expect:
+      - Expected-TLS-Validation-Fail-Domains equals TLS-Validation-Fail-Domains, otherwise alert high
+      - Expected-TLS-Profile-Mismatch-Domains equals TLS-Profile-Mismatch-Domains, otherwise alert high
+      - Expected-TLS-Certificate-Warnings-Domains equals TLS-Certificate-Warnings-Domains, otherwise alert high
+      - Expected-TLS-Vulnerability-Domains equals TLS-Vulnerability-Domains, otherwise alert high
+      - Expected-TLS-Okay-Domains equals TLS-Okay-Domains, otherwise alert high
+      - Expected-TLS-Other-Error-Domains equals TLS-Other-Error-Domains, otherwise alert high

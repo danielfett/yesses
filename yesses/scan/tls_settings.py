@@ -1,6 +1,5 @@
 from tlsprofiler import TLSProfiler
 from yesses.module import YModule, YExample
-import requests
 import logging
 
 log = logging.getLogger("scan/tlssettings")
@@ -23,6 +22,11 @@ compare it to the Mozilla TLS configuration profiles.
             "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `modern`).",
             "default": "intermediate",
         },
+        "ca_file": {
+            "required_keys": None,
+            "description": "Path to a trusted custom root certificates in PEM format.",
+            "default": None,
+        },
     }
 
     OUTPUTS = {
@@ -33,6 +37,10 @@ compare it to the Mozilla TLS configuration profiles.
         "TLS-Validation-Fail-Domains": {
             "provided_keys": ["domain", "errors"],
             "description": "Domains of servers that presented an invalid certificate. `errors` contains the list of validation errors.",
+        },
+        "TLS-Certificate-Warnings-Domains": {
+            "provided_keys": ["domain", "warnings"],
+            "description": "Domains of servers that have not the recommended certificate values. `warnings` contains all differgences from the recommended values.",
         },
         "TLS-Vulnerability-Domains": {
             "provided_keys": ["domain", "errors"],
@@ -59,6 +67,7 @@ compare it to the Mozilla TLS configuration profiles.
    find:
      - TLS-Profile-Mismatch-Domains
      - TLS-Validation-Fail-Domains
+     - TLS-Certificate-Warnings-Domains
      - TLS-Vulnerability-Domains
      - TLS-Okay-Domains
      - TLS-Other-Error-Domains
@@ -73,7 +82,7 @@ compare it to the Mozilla TLS configuration profiles.
             self.scan_domain(domain)
 
     def scan_domain(self, domain):
-        scanner = TLSProfiler(domain, self.tls_profile)
+        scanner = TLSProfiler(domain, self.tls_profile, ca_file=self.ca_file)
         if scanner.server_error is not None:
             self.results["TLS-Other-Error-Domains"].append(
                 {"domain": domain, "error": scanner.server_error,}
@@ -85,15 +94,20 @@ compare it to the Mozilla TLS configuration profiles.
 
         if not tls_results.validated:
             self.results["TLS-Validation-Fail-Domains"].append(
-                {"domain": domain, "errors": tls_results.validation_errors,}
+                {"domain": domain, "errors": tls_results.validation_errors}
+            )
+
+        if not tls_results.no_warnings:
+            self.results["TLS-Certificate-Warnings-Domains"].append(
+                {"domain": domain, "warnings": tls_results.cert_warnings}
             )
 
         if not tls_results.profile_matched:
             self.results["TLS-Profile-Mismatch-Domains"].append(
-                {"domain": domain, "errors": tls_results.profile_errors,}
+                {"domain": domain, "errors": tls_results.profile_errors}
             )
 
         if tls_results.vulnerable:
             self.results["TLS-Vulnerability-Domains"].append(
-                {"domain": domain, "errors": tls_results.vulnerability_errors,}
+                {"domain": domain, "errors": tls_results.vulnerability_errors}
             )

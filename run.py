@@ -94,6 +94,11 @@ if __name__ == "__main__":
         help="Run all tests which are defined in /tests/test_cases.",
     )
     parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="If '--unittests' is specified the test environment will be rebuild from scratch.",
+    )
+    parser.add_argument(
         "--generate-readme",
         action="store_true",
         help=f"Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results.",
@@ -104,7 +109,11 @@ if __name__ == "__main__":
     if args.unittests:
         import tests
 
-        return_status = tests.run_tests.start_environment()
+        arguments = ""
+        if args.no_cache:
+            arguments = "--no-cache"
+        return_status = tests.run_tests.start_environment(arguments)
+
         sys.exit(return_status)
 
     log_handler = logging.StreamHandler(sys.stdout)
