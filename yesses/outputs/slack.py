@@ -23,7 +23,7 @@ class Slack:
 
         self.client = slack.WebClient(token=token)
 
-    def run(self, alertslist, steps, time):
+    def run(self, alertslist, steps, raw_config, time):
         avars = alertslist.get_vars()
 
         if avars["max_severity"] is not None:

@@ -20,4 +20,6 @@ class Output:
             )
 
     def run(self, time):
-        self.output_obj.run(self.config.alertslist, self.config.steps, time)
+        self.output_obj.run(
+            self.config.alertslist, self.config.steps, self.config.raw_config, time
+        )
