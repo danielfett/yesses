@@ -187,3 +187,11 @@ dmypy.json
 *.alerts
 *.resume
 *.state
+
+# Test configuration
+test.yml
+
+# Certificates
+*.pem
+*.csr
+*.srl

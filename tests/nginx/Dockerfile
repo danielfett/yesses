@@ -1,7 +1,12 @@
-FROM debian:stretch-slim
+FROM nginx:1.17.7
 
-RUN apt update && apt install -y nginx
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
-COPY ./html /var/www/html
+COPY nginx/dhparams2048.pem /etc/ssl/dhparams2048.pem
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY certificates/ecdsa_ca_cert.pem /etc/ssl/ecdsa_ca_cert.pem
+
+COPY certificates/intermediate_key.pem /etc/ssl/tls_key.pem
+COPY certificates/intermediate_cert.pem /etc/ssl/tls_cert.pem
+
+COPY nginx/html /usr/share/nginx/html

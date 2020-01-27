@@ -2,8 +2,8 @@ version: '3.6'
 services:
   nginx:
     build:
-      dockerfile: Dockerfile
-      context: ./nginx/
+      dockerfile: nginx/Dockerfile
+      context: .
     networks:
       my-net:
         aliases:
@@ -11,8 +11,8 @@ services:
         ipv4_address: 172.16.0.3
   laravel:
     build:
-      dockerfile: Dockerfile
-      context: ./laravel/
+      dockerfile: laravel/Dockerfile
+      context: .
     networks:
       my-net:
         aliases:

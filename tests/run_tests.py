@@ -1,3 +1,4 @@
+from typing import Optional
 import os
 import sys
 import subprocess
@@ -42,8 +43,15 @@ def run():
     )  # Returns the number of failed tests as status code
 
 
-def start_environment() -> int:
-    subprocess.call("docker-compose -f tests/docker-compose.yml build", shell=True)
+def start_environment(build_option: Optional[str] = "") -> int:
+    return_status = subprocess.call(
+        "cd tests/certificates && bash create_certs.sh", shell=True
+    )
+    if return_status != 0:
+        sys.exit("Could not create certificates!")
+    subprocess.call(
+        f"docker-compose -f tests/docker-compose.yml build {build_option}", shell=True
+    )
     return_status = subprocess.call(
         "docker-compose -f tests/docker-compose.yml run test_container", shell=True
     )
