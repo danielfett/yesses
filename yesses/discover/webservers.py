@@ -30,6 +30,11 @@ class Webservers(YModule):
             "default": PORTS,
             "unwrap": True,
         },
+        "ignore_errors": {
+            "required_keys": None,
+            "description": "List of error codes that indicate a server that is not configured",
+            "default": [500],
+        },
     }
 
     OUTPUTS = {
@@ -52,7 +57,7 @@ class Webservers(YModule):
             "detect webservers on example.com",
             """
   - discover Webservers:
-      ips: 
+      ips:
         - ip: '93.184.216.34'
           port: 80
         - ip: '93.184.216.34'
@@ -89,8 +94,16 @@ class Webservers(YModule):
                             try:
                                 result = requests.get(url, timeout=10)
                             except requests.exceptions.RequestException as e:
-                                log.debug(f"Exception {e} on {url}, ip={ip['ip']}")
+                                log.debug(
+                                    f"Exception {e} on {url}, ip={ip['ip']}; skipping."
+                                )
+                                continue
                             else:
+                                if result.status_code in self.ignore_errors:
+                                    log.debug(
+                                        f"Error code {result.status_code} on {url}, ip={ip['ip']}; skipping."
+                                    )
+                                    continue
                                 el = {"url": url, "domain": domain, "ip": ip["ip"]}
                                 if protocol == "https":
                                     output_secure.append(el)
