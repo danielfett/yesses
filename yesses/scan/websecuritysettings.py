@@ -177,7 +177,7 @@ Cookies are only considered "secure" if they have the following properties:
         except requests.exceptions.RequestException as e:
             log.debug(f"Exception {e} on {url}, ip={ip}")
         else:
-            status_code_on_error = res.status_code
+            status_code_on_error = response.status_code
 
         found_disallowed_methods = []
         for method in self.disallowed_methods:
@@ -193,7 +193,8 @@ Cookies are only considered "secure" if they have the following properties:
                         found_disallowed_methods.append(
                             f"may support forbidden method {method} (status code {status})"
                         )
-                    found_disallowed_methods.append(f"supports forbidden method {method}")
+                    else:
+                        found_disallowed_methods.append(f"supports forbidden method {method}")
 
         if found_disallowed_methods:
             self.results["Disallowed-Method-URLs"].append(

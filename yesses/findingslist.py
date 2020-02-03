@@ -127,7 +127,7 @@ class FindingsList:
         for k in keys:
             all_items = self.get(k)
             if len(all_items) == 0:
-                return ["DOES_NOT_MATTER"]
+                return None
             attrs = set(all_items[0].keys())
             if common_attrs is None:
                 common_attrs = attrs
