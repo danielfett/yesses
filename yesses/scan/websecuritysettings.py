@@ -194,7 +194,9 @@ Cookies are only considered "secure" if they have the following properties:
                             f"may support forbidden method {method} (status code {status})"
                         )
                     else:
-                        found_disallowed_methods.append(f"supports forbidden method {method}")
+                        found_disallowed_methods.append(
+                            f"supports forbidden method {method}"
+                        )
 
         if found_disallowed_methods:
             self.results["Disallowed-Method-URLs"].append(
