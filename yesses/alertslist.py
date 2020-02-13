@@ -1,4 +1,4 @@
-from .alerts import Alert
+from .alerts import Alert, AlertSeverity
 from .state import State
 from datetime import datetime
 
@@ -34,7 +34,7 @@ class AlertsList:
         yield "****** END ALERTS ******"
 
     def get_summary(self):
-        severities = [s for s in Alert.Severity]
+        severities = [s for s in AlertSeverity]
         severities.sort(key=lambda s: s.value, reverse=True)
 
         summary = []
@@ -58,7 +58,7 @@ class AlertsList:
         summary_table, max_severity = self.get_summary()
         return {
             "alerts": self.alerts,
-            "severity": Alert.Severity,
+            "severity": AlertSeverity,
             "started": self.started,
             "created": datetime.now(),
             "summary": summary_table,

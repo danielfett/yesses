@@ -80,6 +80,9 @@ class StepOutput:
     provided_keys: list
 
 
+log = logging.getLogger("step")
+
+
 class Step:
     LOG_FORMATTER = logging.Formatter()
     LOG_LEVEL = logging.DEBUG
@@ -121,13 +124,14 @@ class Step:
 
         """
         if "name" in self.raw:
-            self.name = f"{self.raw['name']} ({self.action})"
+            self.name = self.raw["name"]
         else:
             self.name = self.action
 
     def parse_find(self):
         if not "find" in self.raw:
             raise Exception(f"Missing keyword 'find'.")
+
         self.outputs = []
         for name, alias in FindParser.parse_find_mapping(self.raw["find"]).items():
             output_field, properties = self.action_class.find_matching_output_field(

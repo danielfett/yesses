@@ -2,6 +2,7 @@ from tlsprofiler import TLSProfiler
 from yesses.module import YModule, YExample
 import requests
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 log = logging.getLogger("scan/tlssettings")
 
@@ -20,8 +21,18 @@ compare it to the Mozilla TLS configuration profiles.
         },
         "tls_profile": {
             "required_keys": None,
-            "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `new`).",
+            "description": "The Mozilla TLS profile to test against (`old`, `intermediate`, or `modern`).",
             "default": "intermediate",
+        },
+        "ca_file": {
+            "required_keys": None,
+            "description": "Path to a trusted custom root certificates in PEM format.",
+            "default": None,
+        },
+        "parallel_requests": {
+            "required_keys": None,
+            "description": "Number of parallel TLS scan commands to run.",
+            "default": 10,
         },
     }
 
@@ -33,6 +44,10 @@ compare it to the Mozilla TLS configuration profiles.
         "TLS-Validation-Fail-Domains": {
             "provided_keys": ["domain", "errors"],
             "description": "Domains of servers that presented an invalid certificate. `errors` contains the list of validation errors.",
+        },
+        "TLS-Certificate-Warnings-Domains": {
+            "provided_keys": ["domain", "warnings"],
+            "description": "Domains of servers that have not the recommended certificate values. `warnings` contains all differgences from the recommended values.",
         },
         "TLS-Vulnerability-Domains": {
             "provided_keys": ["domain", "errors"],
@@ -59,6 +74,7 @@ compare it to the Mozilla TLS configuration profiles.
    find:
      - TLS-Profile-Mismatch-Domains
      - TLS-Validation-Fail-Domains
+     - TLS-Certificate-Warnings-Domains
      - TLS-Vulnerability-Domains
      - TLS-Okay-Domains
      - TLS-Other-Error-Domains
@@ -69,11 +85,11 @@ compare it to the Mozilla TLS configuration profiles.
     ]
 
     def run(self):
-        for domain in self.domains:
-            self.scan_domain(domain)
+        with ThreadPoolExecutor(max_workers=self.parallel_requests) as executor:
+            executor.map(self.scan_domain, self.domains)
 
     def scan_domain(self, domain):
-        scanner = TLSProfiler(domain, self.tls_profile)
+        scanner = TLSProfiler(domain, self.tls_profile, ca_file=self.ca_file)
         if scanner.server_error is not None:
             self.results["TLS-Other-Error-Domains"].append(
                 {"domain": domain, "error": scanner.server_error,}
@@ -92,7 +108,12 @@ compare it to the Mozilla TLS configuration profiles.
 
         if not tls_results.validated:
             self.results["TLS-Validation-Fail-Domains"].append(
-                {"domain": domain, "errors": tls_results.validation_errors,}
+                {"domain": domain, "errors": tls_results.validation_errors}
+            )
+
+        if not tls_results.no_warnings:
+            self.results["TLS-Certificate-Warnings-Domains"].append(
+                {"domain": domain, "warnings": tls_results.cert_warnings}
             )
 
         if not tls_results.profile_matched:

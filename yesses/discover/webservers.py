@@ -36,6 +36,11 @@ are not necessarily a sign of a problem.
             "default": PORTS,
             "unwrap": True,
         },
+        "ignore_errors": {
+            "required_keys": None,
+            "description": "List of error codes that indicate a server that is not configured",
+            "default": [500],
+        },
     }
 
     OUTPUTS = {
@@ -55,6 +60,10 @@ are not necessarily a sign of a problem.
             "provided_keys": ["domain", "url", "ip", "error",],
             "description": "List of domains where any other error occured",
         },
+        "TLS-Domains": {
+            "provided_keys": ["domain"],
+            "description": "List of domains with HTTPS servers",
+        },
     }
 
     EXAMPLES = [
@@ -62,7 +71,7 @@ are not necessarily a sign of a problem.
             "detect webservers on example.com",
             """
   - discover Webservers:
-      ips: 
+      ips:
         - ip: '93.184.216.34'
           port: 80
         - ip: '93.184.216.34'
@@ -80,6 +89,7 @@ are not necessarily a sign of a problem.
     find:
       - Insecure-Origins
       - Secure-Origins
+      - TLS-Domains
 """,
         )
     ]
@@ -111,10 +121,17 @@ are not necessarily a sign of a problem.
                                 el["error"] = str(e)
                                 other_error_domains.append(el)
                             else:
+                                if result.status_code in self.ignore_errors:
+                                    log.debug(
+                                        f"Error code {result.status_code} on {url}, ip={ip['ip']}; skipping."
+                                    )
+                                    continue
                                 el = {"url": url, "domain": domain, "ip": ip["ip"]}
                                 if protocol == "https":
                                     output_secure.append(el)
                                     dom = {"domain": domain}
+                                    if not dom in tls_domains:
+                                        tls_domains.append(dom)
                                 else:
                                     output_insecure.append(el)
                                 log.info(f"Found webserver {url} on {ip['ip']}")
@@ -122,6 +139,7 @@ are not necessarily a sign of a problem.
         self.results["Secure-Origins"] = output_secure
         self.results["TLS-Error-Domains"] = tls_error_domains
         self.results["Other-Error-Domains"] = other_error_domains
+        self.results["TLS-Domains"] = tls_domains
 
 
 if __name__ == "__main__":

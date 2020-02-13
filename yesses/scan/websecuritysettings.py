@@ -15,12 +15,12 @@ class WebSecuritySettings(YModule):
   * disallowed headers (see below)
   * missing headers (see below)
   * missing cookie security features (see below)
-  
+
 Note: Only tests the web origins' root URLs.
 
 
 ##### Disallowed Headers #####
-Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers' value, and a human-readable reason that explains the rule. 
+Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers' value, and a human-readable reason that explains the rule.
 
 Header names and values can be matched using regular expressions (matching is done using python3's `re.fullmatch`, case-insensitive).
 
@@ -35,10 +35,10 @@ Defines headers that must be present in all responses. The `reason` keyword is n
 If the `origin` keyword is present, the header is only required on origins that match the respective value (using `re.match`).
 
 If `value_expr` is present, the contents are evaluated using python3's `eval()` function. Useful variables are:
- 
+
   * `value`, which contains the header's contents as a string
   * `max_age`, which contains the `max_age` header property, e.g., for Strict-Transport-Security headers (if set)
-  
+
 ##### Insecure Cookies #####
 
 Cookies are only considered "secure" if they have the following properties:
@@ -134,7 +134,7 @@ Cookies are only considered "secure" if they have the following properties:
             "Websecurity Settings of neverssl.com",
             """
  - scan Web Security Settings:
-     origins: 
+     origins:
        - url: http://neverssl.com
          ip: '143.204.208.22'
          domain: neverssl.com
@@ -167,23 +167,41 @@ Cookies are only considered "secure" if they have the following properties:
                 self.check_https_settings(ip, response)
                 response.close()
 
-            found_disallowed_methods = []
-            for method in self.disallowed_methods:
-                try:
-                    log.debug(f"{method} {url} with IP {ip}")
-                    response = requests.request(method, url, timeout=10)
-                except requests.exceptions.RequestException as e:
-                    log.debug(f"Exception {e} on {url}, ip={ip}")
-                else:
-                    if response.status_code < 400:
+            self.check_disallowed_methods(url, ip)
+
+    def check_disallowed_methods(self, url, ip):
+        # check webserver's reaction to an illegal method first.
+        status_code_on_error = None
+        try:
+            response = requests.request("YESSES", url, timeout=10)
+        except requests.exceptions.RequestException as e:
+            log.debug(f"Exception {e} on {url}, ip={ip}")
+        else:
+            status_code_on_error = response.status_code
+
+        found_disallowed_methods = []
+        for method in self.disallowed_methods:
+            try:
+                log.debug(f"{method} {url} with IP {ip}")
+                response = requests.request(method, url, timeout=10)
+            except requests.exceptions.RequestException as e:
+                log.debug(f"Exception {e} on {url}, ip={ip}")
+            else:
+                status = response.status_code
+                if status < 400:
+                    if status == status_code_on_error:
                         found_disallowed_methods.append(
-                            f"must not support method {method}"
+                            f"may support forbidden method {method} (status code {status})"
+                        )
+                    else:
+                        found_disallowed_methods.append(
+                            f"supports forbidden method {method}"
                         )
 
-            if found_disallowed_methods:
-                self.results["Disallowed-Method-URLs"].append(
-                    {"url": url, "ip": ip, "errors": found_disallowed_methods,}
-                )
+        if found_disallowed_methods:
+            self.results["Disallowed-Method-URLs"].append(
+                {"url": url, "ip": ip, "errors": found_disallowed_methods,}
+            )
 
     def check_http_settings(self, ip, response):
         if len(response.history) == 0:

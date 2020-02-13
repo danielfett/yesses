@@ -77,7 +77,7 @@ class Ports(YModule):
       - Other-Port-IPs
     expect:
       - no Host-Ports, otherwise alert high
-""",
+    """,
         )
     ]
 

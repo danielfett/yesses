@@ -12,7 +12,7 @@ from pyparsing import (
     OneOrMore,
 )
 
-from .alerts import Alert
+from .alerts import Alert, AlertSeverity
 from .comparison_functions import (
     get_function_equals_expr,
     get_function_in_expr,
@@ -97,7 +97,7 @@ class ExpectParser(Parser):
         expect_fns = []
         for rule in expect_rules:
             parsed = cls.parse(rule)
-            alert_severity = Alert.Severity.parse(" ".join(parsed.alert_action_args))
+            alert_severity = AlertSeverity.parse(" ".join(parsed.alert_action_args))
             expect_fns.append(cls.dispatch(rule, parsed, alert_severity))
         return expect_fns
 

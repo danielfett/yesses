@@ -12,7 +12,9 @@ class Config:
     ALERTS_SUFFIX = ".alerts"
 
     def __init__(self, configfile, fresh=False):
-        self.data = yaml.full_load(configfile.read())
+        self.raw_config = configfile.read()
+
+        self.data = yaml.full_load(self.raw_config)
 
         self.configfilepath = Path(configfile.name)
 

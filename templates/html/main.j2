@@ -1,27 +1,27 @@
 {% macro dump(item) %}
-{% if item is mapping %}
-<table class="findingstable">
-  {% for key, value in item.items() %}
-  <tr>
-    <th>{{ key }}</th>
-    <td>{{ dump(value) }}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% elif item is iterable and item is not string %}
-<ul>
-  {% for el in item %}
-  <li>{{ dump(el) }}</li>
-  {% endfor %}
-</ul>
-{% else %}
-<span class="finding">{{ item }}</span>
-{% endif %}
+    {% if item is mapping %}
+        <table class="findingstable">
+            {% for key, value in item.items() %}
+                <tr>
+                    <th>{{ key }}</th>
+                    <td>{{ dump(value) }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif item is iterable and item is not string %}
+        <ul>
+            {% for el in item %}
+                <li>{{ dump(el) }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <span class="finding">{{ item }}</span>
+    {% endif %}
 {% endmacro %}
 
 <html>
     <head>
-            
+        
         <style>
          html {
 	     font-family: HelveticaNowText-Regular, Helvetica Neue, Helvetica, sans-serif;
@@ -156,7 +156,7 @@
          .summarytable {
              border: 1px solid #999;
              margin: 0 0 0.5rem 0;
-             width: 30%;
+             width: 50%;
          }
 
          .summarytable .number {
@@ -173,6 +173,29 @@
 
          .finding {
              font-family: monospace;
+         }
+
+         a.quick {
+             display: inline-block;
+             border: 1px solid #fff;
+             width: 1ex;
+             height: 1ex;
+         }
+
+         a.quick.VERY_HIGH {
+             background-color: #900;
+         }
+
+         a.quick.HIGH {
+             background-color: #d00;
+         }
+
+         a.quick.MEDIUM {
+             background-color: #dd0;
+         }
+
+         a.quick.INFORMATIVE {
+             background-color: #00d;
          }
         </style>
         
@@ -199,6 +222,7 @@
                     {% for line in summary %}
                         <tr>
                             <td>
+                                <a href="#severity-{{ line.severity.name }}" class="quick {{ line.severity.name }}"></a>
                                 {{ line.severity.name }}
                             </td>
                             <td class="number">
@@ -212,36 +236,47 @@
                 </table>
             </p>
             <h2>Alerts</h2>
+            <div class="overview">
+                {% for alert in alerts %}
+                    <a href="#alert-{{ loop.index }}" class="quick {{alert.severity.name }}"></a>
+                {% endfor %}
+            </div>
             {% for alert in alerts %}
                 {% if loop.changed(alert.severity) %}
-                    <h3 class="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h3>
+                    <h3 id="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h3>
                 {% endif %}
-                <h4><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h4>
+                <h4 id="alert-{{ loop.index }}"><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h4>
                 <details>
                     <summary class="step-explain">In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.name }}</b></summary>
                     <p class="step-raw">{{- alert.step -}}</p>
+
                 </details>
 
                 
                 {% for name, findings in alert.findings.items() %}
-                <details class="findings">
-                    <summary>{{ findings|length }} {{ name }}</summary>
-                    <ol>
-                        {% for finding in findings %}
-                            <li>{{ dump(finding) }}</li>
-                        {% endfor  %}
-                    </ol>
-                </details>
+                    <details class="findings">
+                        <summary>{{ findings|length }} {{ name }}</summary>
+                        <ol>
+                            {% for finding in findings %}
+                                <li>{{ dump(finding) }}</li>
+                            {% endfor  %}
+                        </ol>
+                    </details>
                 {% endfor %}
             {% endfor %}
             <h2>Steps</h2>
             {% for step in steps %}
                 <h3 id="step-{{ step.number }}">Step #{{ step.number }}: {{step.name}}</h3>
                 <details>
+                    <summary>{{ step.action }}</summary>
+                    <p class="log-raw">{{- step.get_definition() -}}
+                </details>
+                
+                <details>
                     <summary>{{ step.inputs|count }} input variables</summary>
                     <p class="log-raw">{{- step.get_inputs() -}}</p>
                 </details>                            
-                        
+                
                 <details class="log">
                     <summary>Execution took {{ '%.1f' % step.duration.total_seconds()}}s</summary>
                     <p class="log-raw">{{- step.get_log() -}}</p>

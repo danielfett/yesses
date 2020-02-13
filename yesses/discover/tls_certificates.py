@@ -45,7 +45,7 @@ Note: The output may contain wildcards, e.g., '*.example.com'.
     find:
       - TLS-Names
       - TLS-Certificates
-""",
+    """,
         )
     ]
 
