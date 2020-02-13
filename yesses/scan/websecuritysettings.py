@@ -4,7 +4,7 @@ from yesses.utils import force_ip_connection
 import re
 from yesses.module import YModule, YExample
 
-log = logging.getLogger('scan/websecuritysettings')
+log = logging.getLogger("scan/websecuritysettings")
 
 
 class WebSecuritySettings(YModule):
@@ -50,63 +50,40 @@ Cookies are only considered "secure" if they have the following properties:
   * The `HttpOnly` attribute must be set.
 
     """
-    
-    DISALLOWED_METHODS = [
-        'TRACE', 'TRACK', 'CONNECT'
-    ]
-    
+
+    DISALLOWED_METHODS = ["TRACE", "TRACK", "CONNECT"]
+
     DISALLOWED_HEADERS = [
+        {"header": "Access-Control-.*", "reason": "CORS must be disabled",},
         {
-            'header': 'Access-Control-.*',
-            'reason': 'CORS must be disabled',
+            "header": "Server",
+            "value": ".* .*[0-9].*",
+            "reason": "Server headers must not contain version information",
         },
-        {
-            'header': 'Server',
-            'value': '.* .*[0-9].*',
-            'reason': 'Server headers must not contain version information',
-        }
     ]
 
     REQUIRED_HEADERS = [
         {
-            'header': 'Strict-Transport-Security',
-            'value_expr': 'max_age >= 31536000',
-            'reason': 'STS header must be set and be valid for at least one year',
-            'origin': 'https:',
+            "header": "Strict-Transport-Security",
+            "value_expr": "max_age >= 31536000",
+            "reason": "STS header must be set and be valid for at least one year",
+            "origin": "https:",
         },
+        {"header": "X-Frame-Options", "value": "DENY", "origin": "https:",},
+        {"header": "X-Content-Type-Options", "value": "nosniff", "origin": "https:",},
+        {"header": "Referrer-Policy", "origin": "https:",},
+        {"header": "Content-Security-Policy", "origin": "https:",},
         {
-            'header': 'X-Frame-Options',
-            'value': 'DENY',
-            'origin': 'https:',            
+            "header": "Expect-CT",
+            "value_expr": 'value.startswith("enforce,") and max_age > 86400',
+            "origin": "https:",
         },
-        {
-            'header': 'X-Content-Type-Options',
-            'value': 'nosniff',
-            'origin': 'https:',
-        },
-        {
-            'header': 'Referrer-Policy',
-            'origin': 'https:',
-        },
-        {
-            'header': 'Content-Security-Policy',
-            'origin': 'https:',
-        },
-        {
-            'header': 'Expect-CT',
-            'value_expr': 'value.startswith("enforce,") and max_age > 86400',
-            'origin': 'https:',
-        }
     ]
-        
+
     INPUTS = {
         "origins": {
-            "required_keys": [
-                "url",
-                "domain",
-                "ip"
-            ],
-            "description": "List of web origins to scan."
+            "required_keys": ["url", "domain", "ip"],
+            "description": "List of web origins to scan.",
         },
         "disallowed_methods": {
             "required_keys": None,
@@ -114,74 +91,48 @@ Cookies are only considered "secure" if they have the following properties:
             "default": DISALLOWED_METHODS,
         },
         "disallowed_headers": {
-            "required_keys": [
-                "header"
-            ],
+            "required_keys": ["header"],
             "description": "Objects defining headers that are not allowed (see description).",
             "default": DISALLOWED_HEADERS,
         },
         "required_headers": {
-            "required_keys": [
-                "header"
-            ],
+            "required_keys": ["header"],
             "description": "Objects defining headers that are required (see description).",
             "default": REQUIRED_HEADERS,
-        }
+        },
     }
 
     OUTPUTS = {
         "Missing-HTTPS-Redirect-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "error"
-            ],
-            "description": "HTTP URLs which do not redirect to HTTPS."
+            "provided_keys": ["url", "ip", "error"],
+            "description": "HTTP URLs which do not redirect to HTTPS.",
         },
         "Redirect-to-non-HTTPS-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "error"
-            ],
-            "description": "URLs which redirect to HTTP URLs."
+            "provided_keys": ["url", "ip", "error"],
+            "description": "URLs which redirect to HTTP URLs.",
         },
         "Disallowed-Header-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "errors"
-            ],
-            "description": "URLs that set disallowed headers."
+            "provided_keys": ["url", "ip", "errors"],
+            "description": "URLs that set disallowed headers.",
         },
         "Missing-Header-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "errors"
-            ],
-            "description": "URLs that miss headers."
+            "provided_keys": ["url", "ip", "errors"],
+            "description": "URLs that miss headers.",
         },
         "Disallowed-Method-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "errors"
-            ],
-            "description": "URLs where disallowed methods do not trigger an error."
+            "provided_keys": ["url", "ip", "errors"],
+            "description": "URLs where disallowed methods do not trigger an error.",
         },
         "Insecure-Cookie-URLs": {
-            "provided_keys": [
-                "url",
-                "ip",
-                "errors"
-            ],
-            "description": "URLs where cookie settings are not sufficient."
-        }
+            "provided_keys": ["url", "ip", "errors"],
+            "description": "URLs where cookie settings are not sufficient.",
+        },
     }
 
     EXAMPLES = [
-        YExample("Websecurity Settings of neverssl.com", """
+        YExample(
+            "Websecurity Settings of neverssl.com",
+            """
  - scan Web Security Settings:
      origins: 
        - url: http://neverssl.com
@@ -194,9 +145,10 @@ Cookies are only considered "secure" if they have the following properties:
      - Missing-Header-URLs
      - Disallowed-Method-URLs
      - Insecure-Cookie-URLs
-""")
-        ]
-        
+""",
+        )
+    ]
+
     def run(self):
         for origin in self.origins:
             self.run_checks(**origin)
@@ -205,12 +157,12 @@ Cookies are only considered "secure" if they have the following properties:
         log.info(f"Now checking {domain} on IP {ip}")
         with force_ip_connection(domain, ip):
             try:
-                log.debug(f'GET {url} with IP {ip}')
+                log.debug(f"GET {url} with IP {ip}")
                 response = requests.get(url, timeout=10, stream=True)
             except requests.exceptions.RequestException as e:
                 log.debug(f"Exception {e} on {url}, ip={ip}")
             else:
-                if url.startswith('http://'):
+                if url.startswith("http://"):
                     self.check_http_settings(ip, response)
                 self.check_https_settings(ip, response)
                 response.close()
@@ -218,40 +170,35 @@ Cookies are only considered "secure" if they have the following properties:
             found_disallowed_methods = []
             for method in self.disallowed_methods:
                 try:
-                    log.debug(f'{method} {url} with IP {ip}')
+                    log.debug(f"{method} {url} with IP {ip}")
                     response = requests.request(method, url, timeout=10)
                 except requests.exceptions.RequestException as e:
                     log.debug(f"Exception {e} on {url}, ip={ip}")
                 else:
                     if response.status_code < 400:
-                        found_disallowed_methods.append(f"must not support method {method}")
-                        
-            if found_disallowed_methods:
-                self.results['Disallowed-Method-URLs'].append({
-                    'url':url,
-                    'ip':ip,
-                    'errors':found_disallowed_methods,
-                })
+                        found_disallowed_methods.append(
+                            f"must not support method {method}"
+                        )
 
+            if found_disallowed_methods:
+                self.results["Disallowed-Method-URLs"].append(
+                    {"url": url, "ip": ip, "errors": found_disallowed_methods,}
+                )
 
     def check_http_settings(self, ip, response):
         if len(response.history) == 0:
-            self.results['Missing-HTTPS-Redirect-URLs'].append({
-                'url': response.url,
-                'ip': ip,
-                'error': "no redirection encountered"
-            })
+            self.results["Missing-HTTPS-Redirect-URLs"].append(
+                {"url": response.url, "ip": ip, "error": "no redirection encountered"}
+            )
 
     def check_https_settings(self, ip, response):
         chain = [sr.url for sr in response.history + [response]]
         for step_uri in chain[1:]:
-            if not step_uri.startswith('https://'):
+            if not step_uri.startswith("https://"):
                 error = f"got redirections to non-HTTPS-URLs; redirection chain: {' → '.join(chain)}"
-                self.results['Redirect-to-non-HTTPS-URLs'].append({
-                    'url': chain[0],
-                    'ip': ip,
-                    'error': error,
-                })
+                self.results["Redirect-to-non-HTTPS-URLs"].append(
+                    {"url": chain[0], "ip": ip, "error": error,}
+                )
                 break
 
         self.check_headers(ip, response)
@@ -259,25 +206,25 @@ Cookies are only considered "secure" if they have the following properties:
     def match_header(self, url, rule, header, value):
         header = header.strip()
         value = value.strip()
-        if re.fullmatch(rule['header'], header, re.IGNORECASE):
-            if 'value' in rule:
-                if re.fullmatch(rule['value'], value, re.IGNORECASE):
+        if re.fullmatch(rule["header"], header, re.IGNORECASE):
+            if "value" in rule:
+                if re.fullmatch(rule["value"], value, re.IGNORECASE):
                     return True
                 else:
                     return False
-            elif 'value_expr' in rule:
+            elif "value_expr" in rule:
                 # check if max_age attribute is set
-                match = re.search('max-age=([0-9]+)', value, re.IGNORECASE)
+                match = re.search("max-age=([0-9]+)", value, re.IGNORECASE)
                 if match:
                     max_age = int(match.group(1))
                 else:
                     max_age = 0
-                return eval(rule['value_expr'])
+                return eval(rule["value_expr"])
             else:
                 return True
-            
+
         return None
-        
+
     def check_headers(self, ip, response):
         try:
             actual_ip = response.raw._connection.sock.socket.getsockname()[0]
@@ -286,7 +233,7 @@ Cookies are only considered "secure" if they have the following properties:
                 actual_ip = response.raw._connection.sock.getsockname()[0]
             except:
                 actual_ip = None
-            
+
         self.check_disallowed_headers(actual_ip, response)
         self.check_missing_headers(actual_ip, response)
         self.check_insecure_cookies(actual_ip, response)
@@ -297,66 +244,74 @@ Cookies are only considered "secure" if they have the following properties:
             for header, value in response.headers.items():
                 match = self.match_header(response.url, rule, header, value)
                 if match is True:
-                    found_disallowed_headers.append(f"illegal header {header} (with value {value}): {rule['reason']}")
-                    
+                    found_disallowed_headers.append(
+                        f"illegal header {header} (with value {value}): {rule['reason']}"
+                    )
+
         if found_disallowed_headers:
-            self.results['Disallowed-Header-URLs'].append({
-                'url': response.url,
-                'ip': actual_ip,
-                'errors': found_disallowed_headers
-            })
+            self.results["Disallowed-Header-URLs"].append(
+                {
+                    "url": response.url,
+                    "ip": actual_ip,
+                    "errors": found_disallowed_headers,
+                }
+            )
 
     def check_missing_headers(self, actual_ip, response):
         found_missing_headers = []
         for rule in self.required_headers:
-            if 'origin' in rule:
-                if not re.match(rule['origin'], response.url):
+            if "origin" in rule:
+                if not re.match(rule["origin"], response.url):
                     continue
-                
+
             for header, value in response.headers.items():
                 match = self.match_header(response.url, rule, header, value)
                 if match is True:
                     break
             else:
-                if 'value' in rule:
+                if "value" in rule:
                     text = f" with value '{rule['value']}'"
-                elif 'value_expr' in rule:
+                elif "value_expr" in rule:
                     text = f" matching expression '{rule['value_expr']}'"
                 else:
-                    text = ''
-                found_missing_headers.append(f"missing header: '{rule['header']}' {text}")
-                
+                    text = ""
+                found_missing_headers.append(
+                    f"missing header: '{rule['header']}' {text}"
+                )
+
         if found_missing_headers:
-            self.results['Missing-Header-URLs'].append({
-                'url': response.url,
-                'ip': actual_ip,
-                'errors': found_missing_headers,
-            })
+            self.results["Missing-Header-URLs"].append(
+                {"url": response.url, "ip": actual_ip, "errors": found_missing_headers,}
+            )
 
     def check_insecure_cookies(self, actual_ip, response):
         # check cookie headers
         found_insecure_cookies = []
         for c in response.cookies:
             insecure = []
-            if response.url.startswith('https:'):
-                if not c.name.startswith('__Secure-') and not c.name.startswith('__Host-'):
-                    insecure.append('missing __Secure- or __Host-Prefix')
+            if response.url.startswith("https:"):
+                if not c.name.startswith("__Secure-") and not c.name.startswith(
+                    "__Host-"
+                ):
+                    insecure.append("missing __Secure- or __Host-Prefix")
                 if not c.secure:
-                    insecure.append('missing secure attribute')
-                if not c.has_nonstandard_attr('SameSite'):
-                    insecure.append('missing SameSite attribute')
-                    
-            if not c.has_nonstandard_attr('HttpOnly'):
-                insecure.append('missing HttpOnly attribute')
+                    insecure.append("missing secure attribute")
+                if not c.has_nonstandard_attr("SameSite"):
+                    insecure.append("missing SameSite attribute")
+
+            if not c.has_nonstandard_attr("HttpOnly"):
+                insecure.append("missing HttpOnly attribute")
 
             if len(insecure):
-                found_insecure_cookies.append(f"insecure cookie {c.name}: {', '.join(insecure)}")
-                
+                found_insecure_cookies.append(
+                    f"insecure cookie {c.name}: {', '.join(insecure)}"
+                )
+
         if found_insecure_cookies:
-            self.results['Insecure-Cookie-URLs'].append({
-                'url': response.url,
-                'ip': actual_ip,
-                'errors': found_insecure_cookies,
-            })
-                
-        
+            self.results["Insecure-Cookie-URLs"].append(
+                {
+                    "url": response.url,
+                    "ip": actual_ip,
+                    "errors": found_insecure_cookies,
+                }
+            )

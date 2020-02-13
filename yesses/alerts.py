@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 import logging
 
+
 @dataclass
 class Alert:
     # Severity enum corresponds to python log levels
@@ -13,7 +14,7 @@ class Alert:
 
         @classmethod
         def parse(cls, text):
-            return cls[text.strip().upper().replace(' ', '_')]
+            return cls[text.strip().upper().replace(" ", "_")]
 
     violated_rule: str
     findings: list
@@ -22,7 +23,7 @@ class Alert:
 
 
 for level in Alert.Severity:
-    logging.addLevelName(level.value, f'ALERT_{level.name}')
+    logging.addLevelName(level.value, f"ALERT_{level.name}")
 
 # needed for yaml import?
 Severity = Alert.Severity

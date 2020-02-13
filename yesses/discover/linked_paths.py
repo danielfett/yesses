@@ -14,19 +14,19 @@ from yesses import utils
 logging.getLogger("requests").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("chardet").setLevel(logging.ERROR)
-log = logging.getLogger('discover/linked_paths')
+log = logging.getLogger("discover/linked_paths")
 
 
 class LinkedPathsSession(utils.ConcurrentSession):
-
     def __init__(self, origin: Dict, threads: int):
         super().__init__(threads)
-        start_parsed_url = utils.UrlParser(origin['url'])
+        start_parsed_url = utils.UrlParser(origin["url"])
         self.task_queue = queue.Queue()  # type: queue.Queue[utils.UrlParser]
         self.task_queue.put(start_parsed_url)
         self.regex = re.compile(
             rf"^https?://([a-zA-Z0-9_.-]*\.|){re.escape(start_parsed_url.base_domain)}|"
-            rf"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)")
+            rf"^(?![a-zA-Z-]+:|//|#|[\n]|/$|$)"
+        )
         self.urls_visited = []  # type: List[utils.UrlParser]
 
 
@@ -43,41 +43,31 @@ class LinkedPaths(YModule):
 
     INPUTS = {
         "origins": {
-            "required_keys": [
-                "ip",
-                "domain",
-                "url"
-            ],
+            "required_keys": ["ip", "domain", "url"],
             "description": "Required. Origins to scan for leaky paths",
         },
         "recursion_depth": {
             "required_keys": None,
             "description": "Max depth to search for hidden files and directories. "
-                           "Found files can only have recursion_depth + 1 depth",
+            "Found files can only have recursion_depth + 1 depth",
             "default": RECURSION_DEPTH,
         },
         "threads": {
             "required_keys": None,
             "description": "Number of threads to run search in parallel",
             "default": THREADS,
-        }
+        },
     }
 
     OUTPUTS = {
         "Linked-Paths": {
-            "provided_keys": [
-                "url"
-            ],
-            "description": "List of all linked pages from the url"
+            "provided_keys": ["url"],
+            "description": "List of all linked pages from the url",
         },
         "Linked-Pages": {
-            "provided_keys": [
-                "url",
-                "header",
-                "data"
-            ],
-            "description": "Pages and the content from the page"
-        }
+            "provided_keys": ["url", "header", "data"],
+            "description": "Pages and the content from the page",
+        },
     }
 
     def run(self):
@@ -91,7 +81,7 @@ class LinkedPaths(YModule):
         filtered_origins = utils.filter_origins(self.origins)
 
         for origin in filtered_origins.values():
-            with utils.force_ip_connection(origin['domain'], origin['ip']):
+            with utils.force_ip_connection(origin["domain"], origin["ip"]):
                 start = time.time()
                 sess = LinkedPathsSession(origin, self.threads)
 
@@ -123,10 +113,19 @@ class LinkedPaths(YModule):
 
                 self.scrape_urls(task, req_sess, sess)
 
-    def scrape_urls(self, parsed_url: utils.UrlParser, req_sess: requests.Session, sess: LinkedPathsSession):
+    def scrape_urls(
+        self,
+        parsed_url: utils.UrlParser,
+        req_sess: requests.Session,
+        sess: LinkedPathsSession,
+    ):
         # get new page
-        r = req_sess.get(parsed_url.full_url(),
-                         headers={'User-Agent': self.user_agents[randint(0, len(self.user_agents) - 1)]})
+        r = req_sess.get(
+            parsed_url.full_url(),
+            headers={
+                "User-Agent": self.user_agents[randint(0, len(self.user_agents) - 1)]
+            },
+        )
         # parse url returned by requests in the case we have been redirected
         forwarded_parsed_url = utils.UrlParser(r.url)
 
@@ -134,13 +133,21 @@ class LinkedPaths(YModule):
         # this again because we could have been redirected to a page we have
         # already visited. We also have to check again if it's a local page
         # because we could have been redirected to another website.
-        if forwarded_parsed_url not in sess.urls_visited \
-                and re.match(sess.regex, forwarded_parsed_url.full_url()):
+        if forwarded_parsed_url not in sess.urls_visited and re.match(
+            sess.regex, forwarded_parsed_url.full_url()
+        ):
             sess.urls_visited.append(forwarded_parsed_url)
-            self.results['Linked-Paths'].append({'url': forwarded_parsed_url.full_url()})
+            self.results["Linked-Paths"].append(
+                {"url": forwarded_parsed_url.full_url()}
+            )
             header_list = utils.convert_header(r)
-            self.results['Linked-Pages'].append(
-                {'url': forwarded_parsed_url.full_url(), 'header': header_list, 'data': r.text})
+            self.results["Linked-Pages"].append(
+                {
+                    "url": forwarded_parsed_url.full_url(),
+                    "header": header_list,
+                    "data": r.text,
+                }
+            )
         else:
             return
 
@@ -153,19 +160,29 @@ class LinkedPaths(YModule):
         soup = BeautifulSoup(r.text, "lxml")
 
         # get all linked pages and css files
-        links = [link.get('href') for link in
-                 soup.findAll(['a', 'link'], attrs={'href': sess.regex})]  # type: List[str]
+        links = [
+            link.get("href")
+            for link in soup.findAll(["a", "link"], attrs={"href": sess.regex})
+        ]  # type: List[str]
         # get all JavaScript files
-        links += [script.get('src') for script in soup.findAll('script', attrs={'src': sess.regex})]
+        links += [
+            script.get("src")
+            for script in soup.findAll("script", attrs={"src": sess.regex})
+        ]
 
         for link in links:
             parsed_link = utils.UrlParser(link)
-            if parsed_link.netloc == '':
+            if parsed_link.netloc == "":
                 parsed_link.origin = forwarded_parsed_url.origin
-                parsed_link.path = self.join_paths(forwarded_parsed_url.path, parsed_link.path)
+                parsed_link.path = self.join_paths(
+                    forwarded_parsed_url.path, parsed_link.path
+                )
 
-            if parsed_link not in sess.urls_visited and parsed_link.file_ending not in ['.png', '.jpg', '.jpeg', '.pdf'] \
-                    and parsed_link.path_depth <= self.recursion_depth:
+            if (
+                parsed_link not in sess.urls_visited
+                and parsed_link.file_ending not in [".png", ".jpg", ".jpeg", ".pdf"]
+                and parsed_link.path_depth <= self.recursion_depth
+            ):
                 sess.task_queue.put(parsed_link)
 
     @staticmethod
@@ -178,7 +195,7 @@ class LinkedPaths(YModule):
         :param path:
         :return: new absolute path
         """
-        if path.startswith('/'):
+        if path.startswith("/"):
             return path
         elif re.match("^/.+/$", path_prefix):
             return f"{path_prefix}{path}"

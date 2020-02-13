@@ -3,7 +3,7 @@ from yesses.utils import force_ip_connection
 import requests
 from yesses.module import YModule, YExample
 
-log = logging.getLogger('scan/webservers')
+log = logging.getLogger("scan/webservers")
 
 
 class Webservers(YModule):
@@ -22,68 +22,45 @@ are not necessarily a sign of a problem.
 
     INPUTS = {
         "ips": {
-            "required_keys": [
-                "ip",
-                "port"
-            ],
+            "required_keys": ["ip", "port"],
             "description": "IPs and ports to scan (e.g., from the Ports module: Host-Ports)",
         },
         "domains": {
-            "required_keys": [
-                "domain"
-            ],
+            "required_keys": ["domain"],
             "description": "Domain names to try on these IPs",
             "unwrap": True,
         },
         "ports": {
-            "required_keys": [
-                "port"
-            ],
+            "required_keys": ["port"],
             "description": "Ports to look for web servers",
             "default": PORTS,
             "unwrap": True,
-        }
+        },
     }
 
     OUTPUTS = {
         "Insecure-Origins": {
-            "provided_keys": [
-                "domain",
-                "url",
-                "ip"
-            ],
-            "description": "HTTP origins"
+            "provided_keys": ["domain", "url", "ip"],
+            "description": "HTTP origins",
         },
         "Secure-Origins": {
-            "provided_keys": [
-                "domain",
-                "url",
-                "ip"
-            ],
-            "description": "as above, but for HTTPS"
+            "provided_keys": ["domain", "url", "ip"],
+            "description": "as above, but for HTTPS",
         },
         "TLS-Error-Domains": {
-            "provided_keys": [
-                "domain",
-                "url",
-                "ip",
-                "error",
-            ],
-            "description": "List of domains where an error during the TLS connection was encountered (e.g., wrong certificate)"
+            "provided_keys": ["domain", "url", "ip", "error",],
+            "description": "List of domains where an error during the TLS connection was encountered (e.g., wrong certificate)",
         },
         "Other-Error-Domains": {
-            "provided_keys": [
-                "domain",
-                "url",
-                "ip",
-                "error",
-            ],
-            "description": "List of domains where any other error occured"
+            "provided_keys": ["domain", "url", "ip", "error",],
+            "description": "List of domains where any other error occured",
         },
     }
 
     EXAMPLES = [
-        YExample("detect webservers on example.com", """
+        YExample(
+            "detect webservers on example.com",
+            """
   - discover Webservers:
       ips: 
         - ip: '93.184.216.34'
@@ -103,7 +80,8 @@ are not necessarily a sign of a problem.
     find:
       - Insecure-Origins
       - Secure-Origins
-""")
+""",
+        )
     ]
 
     def run(self):
@@ -113,32 +91,37 @@ are not necessarily a sign of a problem.
         tls_error_domains = []
         for ip in self.ips:
             # just check a port if it is open and in the list of passed ports
-            if ip['port'] in self.ports:
+            if ip["port"] in self.ports:
                 for domain in self.domains:
-                    for protocol in ('http', 'https'):
-                        with force_ip_connection(domain, ip['ip']):
+                    for protocol in ("http", "https"):
+                        with force_ip_connection(domain, ip["ip"]):
                             url = f"{protocol}://{domain}:{ip['port']}/"
-                            el = {'url': url, 'domain': domain, 'ip': ip, 'port': ip['port']}
+                            el = {
+                                "url": url,
+                                "domain": domain,
+                                "ip": ip,
+                                "port": ip["port"],
+                            }
                             try:
                                 result = requests.get(url, timeout=10)
                             except requests.exceptions.SSLError as e:
-                                el['error'] = str(e)
+                                el["error"] = str(e)
                                 tls_error_domains.append(el)
                             except requests.exceptions.RequestException as e:
-                                el['error'] = str(e)
+                                el["error"] = str(e)
                                 other_error_domains.append(el)
                             else:
-                                el = {'url': url, 'domain': domain, 'ip': ip['ip']}
-                                if protocol == 'https':
+                                el = {"url": url, "domain": domain, "ip": ip["ip"]}
+                                if protocol == "https":
                                     output_secure.append(el)
-                                    dom = {'domain': domain}
+                                    dom = {"domain": domain}
                                 else:
                                     output_insecure.append(el)
                                 log.info(f"Found webserver {url} on {ip['ip']}")
-        self.results['Insecure-Origins'] = output_insecure
-        self.results['Secure-Origins'] = output_secure
-        self.results['TLS-Error-Domains'] = tls_error_domains
-        self.results['Other-Error-Domains'] = other_error_domains
+        self.results["Insecure-Origins"] = output_insecure
+        self.results["Secure-Origins"] = output_secure
+        self.results["TLS-Error-Domains"] = tls_error_domains
+        self.results["Other-Error-Domains"] = other_error_domains
 
 
 if __name__ == "__main__":
