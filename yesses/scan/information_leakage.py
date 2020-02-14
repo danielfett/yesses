@@ -25,15 +25,17 @@ class InformationLeakageSession:
 
 
 class InformationLeakage(YModule):
-    """
-    Scan HTML, JavaScript and CSS files for information leakages. This is done by search with
-    regular expressions for email and IP addresses and strings that look like paths in the
-    visible text of a HTML site or in HTML, JavaScript and CSS comments.
-    For paths, there is also a list of common directories to determine whether a path
-    is a real path or not. Furthermore, there is a list with common file endings to check
-    if a path ends with a file name or a string is a file name. All the regex expressions
-    are searching only for strings that are either at the beginning or end of a line or
-    which have whitespace before or after.
+    """Scan HTML, JavaScript and CSS files for information leakages. This
+is done by a search with regular expressions for email and IP
+addresses and strings that look like paths in the visible text of a
+HTML site or in HTML, JavaScript and CSS comments. For paths, there is
+also a list of common directories to determine whether a path is a
+real path or not. Furthermore, there is a list with common file
+endings to check if a path ends with a file name or a string is a file
+name. All the regex expressions are searching only for strings that
+are either at the beginning or end of a line or which have whitespace
+before or after.
+
     """
 
     REGEX = {
@@ -82,7 +84,7 @@ class InformationLeakage(YModule):
             "Check example strings for information leakage",
             """
       - scan Information Leakage:
-          pages: 
+          pages:
             - url: page0
               data: "<!-- test@example.com /var/home/bla aaa --><html>\n\n<head><script src='ajkldfjalk'></script></head>\n\n <body>\n\n<!-- This is a comment --><h1>Title</h1>\n\n<!-- secret.txt \n\n/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>\n\n<style> test@example.com </style>\n\n</body>"
             - url: page1

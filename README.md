@@ -241,11 +241,11 @@ fields. The field names can be used in the yaml configuration file.
 
 
 ## `scan HeaderLeakage` ##
+This module searches for potentially sensitive much information in
+HTTP headers. It checks if the 'Server' attribute contains too much
+information and if the 'X-Powered-By' and/or the 'X-AspNet-Version'
+attribute is set.
 
-    This module searches for too much information in the HTTP header.
-    It checks if the 'Server' attribute contains too much information
-    and if the 'X-Powered-By' and/or the 'X-AspNet-Version' attribute
-    is set.
     
 
 
@@ -271,15 +271,17 @@ fields. The field names can be used in the yaml configuration file.
 
 
 ## `scan InformationLeakage` ##
+Scan HTML, JavaScript and CSS files for information leakages. This
+is done by a search with regular expressions for email and IP
+addresses and strings that look like paths in the visible text of a
+HTML site or in HTML, JavaScript and CSS comments. For paths, there is
+also a list of common directories to determine whether a path is a
+real path or not. Furthermore, there is a list with common file
+endings to check if a path ends with a file name or a string is a file
+name. All the regex expressions are searching only for strings that
+are either at the beginning or end of a line or which have whitespace
+before or after.
 
-    Scan HTML, JavaScript and CSS files for information leakages. This is done by search with
-    regular expressions for email and IP addresses and strings that look like paths in the
-    visible text of a HTML site or in HTML, JavaScript and CSS comments.
-    For paths, there is also a list of common directories to determine whether a path
-    is a real path or not. Furthermore, there is a list with common file endings to check
-    if a path ends with a file name or a string is a file name. All the regex expressions
-    are searching only for strings that are either at the beginning or end of a line or
-    which have whitespace before or after.
     
 
 
@@ -291,7 +293,7 @@ fields. The field names can be used in the yaml configuration file.
 Configuration:
 ```YAML
       - scan Information Leakage:
-          pages: 
+          pages:
             - url: page0
               data: "<!-- test@example.com /var/home/bla aaa --><html>
 
@@ -608,34 +610,34 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support TLSv1.1
   - must not support TLSv1
+  - must not support TLSv1.1
   - must support TLSv1.3
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support ECDHE-RSA-AES256-SHA384
   - must not support ECDHE-RSA-AES128-SHA256
-  - must not support ECDHE-RSA-AES256-SHA
-  - must not support ECDHE-RSA-AES128-SHA
-  - must not support DHE-RSA-AES128-SHA
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support DES-CBC3-SHA
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support AES128-SHA
-  - must not support AES128-SHA256
-  - must not support AES256-SHA256
   - must not support DHE-RSA-AES256-SHA
-  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support DHE-RSA-AES256-SHA256
+  - must not support AES128-SHA
+  - must not support DES-CBC3-SHA
   - must not support AES256-GCM-SHA384
   - must not support AES128-GCM-SHA256
-  - must not support AES256-SHA
-  - must not support DHE-RSA-AES256-SHA256
+  - must not support AES256-SHA256
   - must not support DHE-RSA-AES128-SHA256
-  - must support TLS_AES_256_GCM_SHA384
+  - must not support EDH-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support AES128-SHA256
+  - must not support AES256-SHA
+  - must not support ECDHE-RSA-AES128-SHA
+  - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support ECDHE-RSA-AES256-SHA
+  - must not support DHE-RSA-AES128-SHA
   - must support ECDHE-RSA-CHACHA20-POLY1305
-  - must support TLS_CHACHA20_POLY1305_SHA256
+  - must support TLS_AES_256_GCM_SHA384
   - must support TLS_AES_128_GCM_SHA256
+  - must support TLS_CHACHA20_POLY1305_SHA256
   - HSTS header not set
   - certificate lifespan to long
   - OCSP stapling must be supported
@@ -1009,12 +1011,12 @@ IPs:
 
 
 ## `discover ErrorPaths` ##
+This module tries to provoke errors and saves the error pages in an
+    array. The error pages can then be used as the inputs for the
+    information leakage module and the header leakage module to search
+    them for too much information. Currently, this module only calls a
+    non-existing page to get a 404 not found error page.
 
-    This module tries to provoke errors and saves the error pages in an array.
-    The error pages can then be used as the inputs for the information leakage
-    module and the header leakage module to search them for too much information.
-    Currently, this module only calls a non-existing page to
-    get a 404 not found error page.
     
 
 
@@ -1040,10 +1042,10 @@ IPs:
 
 
 ## `discover HiddenPaths` ##
+This module takes URLs and linked paths from the Linked Paths
+ module. It extracts potential folders from the linked paths and
+ searches in these folders with a wordlist for potential hidden files.
 
-    This module takes URLs and linked paths from the Linked Paths module.
-    It extracts potential folders from the linked paths and searches in
-    these folders with a wordlist for potential hidden files.
     
 
 
@@ -1099,9 +1101,9 @@ assets/hidden_paths_lists/apache.lst
 
 
 ## `discover LinkedPaths` ##
+This module takes URLs and collects recursively all links, which
+    are local to this URL.
 
-    This module takes URLs and collects recursively all links, which are local
-    to this URL.
     
 
 
@@ -1171,14 +1173,14 @@ Findings returned:
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: www.example.com
-- domain: example.org
-- domain: www.example.org
 - domain: www.example.net
-- domain: example.edu
 - domain: www.example.edu
-- domain: example.net
+- domain: example.edu
 - domain: example.com
+- domain: www.example.org
+- domain: example.net
+- domain: example.org
+- domain: www.example.com
 
 ```
 
@@ -1328,7 +1330,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-101538.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-103458.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.

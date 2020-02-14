@@ -25,10 +25,10 @@ class HiddenPathsSession(utils.ConcurrentSession):
 
 
 class HiddenPaths(YModule):
-    """
-    This module takes URLs and linked paths from the Linked Paths module.
-    It extracts potential folders from the linked paths and searches in
-    these folders with a wordlist for potential hidden files.
+    """This module takes URLs and linked paths from the Linked Paths
+ module. It extracts potential folders from the linked paths and
+ searches in these folders with a wordlist for potential hidden files.
+
     """
 
     THREADS = 10

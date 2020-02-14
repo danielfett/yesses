@@ -31,9 +31,9 @@ class LinkedPathsSession(utils.ConcurrentSession):
 
 
 class LinkedPaths(YModule):
-    """
-    This module takes URLs and collects recursively all links, which are local
-    to this URL.
+    """This module takes URLs and collects recursively all links, which
+    are local to this URL.
+
     """
 
     THREADS = 40

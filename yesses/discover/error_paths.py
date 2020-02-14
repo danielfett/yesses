@@ -9,12 +9,12 @@ log = logging.getLogger("discover/error_paths")
 
 
 class ErrorPaths(YModule):
-    """
-    This module tries to provoke errors and saves the error pages in an array.
-    The error pages can then be used as the inputs for the information leakage
-    module and the header leakage module to search them for too much information.
-    Currently, this module only calls a non-existing page to
-    get a 404 not found error page.
+    """This module tries to provoke errors and saves the error pages in an
+    array. The error pages can then be used as the inputs for the
+    information leakage module and the header leakage module to search
+    them for too much information. Currently, this module only calls a
+    non-existing page to get a 404 not found error page.
+
     """
 
     USER_AGENTS_LIST = "assets/user-agents.txt"

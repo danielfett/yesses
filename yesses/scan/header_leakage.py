@@ -7,11 +7,11 @@ log = logging.getLogger("scan/header_leakage")
 
 
 class HeaderLeakage(YModule):
-    """
-    This module searches for too much information in the HTTP header.
-    It checks if the 'Server' attribute contains too much information
-    and if the 'X-Powered-By' and/or the 'X-AspNet-Version' attribute
-    is set.
+    """This module searches for potentially sensitive much information in
+HTTP headers. It checks if the 'Server' attribute contains too much
+information and if the 'X-Powered-By' and/or the 'X-AspNet-Version'
+attribute is set.
+
     """
 
     INPUTS = {
