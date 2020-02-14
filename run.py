@@ -35,7 +35,7 @@ def generate_readme(usage, path):
         return out[:-4] if out.endswith("...\n") else out
 
     file_loader = FileSystemLoader(str(README_INFILE.parent))
-    env = Environment(loader=file_loader, autoescape=True)
+    env = Environment(loader=file_loader)
     env.filters["yaml"] = jinja2_yaml_filter
     template = env.get_template(README_INFILE.name)
     output = template.render(

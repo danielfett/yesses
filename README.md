@@ -61,7 +61,7 @@ optional arguments:
   --test                Run a self-test. This executes the examples contained
                         in all modules.
   --unittests           Run all tests which are defined in /tests/test_cases.
-  --no-cache            If &#39;--unittests&#39; is specified the test environment
+  --no-cache            If '--unittests' is specified the test environment
                         will be rebuild from scratch.
   --generate-readme [PATH]
                         Run a self-test (as above) and generate the file
@@ -243,8 +243,8 @@ fields. The field names can be used in the yaml configuration file.
 ## `scan HeaderLeakage` ##
 
     This module searches for too much information in the HTTP header.
-    It checks if the &#39;Server&#39; attribute contains too much information
-    and if the &#39;X-Powered-By&#39; and/or the &#39;X-AspNet-Version&#39; attribute
+    It checks if the 'Server' attribute contains too much information
+    and if the 'X-Powered-By' and/or the 'X-AspNet-Version' attribute
     is set.
     
 
@@ -293,33 +293,33 @@ Configuration:
       - scan Information Leakage:
           pages: 
             - url: page0
-              data: &#34;&lt;!-- test@example.com /var/home/bla aaa --&gt;&lt;html&gt;
+              data: "<!-- test@example.com /var/home/bla aaa --><html>
 
-&lt;head&gt;&lt;script src=&#39;ajkldfjalk&#39;&gt;&lt;/script&gt;&lt;/head&gt;
+<head><script src='ajkldfjalk'></script></head>
 
- &lt;body&gt;
+ <body>
 
-&lt;!-- This is a comment --&gt;&lt;h1&gt;Title&lt;/h1&gt;
+<!-- This is a comment --><h1>Title</h1>
 
-&lt;!-- secret.txt 
+<!-- secret.txt 
 
-/1x23/ex234--&gt;&lt;p&gt;Text with path /home/user/secret/key.pub&lt;/p&gt; &lt;a href=&#39;/docs/&#39;&gt;Website&lt;/a&gt; &lt;label&gt;192.168.2.196 /usr/share/docs/ajdlkf/adjfl&lt;/label&gt;
+/1x23/ex234--><p>Text with path /home/user/secret/key.pub</p> <a href='/docs/'>Website</a> <label>192.168.2.196 /usr/share/docs/ajdlkf/adjfl</label>
 
-&lt;style&gt; test@example.com &lt;/style&gt;
+<style> test@example.com </style>
 
-&lt;/body&gt;&#34;
+</body>"
             - url: page1
-              data: &#34;&lt;html&gt;&lt;script&gt;// This is a js comment192.256.170.128
+              data: "<html><script>// This is a js comment192.256.170.128
 
-function {return &#39;Hello World&#39;;}
+function {return 'Hello World';}
 
-&lt;/script&gt;&lt;body&gt;&lt;p&gt;bla Gitea Version: 1.11.0+dev-180-gd5b1e6bc5&lt;/p&gt;&lt;/body&gt;&lt;script&gt;// Comment two with email@example.com 
+</script><body><p>bla Gitea Version: 1.11.0+dev-180-gd5b1e6bc5</p></body><script>// Comment two with email@example.com 
 
- console.log(&#39;test&#39;)/* Comment over
+ console.log('test')/* Comment over
 
  several lines
 
-*/&lt;/script&gt;&lt;/html&gt;
+*/</script></html>
 
 
 
@@ -333,9 +333,9 @@ function {return &#39;Hello World&#39;;}
 
 
 
-&#34;
+"
             - url: page2
-              data: &#34;/*! modernizr 3.6.0 (Custom Build) | MIT *
+              data: "/*! modernizr 3.6.0 (Custom Build) | MIT *
 
 * https://modernizr.com/download/?-svgclippaths-setclasses !*/ 
 
@@ -367,7 +367,7 @@ function {return &#39;Hello World&#39;;}
 
 
 
-&#34;
+"
           search_regex:
             - type: new_regex
               regex: (^|\s)a{3}(\s|$)
@@ -410,7 +410,7 @@ Leakages:
   found: css_js_comment
   type: email
   url: page1
-- finding: &#39;Version: 1.11.0&#39;
+- finding: 'Version: 1.11.0'
   found: visible_text
   type: version-info
   url: page1
@@ -476,8 +476,8 @@ Configuration:
 ```YAML
   - scan Ports:
       ips: 
-        - ip: &#39;8.8.8.8&#39;
-      protocols: [&#39;tcp&#39;]
+        - ip: '8.8.8.8'
+      protocols: ['tcp']
     find:
       - Host-Ports
       - HTTPS-Ports
@@ -489,7 +489,7 @@ Configuration:
 Findings returned:
 ```YAML
 HTTPS-Ports:
-- &amp;id001
+- &id001
   ip: 8.8.8.8
   port: 443
   protocol: tcp
@@ -520,8 +520,8 @@ Alerts created (details hidden for brevity):
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `ips` (required) | Required. IP range to scan (e.g., `use IPs`) | `ip` |
-| `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap&#39;s notations to scan. (Default: `tcp`) |  |
-| `ports`  | Port range in nmap notation (e.g., &#39;22,80,443-445&#39;); default (None): 1000 most common ports as defined by nmap. |  |
+| `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`) |  |
+| `ports`  | Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap. |  |
 | `named_ports`  | A mapping of names to ports. This can be used to control the output of this module. | `name`, `port` |
 | `protocol_arguments`  | Command-line arguments to provide to nmap when scanning for a specific protocol. | `protocol`, `arguments` |
 
@@ -572,7 +572,7 @@ null
 
 
 ## `scan TLSSettings` ##
-Uses the sslyze library to scan a webserver&#39;s TLS configuration and
+Uses the sslyze library to scan a webserver's TLS configuration and
 compare it to the Mozilla TLS configuration profiles.
 
     
@@ -614,28 +614,28 @@ TLS-Profile-Mismatch-Domains:
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support DHE-RSA-AES256-SHA256
-  - must not support DHE-RSA-AES256-SHA
-  - must not support AES128-SHA256
+  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support ECDHE-RSA-AES128-SHA256
   - must not support ECDHE-RSA-AES256-SHA
   - must not support ECDHE-RSA-AES128-SHA
-  - must not support ECDHE-RSA-AES256-SHA384
-  - must not support AES128-GCM-SHA256
-  - must not support AES128-SHA
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support AES256-SHA256
   - must not support DHE-RSA-AES128-SHA
-  - must not support AES256-GCM-SHA384
+  - must not support EDH-RSA-DES-CBC3-SHA
   - must not support DES-CBC3-SHA
-  - must not support DHE-RSA-AES128-SHA256
   - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support AES128-SHA
+  - must not support AES128-SHA256
+  - must not support AES256-SHA256
+  - must not support DHE-RSA-AES256-SHA
   - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support AES256-GCM-SHA384
+  - must not support AES128-GCM-SHA256
   - must not support AES256-SHA
-  - must not support ECDHE-RSA-AES128-SHA256
-  - must support TLS_AES_128_GCM_SHA256
-  - must support TLS_CHACHA20_POLY1305_SHA256
-  - must support ECDHE-RSA-CHACHA20-POLY1305
+  - must not support DHE-RSA-AES256-SHA256
+  - must not support DHE-RSA-AES128-SHA256
   - must support TLS_AES_256_GCM_SHA384
+  - must support ECDHE-RSA-CHACHA20-POLY1305
+  - must support TLS_CHACHA20_POLY1305_SHA256
+  - must support TLS_AES_128_GCM_SHA256
   - HSTS header not set
   - certificate lifespan to long
   - OCSP stapling must be supported
@@ -752,13 +752,13 @@ Scans web origins and finds:
   * missing headers (see below)
   * missing cookie security features (see below)
 
-Note: Only tests the web origins&#39; root URLs.
+Note: Only tests the web origins' root URLs.
 
 
 ##### Disallowed Headers #####
-Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers&#39; value, and a human-readable reason that explains the rule.
+Disallowed headers are configured using objects that define the header name, optionally a regular expression that is matched against the headers' value, and a human-readable reason that explains the rule.
 
-Header names and values can be matched using regular expressions (matching is done using python3&#39;s `re.fullmatch`, case-insensitive).
+Header names and values can be matched using regular expressions (matching is done using python3's `re.fullmatch`, case-insensitive).
 
 Values can be matched using python expressions (see below).
 
@@ -770,14 +770,14 @@ Defines headers that must be present in all responses. The `reason` keyword is n
 
 If the `origin` keyword is present, the header is only required on origins that match the respective value (using `re.match`).
 
-If `value_expr` is present, the contents are evaluated using python3&#39;s `eval()` function. Useful variables are:
+If `value_expr` is present, the contents are evaluated using python3's `eval()` function. Useful variables are:
 
-  * `value`, which contains the header&#39;s contents as a string
+  * `value`, which contains the header's contents as a string
   * `max_age`, which contains the `max_age` header property, e.g., for Strict-Transport-Security headers (if set)
 
 ##### Insecure Cookies #####
 
-Cookies are only considered &#34;secure&#34; if they have the following properties:
+Cookies are only considered "secure" if they have the following properties:
 
   * On HTTPS URIs:
     * The name must start with the prefix `__Host-` or `__Secure-`.
@@ -798,7 +798,7 @@ Configuration:
  - scan Web Security Settings:
      origins:
        - url: http://neverssl.com
-         ip: &#39;143.204.208.22&#39;
+         ip: '143.204.208.22'
          domain: neverssl.com
    find:
      - Missing-HTTPS-Redirect-URLs
@@ -862,22 +862,22 @@ Redirect-to-non-HTTPS-URLs: []
 #### Default for `required_headers` ####
 ```YAML
 - header: Strict-Transport-Security
-  origin: &#39;https:&#39;
+  origin: 'https:'
   reason: STS header must be set and be valid for at least one year
-  value_expr: max_age &gt;= 31536000
+  value_expr: max_age >= 31536000
 - header: X-Frame-Options
-  origin: &#39;https:&#39;
+  origin: 'https:'
   value: DENY
 - header: X-Content-Type-Options
-  origin: &#39;https:&#39;
+  origin: 'https:'
   value: nosniff
 - header: Referrer-Policy
-  origin: &#39;https:&#39;
+  origin: 'https:'
 - header: Content-Security-Policy
-  origin: &#39;https:&#39;
+  origin: 'https:'
 - header: Expect-CT
-  origin: &#39;https:&#39;
-  value_expr: value.startswith(&#34;enforce,&#34;) and max_age &gt; 86400
+  origin: 'https:'
+  value_expr: value.startswith("enforce,") and max_age > 86400
 ```
 
 
@@ -898,7 +898,7 @@ Redirect-to-non-HTTPS-URLs: []
 
 
 ## `discover DomainsAndIPs` ##
-Based on domain names as &#34;seeds&#34;, tries to find new domain names by
+Based on domain names as "seeds", tries to find new domain names by
 guessing expansions for wildcards and expanding CNAMEs. Finds IP
 addresses from A and AAAA records.
 
@@ -923,7 +923,7 @@ In this example, the same module is used to check if homoglyph (or homograph) do
 ```
 data:
   Homoglyph-Domains:
-    - eхample.com  # note that &#34;х&#34; is a greek character, not the latin &#34;x&#34;
+    - eхample.com  # note that "х" is a greek character, not the latin "x"
     - 3xample.com
       (...)
 
@@ -952,7 +952,7 @@ Configuration:
       seeds:
         - domain: example.com
       resolvers: 
-        - ip: &#39;1.1.1.1&#39;
+        - ip: '1.1.1.1'
     find:
       - IPs
       - Domains
@@ -969,8 +969,8 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 93.184.216.34
 - ip: 2606:2800:220:1:248:1893:25c8:1946
+- ip: 93.184.216.34
 
 ```
 
@@ -1146,7 +1146,7 @@ Queries Certificate Transparency logs (using
 https://sslmate.com/certspotter) for existing TLS certificates for
 given domains and their subdomains.
 
-Note: The output may contain wildcards, e.g., &#39;*.example.com&#39;.
+Note: The output may contain wildcards, e.g., '*.example.com'.
 
     
 
@@ -1172,13 +1172,13 @@ TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
 - domain: www.example.com
+- domain: example.org
+- domain: www.example.org
+- domain: www.example.net
+- domain: example.edu
+- domain: www.example.edu
 - domain: example.net
 - domain: example.com
-- domain: www.example.edu
-- domain: www.example.net
-- domain: www.example.org
-- domain: example.edu
-- domain: example.org
 
 ```
 
@@ -1203,7 +1203,7 @@ TLS-Names:
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `TLS-Names` | DNS names found in certificates (may include wildcards, such as `*.example.com`). | `domain` |
-| `TLS-Certificates` | The hex-encoded SHA-256 fingerprint of the certificate&#39;s public key. | `pubkey` |
+| `TLS-Certificates` | The hex-encoded SHA-256 fingerprint of the certificate's public key. | `pubkey` |
 
 
 
@@ -1229,13 +1229,13 @@ Configuration:
 ```YAML
   - discover Webservers:
       ips:
-        - ip: &#39;93.184.216.34&#39;
+        - ip: '93.184.216.34'
           port: 80
-        - ip: &#39;93.184.216.34&#39;
+        - ip: '93.184.216.34'
           port: 443
-        - ip: &#39;2606:2800:220:1:248:1893:25c8:1946&#39;
+        - ip: '2606:2800:220:1:248:1893:25c8:1946'
           port: 80
-        - ip: &#39;2606:2800:220:1:248:1893:25c8:1946&#39;
+        - ip: '2606:2800:220:1:248:1893:25c8:1946'
           port: 443
       domains:
         - domain: example.com
@@ -1328,7 +1328,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-100359.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-101538.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
