@@ -78,21 +78,6 @@ class FindingsList:
         self.ignore_existing = True
         return step
 
-#    def get_from_use_expression(self, use_expr):
-#        if type(use_expr) is not str or not use_expr.startswith("use "):
-#            return use_expr
-#
-#        res = UseParser.parse(use_expr)
-#
-#        all_entries = []
-#
-#        for group in res:
-#            for entry in self.get(group.key):
-#                if not entry in all_entries:
-#                    all_entries.append(entry)
-#
-#        return all_entries
-
     def get_common_and_missing_items(self, key1, key2):
         """Return items that are in findings with key1 and with key2; and
         items that are in findings with key1 but not in those with

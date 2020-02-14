@@ -99,6 +99,7 @@ are not necessarily a sign of a problem.
         output_secure = []
         other_error_domains = []
         tls_error_domains = []
+        tls_domains = []
         for ip in self.ips:
             # just check a port if it is open and in the list of passed ports
             if ip["port"] in self.ports:
