@@ -11,7 +11,7 @@ log = logging.getLogger("run")
 scriptpath = Path(__file__).resolve().parent
 
 README_INFILE = scriptpath / Path("templates/README.j2")
-README_OUTFILE = scriptpath / Path("README.md")
+README_OUTFILE = Path("README.md")
 
 
 def test():
@@ -24,7 +24,7 @@ def test():
     return modules
 
 
-def generate_readme(usage):
+def generate_readme(usage, path):
     import yaml
     from jinja2 import Environment, FileSystemLoader
 
@@ -35,13 +35,13 @@ def generate_readme(usage):
         return out[:-4] if out.endswith("...\n") else out
 
     file_loader = FileSystemLoader(str(README_INFILE.parent))
-    env = Environment(loader=file_loader)
+    env = Environment(loader=file_loader, autoescape=True)
     env.filters["yaml"] = jinja2_yaml_filter
     template = env.get_template(README_INFILE.name)
     output = template.render(
         modules=all_modules_tested, usage=usage, time=datetime.now()
     )
-    README_OUTFILE.write_text(output)
+    (Path(path) / README_OUTFILE).write_text(output)
 
 
 if __name__ == "__main__":
@@ -100,8 +100,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--generate-readme",
-        action="store_true",
-        help=f"Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results.",
+        type=str,
+        nargs='?',
+        help=f"Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results. Optional: path to write file to, defaults to location of this script.",
+        const=str(scriptpath),
+        metavar="PATH",
+        default=None,
     )
 
     args = parser.parse_args()
@@ -124,8 +128,8 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(log_handler)
     logging.getLogger().setLevel(logging.DEBUG)
 
-    if args.generate_readme:
-        generate_readme(parser.format_help())
+    if args.generate_readme is not None:
+        generate_readme(parser.format_help(), args.generate_readme)
     elif args.test:
         test()
     else:

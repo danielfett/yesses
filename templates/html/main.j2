@@ -246,7 +246,10 @@
                     <h3 id="severity-{{ alert.severity.name }}">Severity {{ alert.severity.name }}</h3>
                 {% endif %}
                 <h4 id="alert-{{ loop.index }}"><span class="violation-of">Violation of</span> <span class="rule">{{ alert.violated_rule }}</span></h4>
-                In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.name }}</b>.
+                <details>
+                    <summary class="step-explain">In <a href="#step-{{ alert.step.number }}">Step #{{ alert.step.number }}</a>: <b>{{ alert.step.name }}</b></summary>
+                    <p class="step-raw">{{- alert.step -}}</p>
+
                 </details>
 
                 
@@ -278,6 +281,11 @@
                     <summary>Execution took {{ '%.1f' % step.duration.total_seconds()}}s</summary>
                     <p class="log-raw">{{- step.get_log() -}}</p>
                 </details>
+                
+                <details>
+                    <summary>{{ step.outputs|count }} output variables</summary>
+                    <p class="log-raw">{{- step.get_outputs() -}}</p>
+                </details>                                            
             {% endfor %}
         </article>
     </body>

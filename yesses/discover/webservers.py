@@ -10,6 +10,12 @@ class Webservers(YModule):
     """Scans an IP range for web servers; combines a list of IPs with a
     list of domains to use for the Host header in web requests.
 
+Note that since this modules combines arbitrary IPs with a list of
+domains, many non-existing or wrongly configured virtual servers may
+be encountered. This can cause a high number of errors, in particular
+TLS errors where the wrong certificate is encountered. These errors
+are not necessarily a sign of a problem.
+
     """
 
     PORTS = [{"port": 80}, {"port": 443}]
@@ -45,6 +51,14 @@ class Webservers(YModule):
         "Secure-Origins": {
             "provided_keys": ["domain", "url", "ip"],
             "description": "as above, but for HTTPS",
+        },
+        "TLS-Error-Domains": {
+            "provided_keys": ["domain", "url", "ip", "error",],
+            "description": "List of domains where an error during the TLS connection was encountered (e.g., wrong certificate)",
+        },
+        "Other-Error-Domains": {
+            "provided_keys": ["domain", "url", "ip", "error",],
+            "description": "List of domains where any other error occured",
         },
         "TLS-Domains": {
             "provided_keys": ["domain"],
@@ -83,6 +97,8 @@ class Webservers(YModule):
     def run(self):
         output_insecure = []
         output_secure = []
+        other_error_domains = []
+        tls_error_domains = []
         tls_domains = []
         for ip in self.ips:
             # just check a port if it is open and in the list of passed ports
@@ -91,13 +107,20 @@ class Webservers(YModule):
                     for protocol in ("http", "https"):
                         with force_ip_connection(domain, ip["ip"]):
                             url = f"{protocol}://{domain}:{ip['port']}/"
+                            el = {
+                                "url": url,
+                                "domain": domain,
+                                "ip": ip,
+                                "port": ip["port"],
+                            }
                             try:
                                 result = requests.get(url, timeout=10)
+                            except requests.exceptions.SSLError as e:
+                                el["error"] = str(e)
+                                tls_error_domains.append(el)
                             except requests.exceptions.RequestException as e:
-                                log.debug(
-                                    f"Exception {e} on {url}, ip={ip['ip']}; skipping."
-                                )
-                                continue
+                                el["error"] = str(e)
+                                other_error_domains.append(el)
                             else:
                                 if result.status_code in self.ignore_errors:
                                     log.debug(
@@ -115,6 +138,8 @@ class Webservers(YModule):
                                 log.info(f"Found webserver {url} on {ip['ip']}")
         self.results["Insecure-Origins"] = output_insecure
         self.results["Secure-Origins"] = output_secure
+        self.results["TLS-Error-Domains"] = tls_error_domains
+        self.results["Other-Error-Domains"] = other_error_domains
         self.results["TLS-Domains"] = tls_domains
 
 

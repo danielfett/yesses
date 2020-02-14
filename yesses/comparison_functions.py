@@ -24,6 +24,8 @@ def get_function_equals_expr(rule, quantifier, list1, list2, severity):
                 severity=severity, violated_rule=rule, findings=findings, step=step
             )
 
+    expect_fn.required_fields = [list1, list2]
+    expect_fn.rule = rule
     return expect_fn
 
 
@@ -51,6 +53,8 @@ def get_function_in_expr(rule, quantifier, list1, list2, severity):
                 step=step,
             )
 
+    expect_fn.required_fields = [list1, list2]
+    expect_fn.rule = rule
     return expect_fn
 
 
@@ -71,4 +75,6 @@ def get_function_default_expr(rule, quantifier, new, subject, severity):
         elif quantifier == "some" and not items:
             yield Alert(severity=severity, violated_rule=rule, findings={}, step=step)
 
+    expect_fn.required_fields = [subject]
+    expect_fn.rule = rule
     return expect_fn

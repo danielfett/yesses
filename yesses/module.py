@@ -86,27 +86,28 @@ class YModule:
                 continue
             self.results[field] = []
 
-    def __find_matching_output_field(self, result_key):
+    @classmethod
+    def find_matching_output_field(cls, result_key):
         """First tries to match the non-wildcard keys, then the wildcard keys."""
 
-        for output_field, properties in self.OUTPUTS.items():
+        for output_field, properties in cls.OUTPUTS.items():
             if "*" in output_field or "?" in output_field:
                 continue
             if result_key == output_field:
                 return output_field, properties
 
-        for output_field, properties in self.OUTPUTS.items():
+        for output_field, properties in cls.OUTPUTS.items():
             if fnmatch.fnmatchcase(result_key, output_field):
                 return output_field, properties
 
         raise Exception(
-            f"Superfluous output field found: {result_field}, does not match any of {', '.join(self.OUTPUTS.keys())}"
+            f"Unknown output field found: {result_key}, does not match any of {', '.join(cls.OUTPUTS.keys())}"
         )
 
     def __check_output_types(self):
         output_fields_found = []
         for result_field, findings in self.results.items():
-            output_field, properties = self.__find_matching_output_field(result_field)
+            output_field, properties = self.find_matching_output_field(result_field)
             output_fields_found.append(output_field)
             if properties["provided_keys"] is None:
                 continue

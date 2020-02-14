@@ -80,7 +80,7 @@ compare it to the Mozilla TLS configuration profiles.
      - TLS-Other-Error-Domains
    expect:
      - some TLS-Okay-Domains, otherwise alert medium
-    """,
+""",
         )
     ]
 
@@ -95,7 +95,14 @@ compare it to the Mozilla TLS configuration profiles.
                 {"domain": domain, "error": scanner.server_error,}
             )
             return
-        tls_results = scanner.run()
+        try:
+            tls_results = scanner.run()
+        except Exception as e:
+            self.results["TLS-Other-Error-Domains"].append(
+                {"domain": domain, "error": str(e),}
+            )
+            return
+
         if tls_results.all_ok:
             self.results["TLS-Okay-Domains"].append({"domain": domain})
 
@@ -111,10 +118,10 @@ compare it to the Mozilla TLS configuration profiles.
 
         if not tls_results.profile_matched:
             self.results["TLS-Profile-Mismatch-Domains"].append(
-                {"domain": domain, "errors": tls_results.profile_errors}
+                {"domain": domain, "errors": tls_results.profile_errors,}
             )
 
         if tls_results.vulnerable:
             self.results["TLS-Vulnerability-Domains"].append(
-                {"domain": domain, "errors": tls_results.vulnerability_errors}
+                {"domain": domain, "errors": tls_results.vulnerability_errors,}
             )

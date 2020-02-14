@@ -53,6 +53,10 @@ class FindingsList:
             )
         self.current_findings[key] = value
 
+    def update(self, data):
+        for key, value in data.items():
+            self.set(key, value)
+
     def get_previous(self, key, default):
         return self.previous_findings.get(key, default)
 
@@ -73,21 +77,6 @@ class FindingsList:
         self.current_findings = self.resume.data[step]
         self.ignore_existing = True
         return step
-
-    def get_from_use_expression(self, use_expr):
-        if type(use_expr) is not str or not use_expr.startswith("use "):
-            return use_expr
-
-        res = UseParser.parse(use_expr)
-
-        all_entries = []
-
-        for group in res:
-            for entry in self.get(group.key):
-                if not entry in all_entries:
-                    all_entries.append(entry)
-
-        return all_entries
 
     def get_common_and_missing_items(self, key1, key2):
         """Return items that are in findings with key1 and with key2; and

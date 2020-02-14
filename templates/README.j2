@@ -217,15 +217,17 @@ fields. The field names can be used in the yaml configuration file.
 
 {% if module.EXAMPLES|default(False) %}
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 {% for ex in module.EXAMPLES %}
 #### {{ ex.name }} ####
 Configuration:
 ```YAML
-{{ ex.raw -}}
+{{ ex.raw }}
 ```
 Findings returned:
 ```YAML
-{{ ex.output|yaml -}}
+{{ ex.output|yaml }}
 ```
 {% if ex.alerts -%}
 Alerts created (details hidden for brevity):
@@ -239,6 +241,8 @@ Alerts created (details hidden for brevity):
 
 {% endfor %}
 {% endif %}
+</div>
+</details>
 
 ### Inputs ###
 
