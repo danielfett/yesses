@@ -40,30 +40,33 @@ Have a look at the [example configuration file](docs/examples/example.yml). yess
 
 ```
 usage: run.py [-h] [--verbose] [--resume] [--repeat N] [--fresh] [--test]
-              [--unittests] [--no-cache] [--generate-readme]
+              [--unittests] [--no-cache] [--generate-readme [PATH]]
               [configfile]
 
 Tool to scan for network and web security features
 
 positional arguments:
-  configfile         Config file in yaml format. Required unless --test or
-                     --generate-readme are used.
+  configfile            Config file in yaml format. Required unless --test or
+                        --generate-readme are used.
 
 optional arguments:
-  -h, --help         show this help message and exit
-  --verbose, -v      Increase debug level to show debug messages.
-  --resume, -r       Resume scanning from existing resumefile.
-  --repeat N         Repeat last N steps of run (for debugging). Will inhibit
-                     warnings of duplicate output variables.
-  --fresh, -f        Do not use existing state files. Usage of this required
-                     when datastructures in this application changed.
-  --test             Run a self-test. This executes the examples contained in
-                     all modules.
-  --unittests        Run all tests which are defined in /tests/test_cases.
-  --no-cache         If &#39;--unittests&#39; is specified the test environment will
-                     be rebuild from scratch.
-  --generate-readme  Run a self-test (as above) and generate the file
-                     README.md using the test results.
+  -h, --help            show this help message and exit
+  --verbose, -v         Increase debug level to show debug messages.
+  --resume, -r          Resume scanning from existing resumefile.
+  --repeat N            Repeat last N steps of run (for debugging). Will
+                        inhibit warnings of duplicate output variables.
+  --fresh, -f           Do not use existing state files. Usage of this
+                        required when datastructures in this application
+                        changed.
+  --test                Run a self-test. This executes the examples contained
+                        in all modules.
+  --unittests           Run all tests which are defined in /tests/test_cases.
+  --no-cache            If &#39;--unittests&#39; is specified the test environment
+                        will be rebuild from scratch.
+  --generate-readme [PATH]
+                        Run a self-test (as above) and generate the file
+                        README.md using the test results. Optional: path to
+                        write file to, defaults to location of this script.
 
 ```
 
@@ -246,6 +249,8 @@ fields. The field names can be used in the yaml configuration file.
     
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -279,6 +284,8 @@ fields. The field names can be used in the yaml configuration file.
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### Check example strings for information leakage ####
 Configuration:
@@ -366,7 +373,8 @@ function {return &#39;Hello World&#39;;}
               regex: (^|\s)a{3}(\s|$)
         find:
           - Leakages
-    ```
+    
+```
 Findings returned:
 ```YAML
 Leakages:
@@ -406,11 +414,14 @@ Leakages:
   found: visible_text
   type: version-info
   url: page1
+
 ```
 
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -457,6 +468,8 @@ Uses `nmap` to scan for open ports.
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### scan ports on Google DNS server ####
 Configuration:
@@ -471,7 +484,8 @@ Configuration:
       - Other-Port-IPs
     expect:
       - no Host-Ports, otherwise alert high
-    ```
+    
+```
 Findings returned:
 ```YAML
 HTTPS-Ports:
@@ -486,6 +500,7 @@ Host-Ports:
 - *id001
 Other-Port-IPs:
 - ip: 8.8.8.8
+
 ```
 Alerts created (details hidden for brevity):
 
@@ -497,6 +512,8 @@ Alerts created (details hidden for brevity):
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -562,6 +579,8 @@ compare it to the Mozilla TLS configuration profiles.
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### Check TLS settings on badssl.com ####
 Configuration:
@@ -579,6 +598,7 @@ Configuration:
      - TLS-Other-Error-Domains
    expect:
      - some TLS-Okay-Domains, otherwise alert medium
+
 ```
 Findings returned:
 ```YAML
@@ -588,39 +608,40 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support TLSv1
   - must not support TLSv1.1
+  - must not support TLSv1
   - must support TLSv1.3
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support DHE-RSA-AES256-SHA
   - must not support DHE-RSA-AES256-SHA256
-  - must not support AES128-SHA
-  - must not support AES256-SHA256
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support DHE-RSA-AES256-SHA
   - must not support AES128-SHA256
-  - must not support DES-CBC3-SHA
-  - must not support AES256-GCM-SHA384
   - must not support ECDHE-RSA-AES256-SHA
-  - must not support DHE-RSA-AES128-SHA256
-  - must not support DHE-RSA-DES-CBC3-SHA
-  - must not support ECDHE-RSA-AES128-SHA256
-  - must not support AES128-GCM-SHA256
-  - must not support AES256-SHA
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-AES128-SHA
   - must not support ECDHE-RSA-AES128-SHA
+  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support AES128-GCM-SHA256
+  - must not support AES128-SHA
+  - must not support EDH-RSA-DES-CBC3-SHA
+  - must not support AES256-SHA256
+  - must not support DHE-RSA-AES128-SHA
+  - must not support AES256-GCM-SHA384
+  - must not support DES-CBC3-SHA
+  - must not support DHE-RSA-AES128-SHA256
+  - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support AES256-SHA
+  - must not support ECDHE-RSA-AES128-SHA256
   - must support TLS_AES_128_GCM_SHA256
-  - must support TLS_AES_256_GCM_SHA384
   - must support TLS_CHACHA20_POLY1305_SHA256
   - must support ECDHE-RSA-CHACHA20-POLY1305
+  - must support TLS_AES_256_GCM_SHA384
   - HSTS header not set
   - certificate lifespan to long
   - OCSP stapling must be supported
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
+
 ```
 Alerts created (details hidden for brevity):
 
@@ -632,6 +653,8 @@ Alerts created (details hidden for brevity):
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -689,6 +712,8 @@ https://dev.ssllabs.com/about/terms.html
     
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -764,6 +789,8 @@ Cookies are only considered &#34;secure&#34; if they have the following properti
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### Websecurity Settings of neverssl.com ####
 Configuration:
@@ -780,6 +807,7 @@ Configuration:
      - Missing-Header-URLs
      - Disallowed-Method-URLs
      - Insecure-Cookie-URLs
+
 ```
 Findings returned:
 ```YAML
@@ -792,11 +820,14 @@ Missing-HTTPS-Redirect-URLs:
   url: http://neverssl.com/
 Missing-Header-URLs: []
 Redirect-to-non-HTTPS-URLs: []
+
 ```
 
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -911,6 +942,8 @@ run:
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### discover DNS details of example.com ####
 Configuration:
@@ -924,6 +957,7 @@ Configuration:
       - IPs
       - Domains
       - DNS-Entries
+
 ```
 Findings returned:
 ```YAML
@@ -935,13 +969,16 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 2606:2800:220:1:248:1893:25c8:1946
 - ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
+
 ```
 
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -981,6 +1018,8 @@ IPs:
     
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -1008,6 +1047,8 @@ IPs:
     
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -1064,6 +1105,8 @@ assets/hidden_paths_lists/apache.lst
     
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -1109,6 +1152,8 @@ Note: The output may contain wildcards, e.g., &#39;*.example.com&#39;.
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### list certificates of example.com ####
 Configuration:
@@ -1119,25 +1164,29 @@ Configuration:
     find:
       - TLS-Names
       - TLS-Certificates
-    ```
+    
+```
 Findings returned:
 ```YAML
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: example.edu
-- domain: example.com
-- domain: example.org
-- domain: example.net
-- domain: www.example.org
 - domain: www.example.com
-- domain: www.example.net
+- domain: example.net
+- domain: example.com
 - domain: www.example.edu
+- domain: www.example.net
+- domain: www.example.org
+- domain: example.edu
+- domain: example.org
+
 ```
 
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -1172,6 +1221,8 @@ are not necessarily a sign of a problem.
 
 
 ### Examples ###
+<details><summary>show example(s)</summary>
+<div>
 
 #### detect webservers on example.com ####
 Configuration:
@@ -1196,6 +1247,7 @@ Configuration:
       - Insecure-Origins
       - Secure-Origins
       - TLS-Domains
+
 ```
 Findings returned:
 ```YAML
@@ -1212,11 +1264,14 @@ Secure-Origins:
   url: https://example.com:443/
 TLS-Domains:
 - domain: example.com
+
 ```
 
 
 
 
+</div>
+</details>
 
 ### Inputs ###
 
@@ -1273,7 +1328,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-094745.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-100359.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
