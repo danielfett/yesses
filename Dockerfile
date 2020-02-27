@@ -23,7 +23,7 @@ RUN pip install requests && pip install --no-cache-dir -r requirements.txt
 
 
 FROM python:3.7-slim-buster
-RUN apt update && apt install -y nmap
+RUN apt update && apt install -y nmap libmagic1
 
 COPY --from=0 /usr/local/lib/python3.7/site-packages /usr/local/lib/python3.7/site-packages
 
