@@ -156,6 +156,7 @@ run:
             if not d.startswith("*"):
                 newdomainset.add(d)
             else:
+                newdomainset.add(d[2:])  # add domain without wildcard
                 for subdomain in subdomains:
                     newdomain = f"{subdomain}{d[1:]}"
                     newdomainset.add(newdomain)

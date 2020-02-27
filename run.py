@@ -6,7 +6,7 @@ from pathlib import Path
 from yesses import Runner, all_modules, Config
 from yesses.module import YModule
 from datetime import datetime
-from json import dumps
+from json import dumps, loads
 from shlex import quote
 from terminaltables import SingleTable
 
@@ -92,10 +92,10 @@ def build_module_subparsers(parser):
                             for d in default
                         )
                     else:
-                        default_text = " ".join(quote(el) for el in dumps(default))
+                        default_text = " ".join(quote(dumps(el)) for el in default)
 
                     default_text = (
-                        (default_text[:125] + "…")
+                        (default_text[:125] + "…, see README.md")
                         if len(default_text) > 125
                         else default_text
                     )
@@ -104,7 +104,6 @@ def build_module_subparsers(parser):
                     subparser.add_argument(
                         f"--{input_name}",
                         help=input_props["description"] + extra_help,
-                        default=default,
                         nargs=None if input_props["required_keys"] is None else "*",
                     )
                 else:
@@ -120,7 +119,7 @@ def run_module_from_commandline(args):
     module = YModule.class_from_string(args.module_name)
     module_input = {}
     for input_name, input_props in module.INPUTS.items():
-        if not hasattr(args, input_name):
+        if getattr(args, input_name, None) is None:
             continue
         if input_props["required_keys"] is None:
             module_input[input_name] = getattr(args, input_name)
@@ -130,16 +129,21 @@ def run_module_from_commandline(args):
                 {input_props["required_keys"][0]: v} for v in getattr(args, input_name)
             ]
         else:
+            for v in getattr(args, input_name):
+                print(input_name, repr(v))
             module_input[input_name] = [loads(v) for v in getattr(args, input_name)]
 
     instance = module(step=None, **module_input)
     results = instance.run_module()
     print("Findings:\n")
     no_results = []
-    for output_name, output_props in module.OUTPUTS.items():
-        if len(results[output_name]) == 0:
+    for output_name, findings in results.items():
+        if len(findings) == 0:
             no_results.append(output_name)
             continue
+
+        output_props = module.find_matching_output_field(output_name)[1]
+
         keys = output_props["provided_keys"]
         data = [[k for k in keys]]
         for row in results[output_name]:
