@@ -19,8 +19,15 @@ RUN pip install .
 WORKDIR /usr/src/yesses
 
 COPY requirements.txt ./
-RUN apt update && apt install -y nmap
 RUN pip install requests && pip install --no-cache-dir -r requirements.txt
+
+
+FROM python:3.7-slim-buster
+RUN apt update && apt install -y nmap
+
+COPY --from=0 /usr/local/lib/python3.7/site-packages /usr/local/lib/python3.7/site-packages
+
+WORKDIR /usr/src/yesses
 
 COPY . .
 
