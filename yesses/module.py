@@ -150,6 +150,15 @@ class YModule:
         cls = cls.replace(" ", "")
         return getattr(import_module(f"yesses.{verb}"), cls)
 
+    @classmethod
+    def name(cls):
+        name = re.sub(
+            "([a-z]|[A-Z]+)([A-Z])",
+            lambda match: f"{match.group(1)} {match.group(2)}",
+            cls.__name__,
+        )
+        return name
+
     def run_module(self):
         self.run()
         self.__check_output_types()

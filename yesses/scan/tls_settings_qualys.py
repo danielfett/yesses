@@ -25,7 +25,7 @@ https://dev.ssllabs.com/about/terms.html
         },
         "allowed_grades": {
             "required_keys": None,
-            "description": "List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`.",
+            "description": "List of grades that are deemed acceptable. See https://ssllabs.com for details.",
             "default": ["A", "A+"],
         },
     }

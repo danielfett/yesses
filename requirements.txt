@@ -11,3 +11,5 @@ pyparsing
 bs4
 lxml
 comment_parser
+terminaltables
+

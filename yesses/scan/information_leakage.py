@@ -53,21 +53,21 @@ before or after.
     INPUTS = {
         "pages": {
             "required_keys": ["url", "data"],
-            "description": "Required. Pages to search for information leakage",
+            "description": "Required. Pages to search for information leakage.",
         },
         "search_regex": {
             "required_keys": ["type", "regex"],
-            "description": "Own regular expression to search in pages (will be added to the existing ones)",
+            "description": "Own regular expression to search in pages (will be added to the existing ones).",
             "default": {},
         },
         "dir_list": {
             "required_keys": None,
-            "description": "List with common directories to determine whether a string is a path",
+            "description": "List with common directories to determine whether a string is a path.",
             "default": DIR_LIST,
         },
         "file_ending_list": {
             "required_keys": None,
-            "description": "List with common file endings to determine whether a string is a file name",
+            "description": "List with common file endings to determine whether a string is a file name.",
             "default": FILE_ENDINGS_LIST,
         },
     }

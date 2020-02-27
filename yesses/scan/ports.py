@@ -23,12 +23,12 @@ class Ports(YModule):
     INPUTS = {
         "ips": {
             "required_keys": ["ip"],
-            "description": "Required. IP range to scan (e.g., `use IPs`)",
+            "description": "Required. IP range to scan (e.g., `use IPs`).",
             "unwrap": True,
         },
         "protocols": {
             "required_keys": None,
-            "description": "List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`)",
+            "description": "List of protocols (`udp`, `tcp`,...) in nmap's notations to scan.",
             "default": ["tcp"],
         },
         "ports": {
@@ -51,11 +51,11 @@ class Ports(YModule):
     OUTPUTS = {
         "Host-Ports": {
             "provided_keys": ["ip", "protocol", "port"],
-            "description": "Each open port on a scanned IP (with IP, protocol, and port)",
+            "description": "Each open port on a scanned IP (with IP, protocol, and port).",
         },
         "*-Ports": {
             "provided_keys": ["ip", "protocol", "port"],
-            "description": "For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port)",
+            "description": "For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port).",
         },
         "Other-Port-IPs": {
             "provided_keys": None,

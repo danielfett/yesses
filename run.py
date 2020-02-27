@@ -4,7 +4,11 @@ import logging
 import sys
 from pathlib import Path
 from yesses import Runner, all_modules, Config
+from yesses.module import YModule
 from datetime import datetime
+from json import dumps
+from shlex import quote
+from terminaltables import SingleTable
 
 log = logging.getLogger("run")
 
@@ -44,6 +48,116 @@ def generate_readme(usage, path):
     (Path(path) / README_OUTFILE).write_text(output)
 
 
+def build_module_subparsers(parser):
+    # Add parsers for all submodules
+    modules = all_modules()
+    available_modules = []
+    for category, cat_modules in modules.items():
+        for module in cat_modules:
+            available_modules.append(f"'{category} {module.name()}'")
+
+    subparsers = parser.add_subparsers(
+        title="modules",
+        description="run modules directly",
+        metavar="MODULE",
+        help=f"run module directly without configuration file. To get help on the usage of a module, run this command with 'MODULE --help'. Available modules: {', '.join(available_modules)}",
+        dest="module_name",
+    )
+    for category, cat_modules in modules.items():
+        for module in cat_modules:
+            name = f"{category} {module.name()}"
+            subparser = subparsers.add_parser(
+                name,
+                description=module.__doc__,
+                formatter_class=argparse.RawDescriptionHelpFormatter,
+            )
+
+            for input_name, input_props in module.INPUTS.items():
+                if input_props["required_keys"] is None:
+                    extra_help = ""
+                elif input_props.get("unwrap", False):
+                    extra_help = ""
+                else:
+                    extra_help = " JSON objects, required key(s) for each object: " + (
+                        ", ".join(input_props["required_keys"])
+                    )
+
+                default = input_props.get("default", None)
+                if "default" in input_props:
+                    if input_props["required_keys"] is None:
+                        default_text = str(default)
+                    elif input_props.get("unwrap", False):
+                        default_text = " ".join(
+                            quote(str(d[input_props["required_keys"][0]]))
+                            for d in default
+                        )
+                    else:
+                        default_text = " ".join(quote(el) for el in dumps(default))
+
+                    default_text = (
+                        (default_text[:125] + "…")
+                        if len(default_text) > 125
+                        else default_text
+                    )
+                    extra_help += f" (Default: {default_text})"
+
+                    subparser.add_argument(
+                        f"--{input_name}",
+                        help=input_props["description"] + extra_help,
+                        default=default,
+                        nargs=None if input_props["required_keys"] is None else "*",
+                    )
+                else:
+                    subparser.add_argument(
+                        f"--{input_name}",
+                        help=input_props["description"] + extra_help,
+                        required=True,
+                        nargs=None if input_props["required_keys"] is None else "*",
+                    )
+
+
+def run_module_from_commandline(args):
+    module = YModule.class_from_string(args.module_name)
+    module_input = {}
+    for input_name, input_props in module.INPUTS.items():
+        if not hasattr(args, input_name):
+            continue
+        if input_props["required_keys"] is None:
+            module_input[input_name] = getattr(args, input_name)
+        elif input_props.get("unwrap", False):
+            # The stored value will be a list already, we just need to wrap it.
+            module_input[input_name] = [
+                {input_props["required_keys"][0]: v} for v in getattr(args, input_name)
+            ]
+        else:
+            module_input[input_name] = [loads(v) for v in getattr(args, input_name)]
+
+    instance = module(step=None, **module_input)
+    results = instance.run_module()
+    print("Findings:\n")
+    no_results = []
+    for output_name, output_props in module.OUTPUTS.items():
+        if len(results[output_name]) == 0:
+            no_results.append(output_name)
+            continue
+        keys = output_props["provided_keys"]
+        data = [[k for k in keys]]
+        for row in results[output_name]:
+            data.append([prettyprint_value(row[k]) for k in keys])
+        table_instance = SingleTable(data, output_name)
+        print(table_instance.table)
+        print(f"{output_name}: {output_props['description']}\n")
+
+    print (f"No findings for: {', '.join(no_results)}")
+
+
+def prettyprint_value(val):
+    if type(val) is list:
+        return "\n".join(val)
+    else:
+        return val
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -51,7 +165,8 @@ if __name__ == "__main__":
         description="Tool to scan for network and web security features"
     )
     parser.add_argument(
-        "configfile",
+        "--config",
+        "-c",
         nargs="?",
         help="Config file in yaml format. Required unless --test or --generate-readme are used.",
         type=argparse.FileType("r"),
@@ -101,14 +216,24 @@ if __name__ == "__main__":
     parser.add_argument(
         "--generate-readme",
         type=str,
-        nargs='?',
+        nargs="?",
         help=f"Run a self-test (as above) and generate the file {README_OUTFILE.name} using the test results. Optional: path to write file to, defaults to location of this script.",
         const=str(scriptpath),
         metavar="PATH",
         default=None,
     )
 
+    build_module_subparsers(parser)
+
     args = parser.parse_args()
+
+    log_handler = logging.StreamHandler(sys.stdout)
+    log_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    )
+    log_handler.setLevel(logging.DEBUG if args.verbose else logging.INFO)
+    logging.getLogger().addHandler(log_handler)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     if args.unittests:
         import tests
@@ -120,20 +245,17 @@ if __name__ == "__main__":
 
         sys.exit(return_status)
 
-    log_handler = logging.StreamHandler(sys.stdout)
-    log_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    )
-    log_handler.setLevel(logging.DEBUG if args.verbose else logging.INFO)
-    logging.getLogger().addHandler(log_handler)
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    if args.generate_readme is not None:
+    elif args.generate_readme is not None:
         generate_readme(parser.format_help(), args.generate_readme)
+
     elif args.test:
         test()
+
+    elif args.module_name:
+        run_module_from_commandline(args)
+
     else:
-        if not args.configfile:
+        if not args.config:
             parser.error("configfile missing.")
-        runner = Runner(args.configfile, args.fresh)
+        runner = Runner(args.config, args.fresh)
         runner.run(args.resume, args.repeat)

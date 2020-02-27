@@ -17,14 +17,14 @@ attribute is set.
     INPUTS = {
         "pages": {
             "required_keys": ["url", "header"],
-            "description": "Required. Urls with headers to search for information leakage",
+            "description": "Required. URLs with headers to search for information leakage.",
         },
     }
 
     OUTPUTS = {
         "Leakages": {
             "provided_keys": ["url", "header"],
-            "description": "Potential information leakages",
+            "description": "Potential information leakages.",
         }
     }
 
