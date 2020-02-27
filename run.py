@@ -82,6 +82,8 @@ def build_module_subparsers(parser):
                         ", ".join(input_props["required_keys"])
                     )
 
+                metavar = input_name.rstrip("s").upper()
+
                 default = input_props.get("default", None)
                 if "default" in input_props:
                     if input_props["required_keys"] is None:
@@ -95,9 +97,7 @@ def build_module_subparsers(parser):
                         default_text = " ".join(quote(dumps(el)) for el in default)
 
                     default_text = (
-                        (default_text[:125] + "…, see README.md")
-                        if len(default_text) > 125
-                        else default_text
+                        "see README.md" if len(default_text) > 125 else default_text
                     )
                     extra_help += f" (Default: {default_text})"
 
@@ -105,6 +105,7 @@ def build_module_subparsers(parser):
                         f"--{input_name}",
                         help=input_props["description"] + extra_help,
                         nargs=None if input_props["required_keys"] is None else "*",
+                        metavar=metavar,
                     )
                 else:
                     subparser.add_argument(
@@ -112,6 +113,7 @@ def build_module_subparsers(parser):
                         help=input_props["description"] + extra_help,
                         required=True,
                         nargs=None if input_props["required_keys"] is None else "*",
+                        metavar=metavar,
                     )
 
 
@@ -129,8 +131,6 @@ def run_module_from_commandline(args):
                 {input_props["required_keys"][0]: v} for v in getattr(args, input_name)
             ]
         else:
-            for v in getattr(args, input_name):
-                print(input_name, repr(v))
             module_input[input_name] = [loads(v) for v in getattr(args, input_name)]
 
     instance = module(step=None, **module_input)

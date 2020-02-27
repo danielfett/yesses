@@ -37,9 +37,10 @@ are not necessarily a sign of a problem.
             "unwrap": True,
         },
         "ignore_errors": {
-            "required_keys": None,
-            "description": "List of error codes that indicate a server that is not configured",
-            "default": [500],
+            "required_keys": ["status_code"],
+            "description": "List of status codes that indicate a server that is not configured",
+            "default": [{"status_code": 500}],
+            "unwrap": True,
         },
     }
 

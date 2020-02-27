@@ -58,7 +58,7 @@ run:
         },
         "resolvers": {
             "required_keys": ["ip"],
-            "description": "List of DNS resolvers to use. Default (empty list): System DNS resolvers.",
+            "description": "List of DNS resolvers to use. If empty, system DNS resolvers are used.",
             "unwrap": True,
             "default": [],
         },
