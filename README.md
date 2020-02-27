@@ -39,18 +39,18 @@ Have a look at the [example configuration file](docs/examples/example.yml). yess
 # Usage #
 
 ```
-usage: run.py [-h] [--verbose] [--resume] [--repeat N] [--fresh] [--test]
-              [--unittests] [--no-cache] [--generate-readme [PATH]]
-              [configfile]
+usage: run.py [-h] [--config [CONFIG]] [--verbose] [--resume] [--repeat N]
+              [--fresh] [--test] [--unittests] [--no-cache]
+              [--generate-readme [PATH]]
+              MODULE ...
 
 Tool to scan for network and web security features
 
-positional arguments:
-  configfile            Config file in yaml format. Required unless --test or
-                        --generate-readme are used.
-
 optional arguments:
   -h, --help            show this help message and exit
+  --config [CONFIG], -c [CONFIG]
+                        Config file in yaml format. Required unless --test or
+                        --generate-readme are used.
   --verbose, -v         Increase debug level to show debug messages.
   --resume, -r          Resume scanning from existing resumefile.
   --repeat N            Repeat last N steps of run (for debugging). Will
@@ -67,6 +67,19 @@ optional arguments:
                         Run a self-test (as above) and generate the file
                         README.md using the test results. Optional: path to
                         write file to, defaults to location of this script.
+
+modules:
+  Run a module directly without configuration file. To get help on the usage
+  of a module, run this command with 'MODULE --help'. Remember that module
+  names must be in quotes or the space must be escaped.
+
+  MODULE                Available modules: 'scan Header Leakage', 'scan
+                        Information Leakage', 'scan Ports', 'scan TLS
+                        Settings', 'scan TLS Settings Qualys', 'scan Web
+                        Security Settings', 'discover Domains And IPs',
+                        'discover Error Paths', 'discover Hidden Paths',
+                        'discover Linked Paths', 'discover TLS Certificates',
+                        'discover Webservers'
 
 ```
 
@@ -256,7 +269,7 @@ attribute is set.
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `pages` (required) | Required. Urls with headers to search for information leakage | `url`, `header` |
+| `pages` (required) | Required. URLs with headers to search for information leakage. | `url`, `header` |
 
 
 
@@ -266,7 +279,7 @@ attribute is set.
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Leakages` | Potential information leakages | `url`, `header` |
+| `Leakages` | Potential information leakages. | `url`, `header` |
 
 
 
@@ -429,10 +442,10 @@ Leakages:
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `pages` (required) | Required. Pages to search for information leakage | `url`, `data` |
-| `search_regex`  | Own regular expression to search in pages (will be added to the existing ones) | `type`, `regex` |
-| `dir_list`  | List with common directories to determine whether a string is a path |  |
-| `file_ending_list`  | List with common file endings to determine whether a string is a file name |  |
+| `pages` (required) | Required. Pages to search for information leakage. | `url`, `data` |
+| `search_regex`  | Own regular expression to search in pages (will be added to the existing ones). | `type`, `regex` |
+| `dir_list`  | List with common directories to determine whether a string is a path. |  |
+| `file_ending_list`  | List with common file endings to determine whether a string is a file name. |  |
 
 
 
@@ -521,8 +534,8 @@ Alerts created (details hidden for brevity):
 
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `ips` (required) | Required. IP range to scan (e.g., `use IPs`) | `ip` |
-| `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. (Default: `tcp`) |  |
+| `ips` (required) | Required. IP range to scan (e.g., `use IPs`). | `ip` |
+| `protocols`  | List of protocols (`udp`, `tcp`,...) in nmap's notations to scan. |  |
 | `ports`  | Port range in nmap notation (e.g., '22,80,443-445'); default (None): 1000 most common ports as defined by nmap. |  |
 | `named_ports`  | A mapping of names to ports. This can be used to control the output of this module. | `name`, `port` |
 | `protocol_arguments`  | Command-line arguments to provide to nmap when scanning for a specific protocol. | `protocol`, `arguments` |
@@ -567,8 +580,8 @@ null
 
 | Name             | Description    | Provided keys                                            |
 |------------------|----------------|----------------------------------------------------------|
-| `Host-Ports` | Each open port on a scanned IP (with IP, protocol, and port) | `ip`, `protocol`, `port` |
-| `*-Ports` | For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port) | `ip`, `protocol`, `port` |
+| `Host-Ports` | Each open port on a scanned IP (with IP, protocol, and port). | `ip`, `protocol`, `port` |
+| `*-Ports` | For certain protocols (SSH, HTTP, HTTPS), a list of hosts that have this port open (with IP, protocol, and port). | `ip`, `protocol`, `port` |
 | `Other-Port-IPs` | List of IPs that have any other ports open. |  |
 
 
@@ -616,30 +629,30 @@ TLS-Profile-Mismatch-Domains:
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support ECDHE-RSA-AES128-SHA256
-  - must not support DHE-RSA-AES256-SHA
-  - must not support ECDHE-RSA-AES256-SHA384
-  - must not support DHE-RSA-AES256-SHA256
-  - must not support AES128-SHA
-  - must not support DES-CBC3-SHA
-  - must not support AES256-GCM-SHA384
-  - must not support AES128-GCM-SHA256
-  - must not support AES256-SHA256
-  - must not support DHE-RSA-AES128-SHA256
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-DES-CBC3-SHA
-  - must not support AES128-SHA256
-  - must not support AES256-SHA
-  - must not support ECDHE-RSA-AES128-SHA
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support ECDHE-RSA-AES256-SHA
   - must not support DHE-RSA-AES128-SHA
-  - must support ECDHE-RSA-CHACHA20-POLY1305
-  - must support TLS_AES_256_GCM_SHA384
+  - must not support AES256-SHA256
+  - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support AES256-SHA
+  - must not support DHE-RSA-AES256-SHA
+  - must not support AES128-SHA256
+  - must not support AES128-SHA
+  - must not support ECDHE-RSA-AES128-SHA
+  - must not support AES128-GCM-SHA256
+  - must not support ECDHE-RSA-AES128-SHA256
+  - must not support EDH-RSA-DES-CBC3-SHA
+  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support DHE-RSA-AES128-SHA256
+  - must not support DHE-RSA-AES256-SHA256
+  - must not support DES-CBC3-SHA
+  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support AES256-GCM-SHA384
+  - must not support ECDHE-RSA-AES256-SHA
   - must support TLS_AES_128_GCM_SHA256
   - must support TLS_CHACHA20_POLY1305_SHA256
+  - must support TLS_AES_256_GCM_SHA384
+  - must support ECDHE-RSA-CHACHA20-POLY1305
   - HSTS header not set
-  - certificate lifespan to long
+  - certificate lifespan too long (is 1103, should be less than 730)
   - OCSP stapling must be supported
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
@@ -722,7 +735,7 @@ https://dev.ssllabs.com/about/terms.html
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `domains` (required) | List of domain names to scan. | `domain` |
-| `allowed_grades`  | List of grades that are deemed acceptable. See https://ssllabs.com for details. (Default: `A` and `A+`. |  |
+| `allowed_grades`  | List of grades that are deemed acceptable. See https://ssllabs.com for details. |  |
 
 
 
@@ -1173,14 +1186,14 @@ Findings returned:
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: www.example.net
-- domain: www.example.edu
 - domain: example.edu
+- domain: www.example.edu
+- domain: www.example.net
 - domain: example.com
-- domain: www.example.org
-- domain: example.net
 - domain: example.org
 - domain: www.example.com
+- domain: example.net
+- domain: www.example.org
 
 ```
 
@@ -1330,7 +1343,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-14-103458.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-27-115723.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.

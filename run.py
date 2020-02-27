@@ -58,9 +58,9 @@ def build_module_subparsers(parser):
 
     subparsers = parser.add_subparsers(
         title="modules",
-        description="run modules directly",
+        description="Run a module directly without configuration file. To get help on the usage of a module, run this command with 'MODULE --help'. Remember that module names must be in quotes or the space must be escaped.",
         metavar="MODULE",
-        help=f"run module directly without configuration file. To get help on the usage of a module, run this command with 'MODULE --help'. Available modules: {', '.join(available_modules)}",
+        help=f"Available modules: {', '.join(available_modules)}",
         dest="module_name",
     )
     for category, cat_modules in modules.items():
@@ -148,7 +148,7 @@ def run_module_from_commandline(args):
         print(table_instance.table)
         print(f"{output_name}: {output_props['description']}\n")
 
-    print (f"No findings for: {', '.join(no_results)}")
+    print(f"No findings for: {', '.join(no_results)}")
 
 
 def prettyprint_value(val):
