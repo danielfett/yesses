@@ -50,7 +50,7 @@ class Dnssec(YModule):
         },
     }
 
-    EXAMPLE = [
+    EXAMPLES = [
         YExample(
             "Check DNSSEC configuration of dnssec-deployment.org",
             """
