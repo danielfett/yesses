@@ -54,16 +54,16 @@ class Dnssec(YModule):
         YExample(
             "Check DNSSEC configuration of dnssec-deployment.org",
             """
-  - scan Dnssec:
-    domains:
-      - domain: dnssec-deployment.org
-    find:
-      - DNSSEC-Logs-Domains
-      - DNSSEC-Warnings-Domains
-      - DNSSEC-Errors-Domains
-      - DNSSEC-Summary-Domains
-      - DNSSEC-Other-Error-Domains
-        """,
+ - scan Dnssec:
+     domains:
+       - domain: dnssec-deployment.org
+   find:
+     - DNSSEC-Logs-Domains
+     - DNSSEC-Warnings-Domains
+     - DNSSEC-Errors-Domains
+     - DNSSEC-Summary-Domains
+     - DNSSEC-Other-Error-Domains
+""",
         )
     ]
 

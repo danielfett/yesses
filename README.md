@@ -260,6 +260,71 @@ Use the DNSSEC Scanner Python package to check the DNSSEC configuration
     
 
 
+### Examples ###
+<details><summary>show example(s)</summary>
+<div>
+
+#### Check DNSSEC configuration of dnssec-deployment.org ####
+Configuration:
+```YAML
+ - scan Dnssec:
+     domains:
+       - domain: dnssec-deployment.org
+   find:
+     - DNSSEC-Logs-Domains
+     - DNSSEC-Warnings-Domains
+     - DNSSEC-Errors-Domains
+     - DNSSEC-Summary-Domains
+     - DNSSEC-Other-Error-Domains
+
+```
+Findings returned:
+```YAML
+DNSSEC-Errors-Domains:
+- domain: dnssec-deployment.org
+  errors: []
+DNSSEC-Logs-Domains:
+- domain: dnssec-deployment.org
+  logs:
+  - '. zone: KSK 20326 record validated, using DS 20326'
+  - '. zone: DNSKEY 20326,33853,48903 record validated, using KSK 20326'
+  - '. zone: org. DS 9795,9795 record validated, using ZSK 48903'
+  - 'org. zone: KSK 9795 record validated, using DS 9795'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 9795'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 17883'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using ZSK 37022'
+  - 'org. zone: dnssec-deployment.org. DS 47809 record validated, using ZSK 37022'
+  - 'dnssec-deployment.org. zone: KSK 47809 record validated, using DS 47809'
+  - 'dnssec-deployment.org. zone: DNSKEY 25218,47809,50850 record validated, using
+    KSK 47809'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. A record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NS record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. SOA record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. MX record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. TXT record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NSEC record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. AAAA record validated, using
+    ZSK 50850'
+DNSSEC-Other-Error-Domains: []
+DNSSEC-Summary-Domains:
+- domain: dnssec-deployment.org
+  note: 'Found RR sets: A, NS, SOA, MX, TXT, NSEC, AAAA'
+  status: 0
+DNSSEC-Warnings-Domains:
+- domain: dnssec-deployment.org
+  warnings: []
+
+```
+
+
+
+
 </div>
 </details>
 
@@ -664,28 +729,28 @@ TLS-Profile-Mismatch-Domains:
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-AES128-SHA
-  - must not support AES128-GCM-SHA256
   - must not support ECDHE-RSA-AES128-SHA
-  - must not support AES256-GCM-SHA384
-  - must not support DHE-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-AES256-SHA256
-  - must not support AES128-SHA256
-  - must not support DHE-RSA-AES256-SHA
-  - must not support DHE-RSA-AES128-SHA256
   - must not support AES256-SHA
-  - must not support ECDHE-RSA-AES256-SHA
-  - must not support DES-CBC3-SHA
-  - must not support AES256-SHA256
-  - must not support AES128-SHA
+  - must not support AES256-GCM-SHA384
   - must not support ECDHE-RSA-AES128-SHA256
+  - must not support DES-CBC3-SHA
+  - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-AES128-SHA256
+  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-AES256-SHA
+  - must not support EDH-RSA-DES-CBC3-SHA
+  - must not support AES128-SHA256
+  - must not support AES128-GCM-SHA256
+  - must not support ECDHE-RSA-AES256-SHA
+  - must not support DHE-RSA-AES128-SHA
+  - must not support AES128-SHA
   - must not support ECDHE-RSA-AES256-SHA384
-  - must support TLS_CHACHA20_POLY1305_SHA256
-  - must support TLS_AES_256_GCM_SHA384
+  - must not support AES256-SHA256
+  - must not support DHE-RSA-AES256-SHA256
   - must support TLS_AES_128_GCM_SHA256
   - must support ECDHE-RSA-CHACHA20-POLY1305
+  - must support TLS_AES_256_GCM_SHA384
+  - must support TLS_CHACHA20_POLY1305_SHA256
   - HSTS header not set
   - certificate lifespan too long (is 785, should be less than 730)
   - OCSP stapling must be supported
@@ -1019,8 +1084,8 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 93.184.216.34
 - ip: 2606:2800:220:1:248:1893:25c8:1946
+- ip: 93.184.216.34
 
 ```
 
@@ -1221,13 +1286,13 @@ Findings returned:
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: www.example.edu
-- domain: www.example.com
-- domain: example.edu
 - domain: example.org
-- domain: example.com
-- domain: example.net
+- domain: www.example.edu
 - domain: www.example.net
+- domain: example.net
+- domain: www.example.com
+- domain: example.com
+- domain: example.edu
 - domain: www.example.org
 
 ```
@@ -1378,7 +1443,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-04-09-143127.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-04-09-161550.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
