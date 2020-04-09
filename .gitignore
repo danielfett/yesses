@@ -191,7 +191,4 @@ dmypy.json
 # Test configuration
 test.yml
 
-# Certificates
-*.pem
-*.csr
-*.srl
+*.html
