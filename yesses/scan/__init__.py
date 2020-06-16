@@ -4,3 +4,4 @@ from .tls_settings_qualys import TLSSettingsQualys
 from .websecuritysettings import WebSecuritySettings
 from .information_leakage import InformationLeakage
 from .header_leakage import HeaderLeakage
+from .dnssec import Dnssec

@@ -187,6 +187,7 @@ dmypy.json
 *.alerts
 *.resume
 *.state
+*.html
 
 # Test configuration
 test.yml
@@ -195,3 +196,6 @@ test.yml
 *.pem
 *.csr
 *.srl
+
+# Pipenv
+Pipfile*

@@ -73,10 +73,10 @@ modules:
   of a module, run this command with 'MODULE --help'. Remember that module
   names must be in quotes or the space must be escaped.
 
-  MODULE                Available modules: 'scan Header Leakage', 'scan
-                        Information Leakage', 'scan Ports', 'scan TLS
-                        Settings', 'scan TLS Settings Qualys', 'scan Web
-                        Security Settings', 'discover Domains And IPs',
+  MODULE                Available modules: 'scan Dnssec', 'scan Header
+                        Leakage', 'scan Information Leakage', 'scan Ports',
+                        'scan TLS Settings', 'scan TLS Settings Qualys', 'scan
+                        Web Security Settings', 'discover Domains And IPs',
                         'discover Error Paths', 'discover Hidden Paths',
                         'discover Linked Paths', 'discover TLS Certificates',
                         'discover Webservers'
@@ -253,6 +253,110 @@ fields. The field names can be used in the yaml configuration file.
 
 
 
+## `scan Dnssec` ##
+Use the DNSSEC Scanner Python package to check the DNSSEC configuration
+    of domain names. The DNSSEC Scanner provides log, warning and error messages
+    for the DNSSEC validation process.
+    
+
+
+### Examples ###
+<details><summary>show example(s)</summary>
+<div>
+
+#### Check DNSSEC configuration of dnssec-deployment.org ####
+Configuration:
+```YAML
+ - scan Dnssec:
+     domains:
+       - domain: dnssec-deployment.org
+   find:
+     - DNSSEC-Logs-Domains
+     - DNSSEC-Warnings-Domains
+     - DNSSEC-Errors-Domains
+     - DNSSEC-Summary-Domains
+     - DNSSEC-Other-Error-Domains
+
+```
+Findings returned:
+```YAML
+DNSSEC-Errors-Domains:
+- domain: dnssec-deployment.org
+  errors: []
+DNSSEC-Logs-Domains:
+- domain: dnssec-deployment.org
+  logs:
+  - '. zone: KSK 20326 record validated, using DS 20326'
+  - '. zone: DNSKEY 20326,33853,48903 record validated, using KSK 20326'
+  - '. zone: org. DS 9795,9795 record validated, using ZSK 48903'
+  - 'org. zone: KSK 9795 record validated, using DS 9795'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 9795'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 17883'
+  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using ZSK 37022'
+  - 'org. zone: dnssec-deployment.org. DS 47809 record validated, using ZSK 37022'
+  - 'dnssec-deployment.org. zone: KSK 47809 record validated, using DS 47809'
+  - 'dnssec-deployment.org. zone: DNSKEY 25218,47809,50850 record validated, using
+    KSK 47809'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. A record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NS record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. SOA record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. MX record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. TXT record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NSEC record validated, using
+    ZSK 50850'
+  - 'dnssec-deployment.org. zone: dnssec-deployment.org. AAAA record validated, using
+    ZSK 50850'
+DNSSEC-Other-Error-Domains: []
+DNSSEC-Summary-Domains:
+- domain: dnssec-deployment.org
+  note: 'Found RR sets: A, NS, SOA, MX, TXT, NSEC, AAAA'
+  status: 0
+DNSSEC-Warnings-Domains:
+- domain: dnssec-deployment.org
+  warnings: []
+
+```
+
+
+
+
+</div>
+</details>
+
+### Inputs ###
+
+| Name             | Description    | Required keys                                            |
+|------------------|----------------|----------------------------------------------------------|
+| `domains` (required) | List of domain names to scan their DNSSEC configuration. | `domain` |
+| `parallel_requests`  | Number of parallel DNSSEC scan commands to run. |  |
+
+
+
+
+#### Default for `parallel_requests` ####
+```YAML
+10
+```
+
+
+
+### Outputs ###
+
+| Name             | Description    | Provided keys                                            |
+|------------------|----------------|----------------------------------------------------------|
+| `DNSSEC-Logs-Domains` | Log messages for the verification process of each domain. | `domain`, `logs` |
+| `DNSSEC-Warnings-Domains` | Warning messages for the verification process of each domain. | `domain`, `warnings` |
+| `DNSSEC-Errors-Domains` | Error messages for the verification process of each domain. | `domain`, `errors` |
+| `DNSSEC-Summary-Domains` | DNSSEC status (0=SECURE&#124;1=INSECURE&#124;2=BOGUS) and a note for the found RR sets. | `domain`, `status`, `note` |
+| `DNSSEC-Other-Error-Domains` | Domains that could not be scan because fo some error. `error` contains the error description. | `domain`, `error` |
+
+
+
 ## `scan HeaderLeakage` ##
 This module searches for potentially sensitive much information in
 HTTP headers. It checks if the 'Server' attribute contains too much
@@ -421,10 +525,6 @@ Leakages:
   found: html_comment
   type: file
   url: page0
-- finding: email@example.com
-  found: css_js_comment
-  type: email
-  url: page1
 - finding: 'Version: 1.11.0'
   found: visible_text
   type: version-info
@@ -629,30 +729,30 @@ TLS-Profile-Mismatch-Domains:
   - client must choose the cipher suite, not the server (Protocol TLSv1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.1)
   - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support DHE-RSA-AES128-SHA
-  - must not support AES256-SHA256
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support AES256-SHA
-  - must not support DHE-RSA-AES256-SHA
-  - must not support AES128-SHA256
-  - must not support AES128-SHA
   - must not support ECDHE-RSA-AES128-SHA
-  - must not support AES128-GCM-SHA256
-  - must not support ECDHE-RSA-AES128-SHA256
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support ECDHE-RSA-AES256-SHA384
-  - must not support DHE-RSA-AES128-SHA256
-  - must not support DHE-RSA-AES256-SHA256
-  - must not support DES-CBC3-SHA
-  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support AES256-SHA
   - must not support AES256-GCM-SHA384
+  - must not support ECDHE-RSA-AES128-SHA256
+  - must not support DES-CBC3-SHA
+  - must not support ECDHE-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-AES128-SHA256
+  - must not support DHE-RSA-DES-CBC3-SHA
+  - must not support DHE-RSA-AES256-SHA
+  - must not support EDH-RSA-DES-CBC3-SHA
+  - must not support AES128-SHA256
+  - must not support AES128-GCM-SHA256
   - must not support ECDHE-RSA-AES256-SHA
+  - must not support DHE-RSA-AES128-SHA
+  - must not support AES128-SHA
+  - must not support ECDHE-RSA-AES256-SHA384
+  - must not support AES256-SHA256
+  - must not support DHE-RSA-AES256-SHA256
   - must support TLS_AES_128_GCM_SHA256
-  - must support TLS_CHACHA20_POLY1305_SHA256
-  - must support TLS_AES_256_GCM_SHA384
   - must support ECDHE-RSA-CHACHA20-POLY1305
+  - must support TLS_AES_256_GCM_SHA384
+  - must support TLS_CHACHA20_POLY1305_SHA256
   - HSTS header not set
-  - certificate lifespan too long (is 1103, should be less than 730)
+  - certificate lifespan too long (is 785, should be less than 730)
   - OCSP stapling must be supported
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
@@ -1000,7 +1100,7 @@ IPs:
 | Name             | Description    | Required keys                                            |
 |------------------|----------------|----------------------------------------------------------|
 | `seeds` (required) | List of initial domains to start search from | `domain` |
-| `resolvers`  | List of DNS resolvers to use. Default (empty list): System DNS resolvers. | `ip` |
+| `resolvers`  | List of DNS resolvers to use. If empty, system DNS resolvers are used. | `ip` |
 
 
 
@@ -1186,13 +1286,13 @@ Findings returned:
 TLS-Certificates:
 - pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
 TLS-Names:
-- domain: example.edu
+- domain: example.org
 - domain: www.example.edu
 - domain: www.example.net
-- domain: example.com
-- domain: example.org
-- domain: www.example.com
 - domain: example.net
+- domain: www.example.com
+- domain: example.com
+- domain: example.edu
 - domain: www.example.org
 
 ```
@@ -1295,7 +1395,7 @@ TLS-Domains:
 | `ips` (required) | IPs and ports to scan (e.g., from the Ports module: Host-Ports) | `ip`, `port` |
 | `domains` (required) | Domain names to try on these IPs | `domain` |
 | `ports`  | Ports to look for web servers | `port` |
-| `ignore_errors`  | List of error codes that indicate a server that is not configured |  |
+| `ignore_errors`  | List of status codes that indicate a server that is not configured | `status_code` |
 
 
 
@@ -1310,7 +1410,7 @@ TLS-Domains:
 
 #### Default for `ignore_errors` ####
 ```YAML
-- 500
+- status_code: 500
 ```
 
 
@@ -1343,7 +1443,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-02-27-115723.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-04-09-161550.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.
