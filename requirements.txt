@@ -2,7 +2,7 @@ requests
 dnspython
 python-nmap
 pyyaml>=5
-git+https://github.com/takeshixx/python-ssllabs.git#egg=python-sslabs
+git+https://github.com/takeshixx/python-ssllabs.git#egg=python-ssllabs
 jinja2
 prettytable
 slackclient
@@ -12,4 +12,4 @@ bs4
 lxml
 comment_parser
 terminaltables
-git+https://github.com/fabian-hk/dnssec_scanner.git#egg=dnssec_scanner
+git+https://github.com/fabian-hk/dnssec_scanner.git#egg=dnssec-scanner

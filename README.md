@@ -39,9 +39,8 @@ Have a look at the [example configuration file](docs/examples/example.yml). yess
 # Usage #
 
 ```
-usage: run.py [-h] [--config [CONFIG]] [--verbose] [--resume] [--repeat N]
-              [--fresh] [--test] [--unittests] [--no-cache]
-              [--generate-readme [PATH]]
+usage: run.py [-h] [--config [CONFIG]] [--verbose] [--resume] [--repeat N] [--fresh] [--test] [--unittests]
+              [--no-cache] [--generate-readme [PATH]]
               MODULE ...
 
 Tool to scan for network and web security features
@@ -49,37 +48,28 @@ Tool to scan for network and web security features
 optional arguments:
   -h, --help            show this help message and exit
   --config [CONFIG], -c [CONFIG]
-                        Config file in yaml format. Required unless --test or
-                        --generate-readme are used.
+                        Config file in yaml format. Required unless --test or --generate-readme are used.
   --verbose, -v         Increase debug level to show debug messages.
   --resume, -r          Resume scanning from existing resumefile.
-  --repeat N            Repeat last N steps of run (for debugging). Will
-                        inhibit warnings of duplicate output variables.
-  --fresh, -f           Do not use existing state files. Usage of this
-                        required when datastructures in this application
-                        changed.
-  --test                Run a self-test. This executes the examples contained
-                        in all modules.
+  --repeat N            Repeat last N steps of run (for debugging). Will inhibit warnings of duplicate output
+                        variables.
+  --fresh, -f           Do not use existing state files. Usage of this required when datastructures in this
+                        application changed.
+  --test                Run a self-test. This executes the examples contained in all modules.
   --unittests           Run all tests which are defined in /tests/test_cases.
-  --no-cache            If '--unittests' is specified the test environment
-                        will be rebuild from scratch.
+  --no-cache            If '--unittests' is specified the test environment will be rebuild from scratch.
   --generate-readme [PATH]
-                        Run a self-test (as above) and generate the file
-                        README.md using the test results. Optional: path to
-                        write file to, defaults to location of this script.
+                        Run a self-test (as above) and generate the file README.md using the test results. Optional:
+                        path to write file to, defaults to location of this script.
 
 modules:
-  Run a module directly without configuration file. To get help on the usage
-  of a module, run this command with 'MODULE --help'. Remember that module
-  names must be in quotes or the space must be escaped.
+  Run a module directly without configuration file. To get help on the usage of a module, run this command with
+  'MODULE --help'. Remember that module names must be in quotes or the space must be escaped.
 
-  MODULE                Available modules: 'scan Dnssec', 'scan Header
-                        Leakage', 'scan Information Leakage', 'scan Ports',
-                        'scan TLS Settings', 'scan TLS Settings Qualys', 'scan
-                        Web Security Settings', 'discover Domains And IPs',
-                        'discover Error Paths', 'discover Hidden Paths',
-                        'discover Linked Paths', 'discover TLS Certificates',
-                        'discover Webservers'
+  MODULE                Available modules: 'scan Dnssec', 'scan Header Leakage', 'scan Information Leakage', 'scan
+                        Ports', 'scan TLS Settings', 'scan TLS Settings Qualys', 'scan Web Security Settings',
+                        'discover Domains And IPs', 'discover Error Paths', 'discover Hidden Paths', 'discover Linked
+                        Paths', 'discover TLS Certificates', 'discover Webservers'
 
 ```
 
@@ -280,45 +270,13 @@ Configuration:
 ```
 Findings returned:
 ```YAML
-DNSSEC-Errors-Domains:
+DNSSEC-Errors-Domains: []
+DNSSEC-Logs-Domains: []
+DNSSEC-Other-Error-Domains:
 - domain: dnssec-deployment.org
-  errors: []
-DNSSEC-Logs-Domains:
-- domain: dnssec-deployment.org
-  logs:
-  - '. zone: KSK 20326 record validated, using DS 20326'
-  - '. zone: DNSKEY 20326,33853,48903 record validated, using KSK 20326'
-  - '. zone: org. DS 9795,9795 record validated, using ZSK 48903'
-  - 'org. zone: KSK 9795 record validated, using DS 9795'
-  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 9795'
-  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using KSK 17883'
-  - 'org. zone: DNSKEY 9795,17883,33209,37022 record validated, using ZSK 37022'
-  - 'org. zone: dnssec-deployment.org. DS 47809 record validated, using ZSK 37022'
-  - 'dnssec-deployment.org. zone: KSK 47809 record validated, using DS 47809'
-  - 'dnssec-deployment.org. zone: DNSKEY 25218,47809,50850 record validated, using
-    KSK 47809'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. A record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NS record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. SOA record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. MX record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. TXT record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. NSEC record validated, using
-    ZSK 50850'
-  - 'dnssec-deployment.org. zone: dnssec-deployment.org. AAAA record validated, using
-    ZSK 50850'
-DNSSEC-Other-Error-Domains: []
-DNSSEC-Summary-Domains:
-- domain: dnssec-deployment.org
-  note: 'Found RR sets: A, NS, SOA, MX, TXT, NSEC, AAAA'
-  status: 0
-DNSSEC-Warnings-Domains:
-- domain: dnssec-deployment.org
-  warnings: []
+  error: '''DNSSECScanner'' object has no attribute ''run_scan'''
+DNSSEC-Summary-Domains: []
+DNSSEC-Warnings-Domains: []
 
 ```
 
@@ -688,7 +646,7 @@ null
 
 ## `scan TLSSettings` ##
 Uses the sslyze library to scan a webserver's TLS configuration and
-compare it to the Mozilla TLS configuration profiles.
+    compare it to the Mozilla TLS configuration profiles.
 
     
 
@@ -723,36 +681,38 @@ TLS-Other-Error-Domains: []
 TLS-Profile-Mismatch-Domains:
 - domain: mozilla-intermediate.badssl.com
   errors:
-  - must not support TLSv1
-  - must not support TLSv1.1
-  - must support TLSv1.3
-  - client must choose the cipher suite, not the server (Protocol TLSv1)
-  - client must choose the cipher suite, not the server (Protocol TLSv1.1)
-  - client must choose the cipher suite, not the server (Protocol TLSv1.2)
-  - must not support ECDHE-RSA-AES128-SHA
-  - must not support AES256-SHA
-  - must not support AES256-GCM-SHA384
-  - must not support ECDHE-RSA-AES128-SHA256
-  - must not support DES-CBC3-SHA
-  - must not support ECDHE-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-AES128-SHA256
-  - must not support DHE-RSA-DES-CBC3-SHA
-  - must not support DHE-RSA-AES256-SHA
-  - must not support EDH-RSA-DES-CBC3-SHA
-  - must not support AES128-SHA256
-  - must not support AES128-GCM-SHA256
-  - must not support ECDHE-RSA-AES256-SHA
-  - must not support DHE-RSA-AES128-SHA
-  - must not support AES128-SHA
-  - must not support ECDHE-RSA-AES256-SHA384
-  - must not support AES256-SHA256
-  - must not support DHE-RSA-AES256-SHA256
-  - must support TLS_AES_128_GCM_SHA256
-  - must support ECDHE-RSA-CHACHA20-POLY1305
-  - must support TLS_AES_256_GCM_SHA384
-  - must support TLS_CHACHA20_POLY1305_SHA256
+  - Must not support TLSv1.1
+  - Must not support TLSv1
+  - Must support TLSv1.3
+  - Client must choose the cipher suite, not the server (Protocol TLSv1)
+  - Client must choose the cipher suite, not the server (Protocol TLSv1.1)
+  - Client must choose the cipher suite, not the server (Protocol TLSv1.2)
+  - Must not support AES128-SHA256
+  - Must not support ECDHE-RSA-AES256-SHA384
+  - Must not support ECDHE-RSA-AES128-SHA
+  - Must not support AES128-GCM-SHA256
+  - Must not support DES-CBC3-SHA
+  - Must not support ECDHE-RSA-AES128-SHA256
+  - Must not support DHE-RSA-AES256-SHA256
+  - Must not support DHE-RSA-DES-CBC3-SHA
+  - Must not support ECDHE-RSA-AES256-SHA
+  - Must not support DHE-RSA-AES256-SHA
+  - Must not support ECDHE-RSA-DES-CBC3-SHA
+  - Must not support AES128-SHA
+  - Must not support DHE-RSA-AES128-SHA256
+  - Must not support AES256-SHA
+  - Must not support EDH-RSA-DES-CBC3-SHA
+  - Must not support DHE-RSA-AES128-SHA
+  - Must not support AES256-GCM-SHA384
+  - Must not support AES256-SHA256
+  - Must support TLS_AES_128_GCM_SHA256
+  - Must support TLS_CHACHA20_POLY1305_SHA256
+  - Must support ECDHE-RSA-CHACHA20-POLY1305
+  - Must support TLS_AES_256_GCM_SHA384
+  - Must support ECDH curve X25519 for key exchange
+  - Must support ECDH curve secp384r1 for key exchange
   - HSTS header not set
-  - certificate lifespan too long (is 785, should be less than 730)
+  - Certificate lifespan too long (is 785, should be less than 366)
   - OCSP stapling must be supported
 TLS-Validation-Fail-Domains: []
 TLS-Vulnerability-Domains: []
@@ -778,6 +738,7 @@ Alerts created (details hidden for brevity):
 | `domains` (required) | List of domain names to scan. | `domain` |
 | `tls_profile`  | The Mozilla TLS profile to test against (`old`, `intermediate`, or `modern`). |  |
 | `ca_file`  | Path to a trusted custom root certificates in PEM format. |  |
+| `cert_expire_warning`  | Warn if the certificate expires in less days than specified (default 15 days). |  |
 | `parallel_requests`  | Number of parallel TLS scan commands to run. |  |
 
 
@@ -792,6 +753,12 @@ intermediate
 #### Default for `ca_file` ####
 ```YAML
 null
+```
+
+
+#### Default for `cert_expire_warning` ####
+```YAML
+15
 ```
 
 
@@ -1084,8 +1051,8 @@ DNS-Entries:
 Domains:
 - domain: example.com
 IPs:
-- ip: 2606:2800:220:1:248:1893:25c8:1946
 - ip: 93.184.216.34
+- ip: 2606:2800:220:1:248:1893:25c8:1946
 
 ```
 
@@ -1284,14 +1251,14 @@ Configuration:
 Findings returned:
 ```YAML
 TLS-Certificates:
-- pubkey: 8bd1da95272f7fa4ffb24137fc0ed03aae67e5c4d8b3c50734e1050a7920b922
+- pubkey: 98cdbde31b251209af0ce0c0c56587d83787e3f6cd80f069819bdded27dc8ae0
 TLS-Names:
-- domain: example.org
+- domain: example.net
 - domain: www.example.edu
 - domain: www.example.net
-- domain: example.net
-- domain: www.example.com
 - domain: example.com
+- domain: example.org
+- domain: www.example.com
 - domain: example.edu
 - domain: www.example.org
 
@@ -1443,7 +1410,7 @@ This module uses a jinja2 template to create output, for example, an HTML summar
 Parameters:
 
   * `template`: defines the jinja2 template that is to be used to create the output.
-  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-04-09-161550.html`.
+  * `filename`: where the output is written to. Placeholders as in [python's `strftime()` function](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior) are evaluated. For example, `yesses-report-%Y-%m-%d-%H%M%S.html` would be converted to a filename like `yesses-report-2020-12-25-141213.html`.
 
 Both filenames can be relative paths (evaluated relative to the
 working directory) or absolute paths.

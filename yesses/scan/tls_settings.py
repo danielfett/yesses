@@ -1,6 +1,5 @@
 from tlsprofiler import TLSProfiler
 from yesses.module import YModule, YExample
-import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor
 
@@ -9,7 +8,7 @@ log = logging.getLogger("scan/tlssettings")
 
 class TLSSettings(YModule):
     """Uses the sslyze library to scan a webserver's TLS configuration and
-compare it to the Mozilla TLS configuration profiles.
+    compare it to the Mozilla TLS configuration profiles.
 
     """
 
@@ -28,6 +27,11 @@ compare it to the Mozilla TLS configuration profiles.
             "required_keys": None,
             "description": "Path to a trusted custom root certificates in PEM format.",
             "default": None,
+        },
+        "cert_expire_warning": {
+            "required_keys": None,
+            "description": "Warn if the certificate expires in less days than specified (default 15 days).",
+            "default": 15,
         },
         "parallel_requests": {
             "required_keys": None,
@@ -89,17 +93,26 @@ compare it to the Mozilla TLS configuration profiles.
             executor.map(self.scan_domain, self.domains)
 
     def scan_domain(self, domain):
-        scanner = TLSProfiler(domain, self.tls_profile, ca_file=self.ca_file)
+        scanner = TLSProfiler(
+            domain, ca_file=self.ca_file, cert_expire_warning=self.cert_expire_warning
+        )
         if scanner.server_error is not None:
             self.results["TLS-Other-Error-Domains"].append(
-                {"domain": domain, "error": scanner.server_error,}
+                {
+                    "domain": domain,
+                    "error": scanner.server_error,
+                }
             )
             return
         try:
-            tls_results = scanner.run()
+            scanner.scan_server()
+            tls_results = scanner.compare_to_profile(self.tls_profile)
         except Exception as e:
             self.results["TLS-Other-Error-Domains"].append(
-                {"domain": domain, "error": str(e),}
+                {
+                    "domain": domain,
+                    "error": str(e),
+                }
             )
             return
 
@@ -118,10 +131,16 @@ compare it to the Mozilla TLS configuration profiles.
 
         if not tls_results.profile_matched:
             self.results["TLS-Profile-Mismatch-Domains"].append(
-                {"domain": domain, "errors": tls_results.profile_errors,}
+                {
+                    "domain": domain,
+                    "errors": tls_results.profile_errors,
+                }
             )
 
         if tls_results.vulnerable:
             self.results["TLS-Vulnerability-Domains"].append(
-                {"domain": domain, "errors": tls_results.vulnerability_errors,}
+                {
+                    "domain": domain,
+                    "errors": tls_results.vulnerability_errors,
+                }
             )
