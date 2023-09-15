@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "yesses"
+version = "1.0.0"
+description = "Simple tool to enumerate domains and IPs and test those domains and IPs for basic network and web security properties."
+authors = ["Daniel Fett <mail@danielfett.de>"]
+license = "AGPL-3.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+tlsprofiler = "*"
+requests = "^2.31.0"
+dnspython = "*"
+python-nmap = "*"
+pyyaml = ">=5"
+python-ssllabs = { git = "https://github.com/danielfett/python-ssllabs.git#egg=python-ssllabs" }
+jinja2 = "*"
+prettytable = "*"
+slackclient = "*"
+pyparsing = "*"
+bs4 = "*"
+lxml = "*"
+comment_parser = "^1.2.0"
+terminaltables = "*"
+dnssec_scanner = { git = "https://github.com/fabian-hk/dnssec_scanner.git#egg=dnssec-scanner" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
